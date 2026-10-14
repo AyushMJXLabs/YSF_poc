@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: ysf-kaushalya-lms
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node src/server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: MONGODB_URI
+        value: mongodb+srv://ayushk_db_user:LB3M9n56IXKWi0lf@ysfdatabase.vznhwe9.mongodb.net/?appName=YSFdatabase
+      - key: DB_NAME
+        value: ysf_kaushalya_lms
+      - key: INSTITUTE_CODE
+        value: "21092"
+      - key: PORT
+        value: 10000

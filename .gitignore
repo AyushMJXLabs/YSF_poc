@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# macOS
+.DS_Store
+Thumbs.db
+
+# Expo & Web build artifacts
+.expo/
+dist/
+web-build/
+
+# Android build outputs & caches (keep source code & gradle scripts)
+*.apk
+*.aab
+.gradle/
+.kotlin/
+local.properties
+**/android/.gradle/
+**/android/build/
+**/android/app/build/
+**/android/.cxx/
+**/android/.idea/
+**/android/*.iml
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Large archives
+*.zip
+*.tar.gz

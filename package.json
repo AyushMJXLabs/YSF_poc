@@ -1,0 +1,28 @@
+{
+  "name": "kaushalya-lms-ysf",
+  "version": "1.0.0",
+  "description": "Kaushalya Learning Management System powered by Yuvashakti Foundation (YSF)",
+  "scripts": {
+    "build": "cd backend && npm install",
+    "start": "node backend/src/server.js",
+    "backend": "cd backend && npm start",
+    "backend:dev": "cd backend && npm run dev",
+    "mobile": "cd mobile && npx expo start",
+    "mobile:android": "cd mobile && npx expo run:android",
+    "mobile:web": "cd mobile && npx expo start --web",
+    "mobile:typecheck": "cd mobile && npx tsc --noEmit",
+    "mobile:export:android": "cd mobile && npx expo export --platform android",
+    "mobile:export:web": "cd mobile && npx expo export --platform web"
+  },
+  "keywords": [
+    "lms",
+    "kaushalya",
+    "yuvashakti-foundation",
+    "vocational-skills",
+    "react-native",
+    "expo",
+    "express"
+  ],
+  "author": "Yuvashakti Foundation",
+  "license": "UNLICENSED"
+}
