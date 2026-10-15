@@ -3,25 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>YSF Kaushalya — Central Administration Control Center</title>
+  <title>Kaushalya Admin</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <!-- Google Fonts: Geist & Geist Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <!-- Font Awesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <!-- Lucide Icons CDN -->
-  <script src="https://unpkg.com/lucide@latest"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
           fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
-            mono: ['"JetBrains Mono"', 'monospace'],
+            sans: ['Geist', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['"Geist Mono"', 'ui-monospace', 'monospace'],
           },
           colors: {
             brand: {
@@ -33,219 +31,513 @@
               700: '#0369a1',
               800: '#075985',
               900: '#0c4a6e',
-            },
-            sidebar: {
-              DEFAULT: '#0B0F19',
-              border: '#1E293B',
-              hover: '#151E2E',
-              active: '#1E293B',
             }
           },
           boxShadow: {
-            'xs': '0 1px 2px 0 rgba(0, 0, 0, 0.04)',
-            'subtle': '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05)',
-            'card': '0 0 0 1px rgba(226, 232, 240, 0.8), 0 1px 2px 0 rgba(0, 0, 0, 0.03)',
-            'glow-emerald': '0 0 12px rgba(16, 185, 129, 0.35)',
-            'glow-sky': '0 0 14px rgba(14, 165, 233, 0.25)',
+            'xs': 'none',
+            '2xs': 'none',
+            'subtle': 'none',
+            'card': 'none',
           }
         }
       }
     }
   </script>
   <style>
-    body {
-      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-      -webkit-font-smoothing: antialiased;
-    }
-    /* Custom Scrollbars */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 9999px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #94a3b8;
-    }
-    .sidebar-scroll::-webkit-scrollbar-thumb {
-      background: #1e293b;
-    }
-    .sidebar-scroll::-webkit-scrollbar-thumb:hover {
-      background: #334155;
+    /* ============================================================
+       DESIGN TOKENS
+       ============================================================ */
+    :root {
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --subtle: #f4f4f5;
+      --ink: #09090b;
+      --ink-2: #3f3f46;
+      --muted: #71717a;
+      --faint: #a1a1aa;
+      --line: #e4e4e7;
+      --line-soft: #f0f0f2;
+      --line-strong: #d4d4d8;
+      --accent: #2952ff;
+      --accent-soft: rgba(41, 82, 255, 0.08);
+      --ok: #059669;
+      --warn: #d97706;
+      --bad: #e11d48;
+      --sidebar-w: 248px;
     }
 
-    /* Animation Utilities */
-    @keyframes spin-slow {
-      to { transform: rotate(360deg); }
+    body {
+      font-family: 'Geist', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--bg) !important;
+      color: var(--ink);
+      font-feature-settings: 'ss01', 'cv11';
     }
-    .spin-active {
-      animation: spin-slow 0.8s linear infinite;
+    .font-mono, code, kbd { font-family: 'Geist Mono', ui-monospace, monospace !important; }
+    .tabular { font-variant-numeric: tabular-nums; }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 9999px; border: 2px solid transparent; background-clip: padding-box; }
+    ::-webkit-scrollbar-thumb:hover { background: #a1a1aa; background-clip: padding-box; border: 2px solid transparent; }
+
+    @keyframes spin-slow { to { transform: rotate(360deg); } }
+    .spin-active { animation: spin-slow 0.8s linear infinite; }
+    @keyframes fade-up { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    .tab-pane:not(.hidden) { animation: fade-up .22s ease-out; }
+
+    /* ============================================================
+       SIDEBAR
+       ============================================================ */
+    #app-sidebar {
+      width: var(--sidebar-w);
+      background: var(--bg);
+      border-right: 1px solid var(--line);
+      transition: width .18s ease;
     }
-    .glass-pill {
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+    #app-sidebar.collapsed { width: 60px; }
+    #app-sidebar.collapsed .sidebar-text { display: none !important; }
+    #app-sidebar.collapsed .nav-item { justify-content: center; }
+    #app-sidebar.collapsed .nav-group-label { visibility: hidden; height: 8px; margin: 0; }
+    .nav-group-label {
+      font-family: 'Geist Mono', monospace;
+      font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--faint); padding: 0 10px; margin-bottom: 6px;
+    }
+    .nav-item {
+      width: 100%; display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; height: 32px; padding: 0 10px;
+      border-radius: 6px; border: 1px solid transparent;
+      font-size: 13px; color: var(--ink-2); font-weight: 450;
+      transition: background .12s, color .12s, border-color .12s;
+    }
+    .nav-item:hover { background: var(--subtle); color: var(--ink); }
+    .nav-item i { width: 16px; text-align: center; font-size: 13px; color: var(--faint); transition: color .12s; }
+    .nav-item:hover i { color: var(--ink-2); }
+    .nav-item.active {
+      background: var(--surface); color: var(--ink); font-weight: 500;
+      border-color: var(--line);
+      box-shadow: 0 1px 2px rgba(9, 9, 11, 0.04);
+    }
+    .nav-item.active i { color: var(--ink); }
+    .nav-count {
+      font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--faint);
+      font-variant-numeric: tabular-nums;
+    }
+    .nav-count.alert { color: var(--warn); }
+    .live-dot { width: 6px; height: 6px; border-radius: 9999px; background: var(--ok); box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15); }
+
+    /* ============================================================
+       HEADER & SHARED CHROME
+       ============================================================ */
+    .app-header { height: 56px; background: rgba(250, 250, 250, 0.85); backdrop-filter: saturate(180%) blur(12px); -webkit-backdrop-filter: saturate(180%) blur(12px); border-bottom: 1px solid var(--line); }
+    .icon-btn {
+      height: 32px; min-width: 32px; padding: 0 8px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      border-radius: 6px; color: var(--muted); font-size: 13px;
+      transition: background .12s, color .12s;
+    }
+    .icon-btn:hover { background: var(--subtle); color: var(--ink); }
+    .search-trigger {
+      height: 32px; width: 100%; max-width: 360px;
+      display: flex; align-items: center; gap: 8px; padding: 0 6px 0 10px;
+      border: 1px solid var(--line); border-radius: 6px; background: var(--surface);
+      color: var(--faint); font-size: 13px; cursor: pointer;
+      transition: border-color .12s;
+    }
+    .search-trigger:hover { border-color: var(--line-strong); }
+    kbd, .kbd {
+      font-family: 'Geist Mono', monospace; font-size: 10.5px; color: var(--muted);
+      border: 1px solid var(--line); border-bottom-width: 2px; background: var(--bg);
+      border-radius: 4px; padding: 1px 5px; line-height: 1.4;
+    }
+    .status-chip {
+      height: 28px; display: inline-flex; align-items: center; gap: 8px; padding: 0 10px;
+      border: 1px solid var(--line); border-radius: 9999px; background: var(--surface);
+      font-size: 12px; color: var(--ink-2); cursor: pointer; white-space: nowrap;
+      transition: border-color .12s;
+    }
+    .status-chip:hover { border-color: var(--line-strong); }
+    .status-dot { width: 6px; height: 6px; border-radius: 9999px; background: var(--ok); }
+    .status-chip.warn .status-dot { background: var(--warn); }
+    .avatar {
+      width: 28px; height: 28px; border-radius: 9999px; background: var(--ink); color: #fafafa;
+      display: grid; place-items: center; font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+    }
+    .dropdown {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+      box-shadow: 0 16px 40px -12px rgba(9, 9, 11, 0.18), 0 2px 6px rgba(9, 9, 11, 0.04);
+    }
+    .dropdown-item {
+      width: 100%; text-align: left; display: flex; align-items: center; gap: 10px;
+      padding: 7px 10px; border-radius: 6px; font-size: 13px; color: var(--ink-2);
+    }
+    .dropdown-item:hover { background: var(--subtle); color: var(--ink); }
+    .dropdown-item i { width: 14px; color: var(--faint); font-size: 12px; }
+
+    /* Page header used by dashboard & reports */
+    .eyebrow { font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    .page-title { font-size: 24px; line-height: 1.15; font-weight: 600; letter-spacing: -0.025em; color: var(--ink); }
+    .page-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    .btn {
+      height: 32px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      border-radius: 6px; font-size: 13px; font-weight: 500; white-space: nowrap;
+      transition: background .12s, border-color .12s, color .12s, transform .05s;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary { background: var(--ink); color: #fafafa; }
+    .btn-primary:hover { background: #27272a; }
+    .btn-ghost { background: var(--surface); color: var(--ink-2); border: 1px solid var(--line); }
+    .btn-ghost:hover { border-color: var(--line-strong); color: var(--ink); background: var(--surface); }
+    .btn-ghost i, .btn-primary i { font-size: 12px; }
+    .btn-ghost i { color: var(--muted); }
+
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+    .panel-title { font-size: 13px; font-weight: 600; color: var(--ink); letter-spacing: -0.005em; }
+    .panel-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    .kpi { padding: 18px 20px; }
+    .kpi + .kpi { border-left: 1px solid var(--line); }
+    .kpi-label { font-size: 12px; color: var(--muted); }
+    .kpi-value { font-size: 28px; font-weight: 600; letter-spacing: -0.03em; color: var(--ink); margin-top: 6px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+    .kpi-meta { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--faint); margin-top: 8px; }
+    @media (max-width: 1023px) {
+      .kpi:nth-child(odd) { border-left: 0; }
+      .kpi:nth-child(n+3) { border-top: 1px solid var(--line); }
+    }
+    @media (max-width: 639px) {
+      .kpi + .kpi { border-left: 0; border-top: 1px solid var(--line); }
+    }
+
+    .list-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 10px 16px; font-size: 13px; color: var(--ink-2); cursor: pointer;
+      transition: background .12s;
+    }
+    .list-row + .list-row { border-top: 1px solid var(--line-soft); }
+    .list-row:hover { background: var(--bg); color: var(--ink); }
+    .list-row .chev { color: var(--faint); font-size: 11px; transition: transform .12s, color .12s; }
+    .list-row:hover .chev { transform: translateX(2px); color: var(--ink); }
+
+    /* ============================================================
+       GLOBAL DESIGN LAYER — normalizes legacy utility markup
+       (cards, buttons, chips, inputs, tables, modals)
+       ============================================================ */
+    main, [id^="modal-"] { color: var(--ink-2); }
+
+    .rounded-2xl { border-radius: 12px !important; }
+    .rounded-xl { border-radius: 10px !important; }
+    .rounded-lg { border-radius: 6px !important; }
+    .rounded-md { border-radius: 5px !important; }
+    .rounded { border-radius: 4px !important; }
+
+    .shadow-md, .shadow-sm { box-shadow: none !important; }
+    .hover\:shadow-md:hover { box-shadow: 0 4px 16px -6px rgba(9, 9, 11, 0.08) !important; }
+
+    .font-extrabold { font-weight: 600 !important; }
+    .font-bold { font-weight: 600 !important; }
+
+    [class*="border-slate-"] { border-color: var(--line) !important; }
+    .divide-slate-100 > * + * { border-color: var(--line-soft) !important; }
+    .text-slate-900 { color: var(--ink) !important; }
+    .text-slate-800, .text-slate-700 { color: var(--ink-2) !important; }
+    .text-slate-600, .text-slate-500 { color: var(--muted) !important; }
+    .text-slate-400 { color: var(--faint) !important; }
+    .bg-slate-50, .bg-slate-50\/80, .bg-slate-50\/70, .bg-slate-50\/60, .bg-slate-50\/50 { background-color: var(--bg) !important; }
+
+    main .bg-white.rounded-xl { border: 1px solid var(--line) !important; }
+    main h3.text-base { font-size: 15px !important; letter-spacing: -0.015em; }
+    main h3, main h4, main h5 { letter-spacing: -0.01em; }
+
+    /* Decorative heading icons → quiet */
+    main h3 > i, main h4 > i, main h5 i, [id^="modal-"] h3 > i, main label > i { color: var(--faint) !important; }
+
+    /* Non-semantic accent text → neutral ink */
+    main :is([class*="text-sky-"], [class*="text-blue-"], [class*="text-indigo-"], [class*="text-violet-"], [class*="text-purple-"], [class*="text-teal-"], [class*="text-cyan-"]),
+    [id^="modal-"] :is([class*="text-sky-"], [class*="text-blue-"], [class*="text-indigo-"], [class*="text-violet-"], [class*="text-purple-"], [class*="text-teal-"], [class*="text-cyan-"]) {
+      color: var(--ink-2) !important;
+    }
+    main i:is([class*="text-sky-"], [class*="text-blue-"], [class*="text-indigo-"], [class*="text-violet-"], [class*="text-purple-"], [class*="text-teal-"], [class*="text-cyan-"]) { color: var(--muted) !important; }
+
+    /* Non-semantic tinted chips & surfaces → neutral */
+    main :is(span, div, p, li):is([class*="bg-sky-50"], [class*="bg-sky-100"], [class*="bg-blue-50"], [class*="bg-blue-100"], [class*="bg-indigo-50"], [class*="bg-indigo-100"], [class*="bg-violet-50"], [class*="bg-violet-100"], [class*="bg-purple-50"], [class*="bg-purple-100"], [class*="bg-teal-50"], [class*="bg-teal-100"], [class*="bg-cyan-50"], [class*="bg-cyan-100"]),
+    [id^="modal-"] :is(span, div, p):is([class*="bg-sky-50"], [class*="bg-sky-100"], [class*="bg-blue-50"], [class*="bg-indigo-50"], [class*="bg-indigo-100"], [class*="bg-purple-50"], [class*="bg-teal-50"], [class*="bg-cyan-50"]) {
+      background-color: var(--subtle) !important;
+      border-color: var(--line) !important;
+      color: var(--ink-2) !important;
+    }
+
+    /* Tinted buttons/links → outlined neutral */
+    body :is(button, a):is([class*="bg-sky-50"], [class*="bg-blue-50"], [class*="bg-indigo-50"], [class*="bg-violet-50"], [class*="bg-purple-50"], [class*="bg-teal-50"], [class*="bg-cyan-50"], [class*="bg-emerald-50"], [class*="bg-amber-50"], [class*="bg-slate-100"], [class*="bg-slate-200"]):not(.nav-item):not(.keep-style) {
+      background: var(--surface) !important;
+      border: 1px solid var(--line) !important;
+      color: var(--ink-2) !important;
+      font-weight: 500 !important;
+    }
+    body :is(button, a):is([class*="bg-sky-50"], [class*="bg-blue-50"], [class*="bg-indigo-50"], [class*="bg-violet-50"], [class*="bg-purple-50"], [class*="bg-teal-50"], [class*="bg-cyan-50"], [class*="bg-emerald-50"], [class*="bg-amber-50"], [class*="bg-slate-100"], [class*="bg-slate-200"]):not(.nav-item):not(.keep-style):hover {
+      border-color: var(--line-strong) !important;
+      color: var(--ink) !important;
+      background: var(--bg) !important;
+    }
+    body :is(button, a):is([class*="bg-sky-50"], [class*="bg-blue-50"], [class*="bg-indigo-50"], [class*="bg-violet-50"], [class*="bg-purple-50"], [class*="bg-teal-50"], [class*="bg-cyan-50"], [class*="bg-emerald-50"], [class*="bg-amber-50"], [class*="bg-slate-100"], [class*="bg-slate-200"]):not(.nav-item):not(.keep-style) i { color: var(--muted) !important; }
+
+    /* Solid colored buttons → ink primary */
+    body :is(button, a):is([class*="bg-sky-500"], [class*="bg-sky-600"], [class*="bg-blue-600"], [class*="bg-indigo-600"], [class*="bg-violet-600"], [class*="bg-purple-600"], [class*="bg-teal-600"], [class*="bg-cyan-600"], [class*="bg-emerald-500"], [class*="bg-emerald-600"], [class*="bg-amber-600"], [class*="bg-red-600"], [class*="bg-rose-600"], [class*="bg-slate-800"]):not(.keep-style) {
+      background: var(--ink) !important;
+      color: #fafafa !important;
+      border: 1px solid var(--ink) !important;
+      font-weight: 500 !important;
+    }
+    body :is(button, a):is([class*="bg-sky-500"], [class*="bg-sky-600"], [class*="bg-blue-600"], [class*="bg-indigo-600"], [class*="bg-violet-600"], [class*="bg-purple-600"], [class*="bg-teal-600"], [class*="bg-cyan-600"], [class*="bg-emerald-500"], [class*="bg-emerald-600"], [class*="bg-amber-600"], [class*="bg-red-600"], [class*="bg-rose-600"], [class*="bg-slate-800"]):not(.keep-style):hover {
+      background: #27272a !important;
+      border-color: #27272a !important;
+    }
+    body :is(button, a):is([class*="bg-sky-500"], [class*="bg-sky-600"], [class*="bg-blue-600"], [class*="bg-indigo-600"], [class*="bg-violet-600"], [class*="bg-purple-600"], [class*="bg-teal-600"], [class*="bg-cyan-600"], [class*="bg-emerald-500"], [class*="bg-emerald-600"], [class*="bg-amber-600"], [class*="bg-red-600"], [class*="bg-rose-600"], [class*="bg-slate-800"]):not(.keep-style) i { color: inherit !important; }
+
+    /* Form controls */
+    main :is(input:not([type=checkbox]):not([type=radio]):not([type=file]), select, textarea),
+    [id^="modal-"] :is(input:not([type=checkbox]):not([type=radio]):not([type=file]), select, textarea) {
+      border: 1px solid var(--line-strong) !important;
+      background-color: var(--surface);
+      color: var(--ink);
+      border-radius: 6px !important;
+      transition: border-color .12s, box-shadow .12s;
+    }
+    main :is(input, select):not([type=checkbox]):not([type=radio]):not([type=file]),
+    [id^="modal-"] :is(input, select):not([type=checkbox]):not([type=radio]):not([type=file]) { min-height: 32px; }
+    main :is(input, select, textarea):focus,
+    [id^="modal-"] :is(input, select, textarea):focus {
+      outline: none !important;
+      border-color: var(--ink) !important;
+      box-shadow: 0 0 0 3px rgba(9, 9, 11, 0.07) !important;
+      --tw-ring-shadow: 0 0 #0000 !important;
+    }
+    ::placeholder { color: var(--faint) !important; }
+    input[type=checkbox], input[type=radio] { accent-color: var(--ink); }
+    input[type=file]::file-selector-button {
+      background: var(--ink) !important; color: #fafafa !important; border: 0; border-radius: 5px;
+      padding: 6px 10px; margin-right: 10px; font: inherit; font-size: 12px; cursor: pointer;
+    }
+    [id^="modal-"] label.font-bold, main label.font-bold { font-weight: 500 !important; color: var(--ink-2) !important; }
+
+    /* Tables */
+    main table thead tr { background: transparent !important; }
+    main table thead th {
+      font-size: 11px !important; font-weight: 500 !important; letter-spacing: 0.04em;
+      color: var(--muted) !important; text-transform: uppercase;
+      border-bottom: 1px solid var(--line) !important; white-space: nowrap;
+    }
+    main table tbody tr:hover { background: var(--bg) !important; }
+
+    /* Modals */
+    [id^="modal-"].fixed { background: rgba(9, 9, 11, 0.42) !important; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+    [id^="modal-"] > div {
+      border: 1px solid var(--line) !important;
+      box-shadow: 0 32px 64px -16px rgba(9, 9, 11, 0.28), 0 2px 8px rgba(9, 9, 11, 0.04) !important;
+    }
+    [id^="modal-"]:not(.hidden) > div { animation: fade-up .18s ease-out; }
+    [id^="modal-"] h3 { font-size: 14px !important; letter-spacing: -0.01em; }
+
+    /* Toasts */
+    .toast {
+      pointer-events: auto; display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: 8px; font-size: 13px;
+      background: var(--ink); color: #fafafa; border: 1px solid #27272a;
+      box-shadow: 0 16px 40px -12px rgba(9, 9, 11, 0.35);
+      transition: opacity .25s, transform .25s;
+    }
+    .toast .toast-dot { width: 6px; height: 6px; border-radius: 9999px; flex-shrink: 0; }
+
+    /* ============================================================
+       REPORTS
+       ============================================================ */
+    .report-card {
+      position: relative; text-align: left; padding: 18px; min-height: 148px;
+      display: flex; flex-direction: column; justify-content: space-between; gap: 20px;
+      background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+      transition: border-color .15s, box-shadow .15s, transform .15s;
+    }
+    .report-card:hover { border-color: var(--ink); box-shadow: 0 8px 24px -12px rgba(9, 9, 11, 0.18); }
+    .report-card .rc-icon {
+      width: 32px; height: 32px; border-radius: 7px; border: 1px solid var(--line);
+      display: grid; place-items: center; color: var(--ink-2); font-size: 13px; background: var(--bg);
+    }
+    .report-card .rc-title { font-size: 14px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
+    .report-card .rc-desc { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.45; }
+    .report-card .rc-meta { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--faint); }
+    .report-card .rc-arrow { position: absolute; top: 18px; right: 18px; color: var(--faint); font-size: 12px; transform: rotate(-45deg); transition: transform .15s, color .15s; }
+    .report-card:hover .rc-arrow { color: var(--ink); transform: translate(2px, -2px) rotate(-45deg); }
+
+    .crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+    .crumbs button:hover { color: var(--ink); }
+    .crumbs .sep { color: var(--line-strong); }
+    .crumbs .current { color: var(--ink); font-weight: 500; }
+
+    .report-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+    .report-search {
+      height: 32px; width: 240px; max-width: 100%;
+      border: 1px solid var(--line); border-radius: 6px; padding: 0 10px 0 30px;
+      font-size: 13px; background: var(--surface);
+    }
+    .report-meta { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--muted); }
+
+    .report-scroll { overflow: auto; max-height: calc(100vh - 290px); min-height: 280px; position: relative; }
+    table.report-table { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; font-size: 13px; }
+    .report-table thead th {
+      position: sticky; top: 0; z-index: 2;
+      background: var(--bg) !important;
+      text-align: left; vertical-align: bottom;
+      padding: 10px 14px !important;
+      border-bottom: 1px solid var(--line) !important;
+      border-right: 1px solid var(--line-soft);
+      text-transform: none !important; letter-spacing: 0 !important;
+      font-size: 12px !important; font-weight: 500 !important; color: var(--ink-2) !important;
+      white-space: normal !important; min-width: 120px; max-width: 200px; line-height: 1.3;
+    }
+    .report-table thead tr.group-row th.group {
+      top: 0; text-align: center; font-family: 'Geist Mono', monospace;
+      font-size: 10.5px !important; text-transform: uppercase !important; letter-spacing: 0.08em !important;
+      color: var(--muted) !important; padding: 7px 14px !important; background: var(--subtle) !important;
+    }
+    .report-table thead tr.group-row + tr th { top: var(--group-h, 30px); }
+    .report-table th .col-hint {
+      display: block; margin-top: 3px;
+      font-family: 'Geist Mono', monospace; font-size: 10.5px; font-weight: 400; color: var(--faint);
+    }
+    .report-table th.num, .report-table td.num { text-align: right; }
+    .report-table th.sr, .report-table td.sr {
+      position: sticky; left: 0; z-index: 3; min-width: 72px !important; width: 72px; text-align: right; white-space: nowrap !important;
+      border-right: 1px solid var(--line) !important;
+    }
+    .report-table td.sr { background: inherit; z-index: 1; color: var(--muted); font-family: 'Geist Mono', monospace; font-size: 12px; }
+    .report-table tbody tr { background: var(--surface); }
+    .report-table tbody tr:nth-child(even) { background: #fcfcfc; }
+    .report-table tbody tr:hover { background: var(--subtle) !important; }
+    .report-table tbody tr.report-empty, .report-table tbody tr.report-empty:hover { background: var(--surface) !important; }
+    .report-table tbody td {
+      padding: 10px 14px; border-bottom: 1px solid var(--line-soft); border-right: 1px solid var(--line-soft);
+      white-space: nowrap; color: var(--ink-2);
+    }
+    .report-table td.num { font-variant-numeric: tabular-nums; font-family: 'Geist Mono', monospace; font-size: 12px; }
+    .report-empty td { padding: 0 !important; border: 0 !important; }
+    .report-empty-inner {
+      position: sticky; left: 0; width: var(--empty-w, 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+      padding: 56px 16px; text-align: center; white-space: normal; box-sizing: border-box;
+    }
+    .report-empty-inner .ei-icon { width: 36px; height: 36px; border-radius: 9px; border: 1px dashed var(--line-strong); display: grid; place-items: center; color: var(--faint); margin-bottom: 6px; }
+    .report-empty-inner .ei-title { font-size: 13px; font-weight: 500; color: var(--ink); }
+    .report-empty-inner .ei-sub { font-size: 12px; color: var(--muted); max-width: 360px; }
+
+    .variant-card {
+      text-align: left; padding: 18px; display: flex; align-items: flex-start; gap: 14px;
+      background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .variant-card:hover { border-color: var(--ink); box-shadow: 0 8px 24px -12px rgba(9, 9, 11, 0.18); }
+
+    @media print {
+      #app-sidebar, .app-header, .report-toolbar .no-print, .crumbs, #toast-container { display: none !important; }
+      main { padding: 0 !important; overflow: visible !important; }
+      .report-scroll { max-height: none; overflow: visible; }
+      .report-table thead th { position: static; }
     }
   </style>
 </head>
-<body class="bg-slate-50/80 text-slate-800 h-full flex overflow-hidden text-sm selection:bg-brand-500 selection:text-white">
+<body class="h-full flex overflow-hidden text-sm text-slate-800 selection:bg-zinc-900 selection:text-white">
 
   <!-- ======================================================== -->
   <!-- 1. COLLAPSIBLE LEFT SIDEBAR NAVIGATION                    -->
   <!-- ======================================================== -->
-  <aside id="app-sidebar" class="w-64 bg-[#0B0F19] text-slate-300 flex-shrink-0 flex flex-col border-r border-slate-800/80 transition-all duration-200 z-40 select-none">
-    
-    <!-- Brand Header -->
-    <div class="h-16 px-4 flex items-center justify-between border-b border-slate-800/80 bg-[#0B0F19]">
-      <div class="flex items-center space-x-3 overflow-hidden cursor-pointer" onclick="switchTab('dashboard')">
-        <div class="w-9 h-9 rounded-lg bg-gradient-to-tr from-sky-600 via-sky-500 to-indigo-500 flex items-center justify-center font-extrabold text-white text-xs shadow-glow-sky flex-shrink-0 tracking-wider">
-          YSF
+  <aside id="app-sidebar" class="flex-shrink-0 flex flex-col z-40 select-none">
+
+    <!-- Brand -->
+    <div class="h-14 px-3 flex items-center justify-between">
+      <button onclick="switchTab('dashboard')" class="flex items-center gap-2.5 min-w-0 px-1">
+        <div class="w-7 h-7 rounded-md bg-zinc-950 text-white grid place-items-center text-[10px] font-semibold tracking-wider flex-shrink-0">YSF</div>
+        <div class="sidebar-text min-w-0 text-left">
+          <div class="text-[13px] font-semibold text-zinc-950 leading-tight truncate tracking-tight">Kaushalya</div>
+          <div class="text-[11px] text-zinc-500 leading-tight truncate">Admin Console</div>
         </div>
-        <div class="sidebar-text truncate">
-          <div class="text-[13px] font-bold text-white tracking-tight leading-tight truncate">Yuvashakti Skill India</div>
-          <div class="text-[10px] text-sky-400 font-medium tracking-wide flex items-center mt-0.5">
-            <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>
-            Kaushalya LMS • Control
-          </div>
-        </div>
-      </div>
-      <button onclick="toggleSidebar()" class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-md transition" title="Toggle Sidebar (Shortcut: [ )">
-        <i class="fa-solid fa-angles-left text-xs sidebar-toggle-icon"></i>
       </button>
     </div>
 
-    <!-- Navigation Scroll Area -->
-    <nav class="flex-1 overflow-y-auto py-3 px-2.5 space-y-5 sidebar-scroll">
-      
-      <!-- Group 1: Core & Telemetry -->
+    <!-- Navigation -->
+    <nav class="flex-1 overflow-y-auto px-2.5 pt-2 pb-4 space-y-6">
+
       <div>
-        <div class="sidebar-text px-2.5 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-300/80">
-          Core & Telemetry
-        </div>
-        <div class="space-y-0.5">
-          <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-semibold text-white bg-slate-800/90 shadow-xs border-l-2 border-sky-400 transition group">
-            <div class="flex items-center space-x-2.5 truncate">
-              <i class="fa-solid fa-chart-pie text-sky-400 text-sm w-4 text-center"></i>
-              <span class="sidebar-text truncate">Dashboard Overview</span>
-            </div>
+        <div class="nav-group-label sidebar-text">Overview</div>
+        <div class="space-y-px">
+          <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item active">
+            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-solid fa-table-cells-large"></i><span class="sidebar-text truncate">Dashboard</span></span>
           </button>
-          <button onclick="switchTab('screentime')" id="nav-screentime" class="nav-item w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/50 transition group">
-            <div class="flex items-center space-x-2.5 truncate">
-              <i class="fa-solid fa-stopwatch text-indigo-400 text-sm w-4 text-center"></i>
-              <span class="sidebar-text truncate">Trainee Screen Time</span>
-            </div>
-            <span class="sidebar-text flex items-center px-1.5 py-0.5 text-[10px] font-bold text-emerald-400 bg-emerald-950/70 border border-emerald-800/60 rounded-full">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-ping"></span> Live
-            </span>
+          <button onclick="switchTab('screentime')" id="nav-screentime" class="nav-item">
+            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-regular fa-clock"></i><span class="sidebar-text truncate">Screen Time</span></span>
+            <span class="sidebar-text live-dot" title="Live"></span>
           </button>
         </div>
       </div>
 
-      <!-- Group 2: Academic & LMS Operations -->
       <div>
-        <div class="sidebar-text px-2.5 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-300/80">
-          Academic & Operations
-        </div>
-        <div class="space-y-0.5">
-          <button onclick="switchTab('trainees')" id="nav-trainees" class="nav-item w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/50 transition group">
-            <div class="flex items-center space-x-2.5 truncate">
-              <i class="fa-solid fa-users text-sky-400 text-sm w-4 text-center"></i>
-              <span class="sidebar-text truncate">User Master</span>
-            </div>
-            <span id="badge-nav-trainees" class="sidebar-text px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 bg-slate-800 rounded">2</span>
+        <div class="nav-group-label sidebar-text">Academic &amp; Operations</div>
+        <div class="space-y-px">
+          <button onclick="switchTab('trainees')" id="nav-trainees" class="nav-item">
+            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-solid fa-user-group"></i><span class="sidebar-text truncate">User Master</span></span>
+            <span id="badge-nav-trainees" class="sidebar-text nav-count">0</span>
           </button>
-
-          <button onclick="switchTab('resources')" id="nav-resources" class="nav-item w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/50 transition group">
-            <div class="flex items-center space-x-2.5 truncate">
-              <i class="fa-solid fa-book-open text-purple-400 text-sm w-4 text-center"></i>
-              <span class="sidebar-text truncate">Learning Resources</span>
-            </div>
-            <span id="badge-nav-resources" class="sidebar-text px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 bg-slate-800 rounded">3</span>
+          <button onclick="switchTab('resources')" id="nav-resources" class="nav-item">
+            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-solid fa-book-open"></i><span class="sidebar-text truncate">Learning Resources</span></span>
+            <span id="badge-nav-resources" class="sidebar-text nav-count">0</span>
           </button>
-
-          <button onclick="switchTab('assignments')" id="nav-assignments" class="nav-item w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/50 transition group">
-            <div class="flex items-center space-x-2.5 truncate">
-              <i class="fa-solid fa-file-signature text-blue-400 text-sm w-4 text-center"></i>
-              <span class="sidebar-text truncate">Assignments &amp; Submissions</span>
-            </div>
-            <span id="badge-nav-assignments" class="sidebar-text px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 bg-slate-800 rounded">3</span>
+          <button onclick="switchTab('assignments')" id="nav-assignments" class="nav-item">
+            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-regular fa-file-lines"></i><span class="sidebar-text truncate">Assignments</span></span>
+            <span id="badge-nav-assignments" class="sidebar-text nav-count">0</span>
           </button>
-
-          <button onclick="switchTab('tests')" id="nav-tests" class="nav-item w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/50 transition group">
-            <div class="flex items-center space-x-2.5 truncate">
-              <i class="fa-solid fa-clipboard-check text-emerald-400 text-sm w-4 text-center"></i>
-              <span class="sidebar-text truncate">Tests &amp; Assessments</span>
-            </div>
-            <span id="badge-nav-tests" class="sidebar-text px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 bg-slate-800 rounded">4</span>
+          <button onclick="switchTab('tests')" id="nav-tests" class="nav-item">
+            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-regular fa-square-check"></i><span class="sidebar-text truncate">Tests &amp; Assessments</span></span>
+            <span id="badge-nav-tests" class="sidebar-text nav-count">0</span>
           </button>
-
-          <!-- Migrated from legacy ERP -->
-          <button onclick="switchTab('update-status')" id="nav-update-status" class="nav-item w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/50 transition group">
-            <div class="flex items-center space-x-2.5 truncate">
-              <i class="fa-solid fa-rotate text-amber-400 text-sm w-4 text-center"></i>
-              <span class="sidebar-text truncate">Update Status</span>
-            </div>
-            <span class="sidebar-text px-1.5 py-0.2 text-[9px] font-bold text-amber-300 bg-amber-950/80 border border-amber-800/60 rounded">OJT</span>
+          <button onclick="switchTab('update-status')" id="nav-update-status" class="nav-item">
+            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-solid fa-arrows-rotate"></i><span class="sidebar-text truncate">Update Status</span></span>
+          </button>
+          <button onclick="switchTab('reports')" id="nav-reports" class="nav-item">
+            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-solid fa-chart-simple"></i><span class="sidebar-text truncate">Reports</span></span>
           </button>
         </div>
       </div>
 
-      <!-- Group 3: Communications & CMS -->
       <div>
-        <div class="sidebar-text px-2.5 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-300/80">
-          Communications &amp; CMS
-        </div>
-        <div class="space-y-0.5">
-          <!-- Technical Queries Helpdesk -->
-          <button onclick="switchTab('queries')" id="nav-queries" class="nav-item w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/50 transition group">
-            <div class="flex items-center space-x-2.5 truncate">
-              <i class="fa-solid fa-headset text-indigo-400 text-sm w-4 text-center"></i>
-              <span class="sidebar-text truncate">Technical Queries</span>
-            </div>
-            <span id="badge-nav-queries" class="sidebar-text px-1.5 py-0.2 text-[9px] font-bold text-amber-300 bg-amber-950/80 border border-amber-800/60 rounded">1 Open</span>
+        <div class="nav-group-label sidebar-text">Communications &amp; CMS</div>
+        <div class="space-y-px">
+          <button onclick="switchTab('queries')" id="nav-queries" class="nav-item">
+            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-regular fa-life-ring"></i><span class="sidebar-text truncate">Technical Queries</span></span>
+            <span id="badge-nav-queries" class="sidebar-text nav-count">0</span>
           </button>
-          
-          <button onclick="switchTab('communications')" id="nav-communications" class="nav-item w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/50 transition group">
-            <div class="flex items-center space-x-2.5 truncate">
-              <i class="fa-solid fa-bullhorn text-rose-400 text-sm w-4 text-center"></i>
-              <span class="sidebar-text truncate">Events &amp; Notices</span>
-            </div>
+          <button onclick="switchTab('communications')" id="nav-communications" class="nav-item">
+            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-solid fa-bullhorn"></i><span class="sidebar-text truncate">Events &amp; Notices</span></span>
           </button>
-
-          <!-- Migrated Master Forms -->
-          <button onclick="switchTab('masters')" id="nav-masters" class="nav-item w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/50 transition group">
-            <div class="flex items-center space-x-2.5 truncate">
-              <i class="fa-solid fa-database text-teal-400 text-sm w-4 text-center"></i>
-              <span class="sidebar-text truncate">Master Forms</span>
-            </div>
-            <span class="sidebar-text px-1.5 py-0.2 text-[9px] font-bold text-teal-300 bg-teal-950/80 border border-teal-800/60 rounded">6 ERP</span>
+          <button onclick="switchTab('masters')" id="nav-masters" class="nav-item">
+            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-solid fa-database"></i><span class="sidebar-text truncate">Master Forms</span></span>
           </button>
-
-          <!-- Migrated Institutional CMS -->
-          <button onclick="switchTab('cms')" id="nav-cms" class="nav-item w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/50 transition group">
-            <div class="flex items-center space-x-2.5 truncate">
-              <i class="fa-solid fa-globe text-cyan-400 text-sm w-4 text-center"></i>
-              <span class="sidebar-text truncate">Institutional CMS</span>
-            </div>
-            <span class="sidebar-text px-1.5 py-0.2 text-[9px] font-bold text-cyan-300 bg-cyan-950/80 border border-cyan-800/60 rounded">Portal</span>
+          <button onclick="switchTab('cms')" id="nav-cms" class="nav-item">
+            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-solid fa-globe"></i><span class="sidebar-text truncate">Institutional CMS</span></span>
           </button>
         </div>
       </div>
     </nav>
 
-    <!-- Sidebar Bottom Footer -->
-    <div class="p-3 border-t border-slate-800/80 bg-[#0B0F19]/90">
-      <div class="sidebar-text flex items-center justify-between text-xs text-slate-400 bg-slate-900/80 p-2.5 rounded-lg border border-slate-800">
-        <div>
-          <div class="text-[11px] font-bold text-slate-200">YSF Institute Node</div>
-          <div class="text-[10px] text-slate-300 font-mono">Code: 21092 • Port 5000</div>
+    <!-- Sidebar footer -->
+    <div class="p-2.5 border-t border-zinc-200">
+      <div class="flex items-center justify-between gap-2 px-2 py-1.5">
+        <div class="sidebar-text min-w-0">
+          <div class="text-[12px] text-zinc-900 font-medium truncate">Institute 21092</div>
+          <div class="text-[11px] text-zinc-500 font-mono truncate">YSF Skill India</div>
         </div>
-        <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Database Connected"></div>
+        <button onclick="toggleSidebar()" class="icon-btn" title="Toggle sidebar  [">
+          <i class="fa-solid fa-table-columns text-[12px]"></i>
+        </button>
       </div>
     </div>
   </aside>
@@ -254,356 +546,161 @@
   <!-- 2. MAIN APP CONTENT CONTAINER                             -->
   <!-- ======================================================== -->
   <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-    
-    <!-- Sticky Sleek Header Bar -->
-    <header class="h-16 border-b border-slate-200/80 bg-white/95 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-6 flex items-center justify-between shadow-xs">
-      
-      <!-- Left: Sidebar Toggle & Breadcrumb -->
-      <div class="flex items-center space-x-3 sm:space-x-4 min-w-0">
-        <button onclick="toggleSidebar()" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition" title="Toggle Navigation">
-          <i class="fa-solid fa-bars-staggered text-sm"></i>
-        </button>
-        <div class="flex items-center space-x-2 text-xs truncate">
-          <span class="text-slate-400 font-medium hidden sm:inline">Kaushalya LMS</span>
-          <span class="text-slate-300 hidden sm:inline">/</span>
-          <span id="header-breadcrumb" class="text-slate-900 font-bold tracking-tight truncate">Dashboard Overview</span>
-        </div>
+
+    <!-- Header -->
+    <header class="app-header sticky top-0 z-30 px-4 sm:px-6 flex items-center justify-between gap-4">
+
+      <!-- Breadcrumb -->
+      <div class="flex items-center gap-2 min-w-0 text-[13px]">
+        <span class="text-zinc-400 hidden sm:inline">Kaushalya</span>
+        <span class="text-zinc-300 hidden sm:inline">/</span>
+        <span id="header-breadcrumb" class="text-zinc-950 font-medium truncate">Dashboard</span>
       </div>
 
-      <!-- Center: Global Quick Search Input -->
-      <div class="hidden md:flex items-center flex-1 max-w-md mx-6">
-        <div class="relative w-full">
-          <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-slate-400"></i>
-          <input type="text" onclick="openQuickSearchModal()" readonly placeholder="Search trainees, resources, masters, notices... (⌘K)" class="w-full bg-slate-100/80 hover:bg-slate-100 text-slate-700 placeholder-slate-400 text-xs rounded-lg pl-8 pr-12 py-2 border border-slate-200/80 focus:outline-none focus:ring-2 focus:ring-sky-500 cursor-pointer transition">
-          <span class="absolute right-2.5 top-2 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-slate-400 bg-white border border-slate-200 rounded shadow-2xs">⌘K</span>
-        </div>
+      <!-- Search -->
+      <div class="hidden md:flex flex-1 justify-center">
+        <button onclick="openQuickSearchModal()" class="search-trigger">
+          <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
+          <span class="flex-1 text-left">Search…</span>
+          <kbd>⌘K</kbd>
+        </button>
       </div>
 
-      <!-- Right: Live Sync Pill & Profile -->
-      <div class="flex items-center space-x-3">
-        
-        <!-- Live Sync Telemetry Pill -->
-        <div class="glass-pill flex items-center space-x-2 px-3 py-1.5 rounded-full border border-emerald-200/80 text-emerald-800 shadow-xs">
-          <span class="relative flex h-2 w-2">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          <span class="text-xs font-semibold tracking-tight whitespace-nowrap">
-            Live Sync Active <span class="text-emerald-700/80 font-mono text-[11px]">(21092)</span>
-          </span>
-          <button onclick="refreshData()" id="refresh-spin-btn" class="ml-1 p-1 text-emerald-700 hover:text-emerald-900 hover:bg-emerald-100/60 rounded-full transition" title="Trigger Instant Sync with Mobile Telemetry">
-            <i class="fa-solid fa-arrows-rotate text-xs"></i>
-          </button>
-        </div>
-
-        <!-- MongoDB Atlas Cloud Pill -->
-        <button id="mongo-cloud-pill" onclick="triggerMongoSync()" class="glass-pill flex items-center space-x-2 px-3 py-1.5 rounded-full border border-sky-200/90 bg-sky-50/80 hover:bg-sky-100/90 text-sky-900 shadow-xs cursor-pointer transition" title="MongoDB Atlas Cluster Status — Click to Force Instant Cloud Sync">
-          <span class="relative flex h-2 w-2">
-            <span id="mongo-ping-dot" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span id="mongo-status-dot" class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          <span class="text-xs font-semibold tracking-tight whitespace-nowrap">
-            MongoDB Atlas: <span id="mongo-cluster-name" class="font-bold text-sky-700">Connecting...</span>
-          </span>
-          <span id="mongo-sync-icon" class="ml-1 p-0.5 text-sky-600 hover:text-sky-900 rounded-full transition">
-            <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
-          </span>
+      <!-- Right cluster -->
+      <div class="flex items-center gap-1.5">
+        <button id="mongo-cloud-pill" onclick="triggerMongoSync()" class="status-chip hidden sm:inline-flex" title="Database status — click to sync now">
+          <span id="mongo-ping-dot" class="hidden"></span>
+          <span id="mongo-status-dot" class="status-dot"></span>
+          <span id="mongo-cluster-name">Connecting…</span>
+          <span id="mongo-sync-icon" class="text-zinc-400"><i class="fa-solid fa-cloud-arrow-up text-[11px]"></i></span>
         </button>
 
-        <!-- Quick Help Trigger -->
-        <button onclick="alert('YSF Support Hotline: 098810-88850\nSupport Email: lmssupport@ysfskills.com\nInstitute Code: 21092')" class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition" title="Support & System Info">
-          <i class="fa-regular fa-circle-question text-sm"></i>
+        <button onclick="refreshData()" id="refresh-spin-btn" class="icon-btn" title="Refresh data">
+          <i class="fa-solid fa-arrows-rotate text-[12px]"></i>
         </button>
 
-        <!-- Admin Profile Pill -->
-        <div class="relative">
-          <button onclick="toggleProfileDropdown()" class="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-slate-100 transition border border-transparent hover:border-slate-200">
-            <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-sky-600 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shadow-xs">
-              AD
-            </div>
-            <div class="text-left hidden lg:block">
-              <div class="text-xs font-bold text-slate-900 leading-tight">Admin</div>
-              <div class="text-[10px] text-slate-500 font-medium">LMS Administrator</div>
-            </div>
-            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 ml-1"></i>
+        <button onclick="alert('YSF Support Hotline: 098810-88850\nSupport Email: lmssupport@ysfskills.com\nInstitute Code: 21092')" class="icon-btn" title="Support">
+          <i class="fa-regular fa-circle-question text-[13px]"></i>
+        </button>
+
+        <div class="relative ml-1">
+          <button onclick="toggleProfileDropdown()" class="flex items-center gap-2 rounded-full p-0.5 pr-2 hover:bg-zinc-100 transition" title="Account">
+            <div class="avatar" id="admin-avatar">AD</div>
+            <i class="fa-solid fa-chevron-down text-[9px] text-zinc-400"></i>
           </button>
 
-          <!-- Profile Dropdown -->
-          <div id="profile-dropdown" class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-200 py-2 hidden z-50">
-            <div class="px-4 py-2 border-b border-slate-100">
-              <p class="text-xs font-bold text-slate-900">Admin</p>
-              <p class="text-[11px] text-slate-500 font-mono">admin@ysfskills.com</p>
-              <span class="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">Super Admin • Full Access</span>
+          <div id="profile-dropdown" class="dropdown absolute right-0 mt-2 w-60 p-1.5 hidden z-50">
+            <div class="px-2.5 py-2 mb-1 border-b border-zinc-100">
+              <p class="text-[13px] font-medium text-zinc-950" id="admin-name-label">Admin</p>
+              <p class="text-[12px] text-zinc-500 font-mono">admin@ysfskills.com</p>
             </div>
-            <div class="py-1 text-xs text-slate-700">
-              <button onclick="switchTab('dashboard'); toggleProfileDropdown();" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center">
-                <i class="fa-solid fa-chart-pie mr-2.5 text-slate-400"></i> Control Center Home
-              </button>
-              <button onclick="switchTab('masters'); toggleProfileDropdown();" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center">
-                <i class="fa-solid fa-database mr-2.5 text-slate-400"></i> Master Configurations
-              </button>
-              <button onclick="switchTab('cms'); toggleProfileDropdown();" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center">
-                <i class="fa-solid fa-globe mr-2.5 text-slate-400"></i> Institutional CMS
-              </button>
-            </div>
-            <div class="border-t border-slate-100 pt-1 text-xs">
-              <button onclick="refreshData(); showToast('Session telemetry refreshed!', 'info'); toggleProfileDropdown();" class="w-full text-left px-4 py-2 text-sky-600 hover:bg-sky-50 font-semibold flex items-center">
-                <i class="fa-solid fa-arrows-rotate mr-2.5"></i> Sync Mobile Telemetry
-              </button>
-            </div>
+            <button onclick="switchTab('dashboard'); toggleProfileDropdown();" class="dropdown-item"><i class="fa-solid fa-table-cells-large"></i> Dashboard</button>
+            <button onclick="switchTab('reports'); toggleProfileDropdown();" class="dropdown-item"><i class="fa-solid fa-chart-simple"></i> Reports</button>
+            <button onclick="switchTab('masters'); toggleProfileDropdown();" class="dropdown-item"><i class="fa-solid fa-database"></i> Master Forms</button>
+            <button onclick="refreshData(); toggleProfileDropdown();" class="dropdown-item"><i class="fa-solid fa-arrows-rotate"></i> Sync data</button>
+            <div class="my-1 border-t border-zinc-100"></div>
+            <button onclick="logoutAdmin()" class="dropdown-item !text-rose-600 hover:!bg-rose-50"><i class="fa-solid fa-arrow-right-from-bracket !text-rose-500"></i> Sign out</button>
           </div>
         </div>
-
       </div>
     </header>
 
     <!-- Scrollable Main View Container -->
-    <main class="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
-      
+    <main class="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-10 py-8">
+      <div class="max-w-[1400px] mx-auto">
+
       <!-- ======================================================== -->
       <!-- VIEW 1: DASHBOARD OVERVIEW                                -->
       <!-- ======================================================== -->
       <div id="tab-content-dashboard" class="tab-pane space-y-6">
-        
-        <!-- Welcome Hero Banner -->
-        <div class="bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 rounded-2xl p-6 text-white shadow-card flex flex-col md:flex-row md:items-center justify-between gap-4 border border-slate-800">
+
+        <!-- Page header -->
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
-            <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sky-500/20 text-sky-300 border border-sky-400/30 mb-2">
-              <i class="fa-solid fa-shield-halved mr-1.5 text-sky-400"></i> Central Administration Control Center
-            </div>
-            <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">Yuvashakti Skill India — Kaushalya LMS</h2>
-            <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">
-              Institutional governance hub monitoring live On-the-Job Training (OJT), real-time trainee screen time telemetry, digital curriculum dispatch, and synchronized assessment grading.
-            </p>
+            <div class="eyebrow" id="dash-date">Overview</div>
+            <h1 class="page-title mt-2" id="dash-greeting">Welcome back</h1>
+            <p class="page-sub">On-the-job training, learning content, and assessments across the institute.</p>
           </div>
-          <div class="flex items-center space-x-3 flex-shrink-0">
-            <button onclick="openQuickSearchModal()" class="px-3.5 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-white text-xs font-semibold border border-white/20 transition flex items-center shadow-xs">
-              <i class="fa-solid fa-magnifying-glass mr-2 text-sky-400"></i> Global Search
-            </button>
-            <button onclick="refreshData()" class="px-3.5 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition flex items-center shadow-xs">
-              <i class="fa-solid fa-rotate mr-2"></i> Sync Now
-            </button>
+          <div class="flex items-center gap-2">
+            <button onclick="switchTab('reports')" class="btn btn-ghost"><i class="fa-solid fa-chart-simple"></i> Reports</button>
+            <button onclick="refreshData()" class="btn btn-primary"><i class="fa-solid fa-arrows-rotate"></i> Sync now</button>
           </div>
         </div>
 
-        <!-- KPI Bento Grid (4 Responsive Metric Cards) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          
-          <!-- Card 1: Trainees -->
-          <div class="bg-white rounded-xl shadow-card p-5 border border-slate-200/80 hover:shadow-md transition">
-            <div class="flex items-start justify-between">
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Enrolled Trainees</p>
-                <h3 id="stat-trainees" class="text-3xl font-extrabold text-slate-900 mt-2 tracking-tight">2</h3>
-                <div class="mt-2.5 flex items-center space-x-1.5">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <i class="fa-solid fa-arrow-up mr-1 text-[10px]"></i> Active in OJT
-                  </span>
-                  <span class="text-[11px] text-slate-400 font-medium">NEEM / NAPS</span>
-                </div>
-              </div>
-              <div class="w-12 h-12 bg-sky-50 text-sky-600 border border-sky-100 rounded-xl flex items-center justify-center text-xl shadow-xs">
-                <i class="fa-solid fa-user-graduate"></i>
-              </div>
-            </div>
+        <!-- KPI strip -->
+        <div class="panel grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="kpi">
+            <div class="kpi-label">Enrolled trainees</div>
+            <div id="stat-trainees" class="kpi-value">0</div>
+            <div class="kpi-meta">NEEM / NAPS</div>
           </div>
-
-          <!-- Card 2: Learning Resources -->
-          <div class="bg-white rounded-xl shadow-card p-5 border border-slate-200/80 hover:shadow-md transition">
-            <div class="flex items-start justify-between">
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Learning Resources</p>
-                <h3 id="stat-resources" class="text-3xl font-extrabold text-slate-900 mt-2 tracking-tight">3</h3>
-                <div class="mt-2.5">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-violet-50 text-violet-700 border border-violet-200">
-                    PDF, PPT &amp; Video Topics
-                  </span>
-                </div>
-              </div>
-              <div class="w-12 h-12 bg-violet-50 text-violet-600 border border-violet-100 rounded-xl flex items-center justify-center text-xl shadow-xs">
-                <i class="fa-solid fa-folder-open"></i>
-              </div>
-            </div>
+          <div class="kpi">
+            <div class="kpi-label">Learning resources</div>
+            <div id="stat-resources" class="kpi-value">0</div>
+            <div class="kpi-meta">PDF · PPT · Video</div>
           </div>
-
-          <!-- Card 3: Active Assignments -->
-          <div class="bg-white rounded-xl shadow-card p-5 border border-slate-200/80 hover:shadow-md transition">
-            <div class="flex items-start justify-between">
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Active Assignments</p>
-                <h3 id="stat-assignments" class="text-3xl font-extrabold text-slate-900 mt-2 tracking-tight">3</h3>
-                <div class="mt-2.5">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                    Submissions tracked
-                  </span>
-                </div>
-              </div>
-              <div class="w-12 h-12 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-xl flex items-center justify-center text-xl shadow-xs">
-                <i class="fa-solid fa-file-pen"></i>
-              </div>
-            </div>
+          <div class="kpi">
+            <div class="kpi-label">Active assignments</div>
+            <div id="stat-assignments" class="kpi-value">0</div>
+            <div class="kpi-meta">Submissions tracked</div>
           </div>
-
-          <!-- Card 4: Screen Time Telemetry -->
-          <div class="bg-white rounded-xl shadow-card p-5 border border-slate-200/80 hover:shadow-md transition">
-            <div class="flex items-start justify-between">
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Recorded Screen Time</p>
-                <h3 id="stat-screentime" class="text-3xl font-extrabold text-slate-900 mt-2 tracking-tight">0m</h3>
-                <div class="mt-2.5 flex items-center">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span> Live mobile telemetry
-                  </span>
-                </div>
-              </div>
-              <div class="w-12 h-12 bg-purple-50 text-purple-600 border border-purple-100 rounded-xl flex items-center justify-center text-xl shadow-xs">
-                <i class="fa-solid fa-clock-rotate-left"></i>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Quick Admin Publishing Actions (Sleek Action Dock) -->
-        <div class="bg-white rounded-xl shadow-card border border-slate-200/80 p-5">
-          <div class="flex items-center justify-between mb-3.5">
-            <div class="flex items-center space-x-2">
-              <span class="w-2 h-2 rounded-full bg-sky-500"></span>
-              <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Quick Admin Publishing Actions</h4>
-            </div>
-            <span class="text-[11px] text-slate-400">Instantly publishes to trainee mobile devices</span>
-          </div>
-          <div class="flex flex-wrap gap-2.5">
-            <button onclick="openPublishNoticeModal()" class="px-3.5 py-2 rounded-lg text-xs font-bold bg-rose-50/80 hover:bg-rose-100 text-rose-700 border border-rose-200/80 transition flex items-center shadow-2xs">
-              <i class="fa-solid fa-bullhorn mr-2 text-rose-600"></i> Publish Notice / Announcement
-            </button>
-            <button onclick="openAddEventModal()" class="px-3.5 py-2 rounded-lg text-xs font-bold bg-amber-50/80 hover:bg-amber-100 text-amber-800 border border-amber-200/80 transition flex items-center shadow-2xs">
-              <i class="fa-solid fa-calendar-plus mr-2 text-amber-600"></i> Schedule Academic Event
-            </button>
-            <button onclick="openAddResourceModal()" class="px-3.5 py-2 rounded-lg text-xs font-bold bg-violet-50/80 hover:bg-violet-100 text-violet-700 border border-violet-200/80 transition flex items-center shadow-2xs">
-              <i class="fa-solid fa-folder-plus mr-2 text-violet-600"></i> Add Learning Resource
-            </button>
-            <button onclick="openAddAssignmentModal()" class="px-3.5 py-2 rounded-lg text-xs font-bold bg-sky-50/80 hover:bg-sky-100 text-sky-700 border border-sky-200/80 transition flex items-center shadow-2xs">
-              <i class="fa-solid fa-file-circle-plus mr-2 text-sky-600"></i> Create Assignment
-            </button>
-            <button onclick="openAddTestModal()" class="px-3.5 py-2 rounded-lg text-xs font-bold bg-emerald-50/80 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 transition flex items-center shadow-2xs">
-              <i class="fa-solid fa-clipboard-question mr-2 text-emerald-600"></i> Create MCQ Test
-            </button>
+          <div class="kpi">
+            <div class="kpi-label">Recorded screen time</div>
+            <div id="stat-screentime" class="kpi-value">0m</div>
+            <div class="kpi-meta flex items-center gap-1.5"><span class="live-dot"></span> Live from mobile</div>
           </div>
         </div>
 
-        <!-- Lower Split Section: 2/3 Activity Feed & 1/3 Legacy ERP Shortcuts -->
+        <!-- Quick actions -->
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="eyebrow mr-2">Quick actions</span>
+          <button onclick="openPublishNoticeModal()" class="btn btn-ghost"><i class="fa-solid fa-bullhorn"></i> Notice</button>
+          <button onclick="openAddEventModal()" class="btn btn-ghost"><i class="fa-regular fa-calendar-plus"></i> Event</button>
+          <button onclick="openAddResourceModal()" class="btn btn-ghost"><i class="fa-solid fa-folder-plus"></i> Resource</button>
+          <button onclick="openAddAssignmentModal()" class="btn btn-ghost"><i class="fa-regular fa-file-lines"></i> Assignment</button>
+          <button onclick="openAddTestModal()" class="btn btn-ghost"><i class="fa-regular fa-square-check"></i> MCQ test</button>
+        </div>
+
+        <!-- Activity + shortcuts -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          <!-- Left 2/3: Recent LMS Activity & Telemetry Feed -->
-          <div class="lg:col-span-2 bg-white rounded-xl shadow-card border border-slate-200/80 p-5">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-              <div>
-                <h4 class="text-sm font-bold text-slate-900 flex items-center">
-                  <i class="fa-solid fa-wave-square text-sky-600 mr-2"></i>
-                  Live Telemetry &amp; Recent Activity Feed
-                </h4>
-                <p class="text-xs text-slate-500 mt-0.5">Real-time mobile app events, student logins &amp; submissions</p>
-              </div>
-              <button onclick="refreshData()" class="text-xs text-sky-600 hover:text-sky-800 font-semibold flex items-center">
-                <i class="fa-solid fa-arrows-rotate mr-1"></i> Refresh Feed
-              </button>
-            </div>
 
-            <!-- Feed Content -->
-            <div id="dashboard-activity-feed" class="space-y-3">
-              <div class="text-center py-8 text-slate-400 text-xs">
-                <i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading telemetry feed...
+          <div class="lg:col-span-2 panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Recent activity</div>
+                <div class="panel-sub">Mobile sessions and assignment submissions</div>
+              </div>
+              <button onclick="refreshData()" class="icon-btn" title="Refresh"><i class="fa-solid fa-arrows-rotate text-[12px]"></i></button>
+            </div>
+            <div id="dashboard-activity-feed">
+              <div class="py-10 text-center text-zinc-400 text-[13px]">
+                <i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading…
               </div>
             </div>
           </div>
 
-          <!-- Right 1/3: Legacy ERP & Portal Shortcuts -->
-          <div class="bg-white rounded-xl shadow-card border border-slate-200/80 p-5">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+          <div class="panel self-start">
+            <div class="panel-head">
               <div>
-                <h4 class="text-sm font-bold text-slate-900 flex items-center">
-                  <i class="fa-solid fa-cubes text-indigo-600 mr-2"></i>
-                  Legacy ERP &amp; Portal Modules
-                </h4>
-                <p class="text-[11px] text-slate-500 mt-0.5">Migrated from <span class="font-mono text-indigo-600">lmsysf.bterp.org</span></p>
+                <div class="panel-title">Shortcuts</div>
+                <div class="panel-sub">Jump to modules</div>
               </div>
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                1-Click Access
-              </span>
             </div>
-
-            <!-- Legacy Tiles Grid -->
-            <div class="grid grid-cols-2 gap-2.5">
-              
-              <!-- Shortcut 1: Master Forms -->
-              <div onclick="switchTab('masters')" class="p-3 rounded-lg border border-slate-200/80 bg-slate-50/60 hover:bg-slate-100/80 hover:border-teal-300 transition cursor-pointer group">
-                <div class="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center text-sm font-bold mb-2 group-hover:scale-105 transition">
-                  <i class="fa-solid fa-database"></i>
-                </div>
-                <div class="text-xs font-bold text-slate-900 group-hover:text-teal-700">Master Forms</div>
-                <div class="text-[10px] text-slate-500 mt-0.5">6 Lookup tables</div>
-              </div>
-
-              <!-- Shortcut 2: Update Status -->
-              <div onclick="switchTab('update-status')" class="p-3 rounded-lg border border-slate-200/80 bg-slate-50/60 hover:bg-slate-100/80 hover:border-amber-300 transition cursor-pointer group">
-                <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-sm font-bold mb-2 group-hover:scale-105 transition">
-                  <i class="fa-solid fa-rotate"></i>
-                </div>
-                <div class="text-xs font-bold text-slate-900 group-hover:text-amber-700">Update Status</div>
-                <div class="text-[10px] text-slate-500 mt-0.5">Batch OJT updater</div>
-              </div>
-
-              <!-- Shortcut 3: President's Message -->
-              <div onclick="switchTab('cms'); switchCmsTab('president');" class="p-3 rounded-lg border border-slate-200/80 bg-slate-50/60 hover:bg-slate-100/80 hover:border-cyan-300 transition cursor-pointer group">
-                <div class="w-8 h-8 rounded-lg bg-cyan-50 text-cyan-600 flex items-center justify-center text-sm font-bold mb-2 group-hover:scale-105 transition">
-                  <i class="fa-solid fa-user-tie"></i>
-                </div>
-                <div class="text-xs font-bold text-slate-900 group-hover:text-cyan-700">President's Msg</div>
-                <div class="text-[10px] text-slate-500 mt-0.5">Static CMS Page</div>
-              </div>
-
-              <!-- Shortcut 4: Vision & Mission -->
-              <div onclick="switchTab('cms'); switchCmsTab('vision');" class="p-3 rounded-lg border border-slate-200/80 bg-slate-50/60 hover:bg-slate-100/80 hover:border-blue-300 transition cursor-pointer group">
-                <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-bold mb-2 group-hover:scale-105 transition">
-                  <i class="fa-solid fa-compass"></i>
-                </div>
-                <div class="text-xs font-bold text-slate-900 group-hover:text-blue-700">Vision &amp; Mission</div>
-                <div class="text-[10px] text-slate-500 mt-0.5">Core Values</div>
-              </div>
-
-              <!-- Shortcut 5: About Us -->
-              <div onclick="switchTab('cms'); switchCmsTab('about');" class="p-3 rounded-lg border border-slate-200/80 bg-slate-50/60 hover:bg-slate-100/80 hover:border-purple-300 transition cursor-pointer group">
-                <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-sm font-bold mb-2 group-hover:scale-105 transition">
-                  <i class="fa-solid fa-building-columns"></i>
-                </div>
-                <div class="text-xs font-bold text-slate-900 group-hover:text-purple-700">About Us</div>
-                <div class="text-[10px] text-slate-500 mt-0.5">NSDC &amp; History</div>
-              </div>
-
-              <!-- Shortcut 6: Contact Us -->
-              <div onclick="switchTab('cms'); switchCmsTab('contact');" class="p-3 rounded-lg border border-slate-200/80 bg-slate-50/60 hover:bg-slate-100/80 hover:border-emerald-300 transition cursor-pointer group">
-                <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-bold mb-2 group-hover:scale-105 transition">
-                  <i class="fa-solid fa-headset"></i>
-                </div>
-                <div class="text-xs font-bold text-slate-900 group-hover:text-emerald-700">Contact Us</div>
-                <div class="text-[10px] text-slate-500 mt-0.5">Helplines &amp; Hubs</div>
-              </div>
-
+            <div>
+              <div onclick="switchTab('reports')" class="list-row"><span class="flex items-center gap-3"><i class="fa-solid fa-chart-simple w-4 text-zinc-400"></i> Reports</span><i class="fa-solid fa-chevron-right chev"></i></div>
+              <div onclick="switchTab('masters')" class="list-row"><span class="flex items-center gap-3"><i class="fa-solid fa-database w-4 text-zinc-400"></i> Master Forms</span><i class="fa-solid fa-chevron-right chev"></i></div>
+              <div onclick="switchTab('update-status')" class="list-row"><span class="flex items-center gap-3"><i class="fa-solid fa-arrows-rotate w-4 text-zinc-400"></i> Update Status</span><i class="fa-solid fa-chevron-right chev"></i></div>
+              <div onclick="switchTab('cms'); switchCmsTab('president');" class="list-row"><span class="flex items-center gap-3"><i class="fa-regular fa-user w-4 text-zinc-400"></i> President's Message</span><i class="fa-solid fa-chevron-right chev"></i></div>
+              <div onclick="switchTab('cms'); switchCmsTab('vision');" class="list-row"><span class="flex items-center gap-3"><i class="fa-regular fa-compass w-4 text-zinc-400"></i> Vision &amp; Mission</span><i class="fa-solid fa-chevron-right chev"></i></div>
+              <div onclick="switchTab('cms'); switchCmsTab('about');" class="list-row"><span class="flex items-center gap-3"><i class="fa-solid fa-building-columns w-4 text-zinc-400"></i> About Us</span><i class="fa-solid fa-chevron-right chev"></i></div>
+              <div onclick="switchTab('cms'); switchCmsTab('contact');" class="list-row"><span class="flex items-center gap-3"><i class="fa-regular fa-envelope w-4 text-zinc-400"></i> Contact Us</span><i class="fa-solid fa-chevron-right chev"></i></div>
+              <a href="/uploads/LMS Kaushalya User Manual - Updated.pdf" target="_blank" class="list-row"><span class="flex items-center gap-3"><i class="fa-regular fa-file-pdf w-4 text-zinc-400"></i> User manual (PDF)</span><i class="fa-solid fa-arrow-up-right-from-square chev"></i></a>
             </div>
-
-            <!-- Quick manual download link -->
-            <div class="mt-4 pt-3 border-t border-slate-100">
-              <a href="/uploads/LMS Kaushalya User Manual - Updated.pdf" target="_blank" class="w-full flex items-center justify-between text-xs font-semibold text-slate-700 hover:text-sky-600 p-2 rounded-lg bg-slate-50 hover:bg-sky-50 transition border border-slate-200">
-                <span class="flex items-center"><i class="fa-solid fa-book-bookmark text-sky-600 mr-2"></i> Client Manual PDF</span>
-                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-400"></i>
-              </a>
-            </div>
-
           </div>
 
         </div>
 
+      </div>
       </div>
 
       <!-- ======================================================== -->
@@ -813,29 +910,28 @@
         <!-- Sub-Pane 2: Question Bank Manager -->
         <div id="test-subpane-qbank" class="hidden space-y-6">
           <!-- Question Bank Top Action Banner -->
-          <div class="bg-gradient-to-r from-indigo-900 via-slate-900 to-indigo-950 rounded-xl p-5 text-white shadow-card border border-indigo-800/60">
+          <div class="panel p-5">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <div class="flex items-center space-x-2">
-                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
-                    Question Bank Engine
-                  </span>
-                  <span id="qbank-count-pill" class="text-xs text-indigo-300 font-mono">18 Questions Ready</span>
+                <div class="flex items-center gap-2">
+                  <span class="eyebrow">Question bank</span>
+                  <span class="text-zinc-300">·</span>
+                  <span id="qbank-count-pill" class="text-[11px] text-zinc-500 font-mono">0 Questions Ready</span>
                 </div>
-                <h3 class="text-lg font-bold text-white mt-1">Institutional Question Bank &amp; Bulk Excel Ingestion</h3>
-                <p class="text-xs text-slate-300 mt-0.5 max-w-xl">
-                  Upload spreadsheets with thousands of questions, deduplicate against existing questions, and auto-randomize MCQ assessments per trade and module.
+                <h3 class="text-[15px] font-semibold text-zinc-950 mt-1.5 tracking-tight">Institutional Question Bank</h3>
+                <p class="text-[13px] text-zinc-500 mt-0.5 max-w-xl">
+                  Bulk-import questions from Excel, deduplicate automatically, and randomize MCQ tests per trade and module.
                 </p>
               </div>
               <div class="flex flex-wrap gap-2">
-                <a href="/api/admin/question-bank/template" download="YSF_Question_Bank_Template.xlsx" class="px-3 py-1.5 text-xs font-semibold bg-white/10 hover:bg-white/20 text-white rounded-lg transition border border-white/20 flex items-center">
-                  <i class="fa-solid fa-file-excel mr-1.5 text-emerald-400"></i> Download Template (.xlsx)
+                <a href="/api/admin/question-bank/template" download="YSF_Question_Bank_Template.xlsx" class="btn btn-ghost">
+                  <i class="fa-regular fa-file-excel"></i> Template
                 </a>
-                <button onclick="openQBankUploadModal()" class="px-3.5 py-1.5 text-xs font-bold bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition shadow-xs flex items-center">
-                  <i class="fa-solid fa-file-arrow-up mr-1.5"></i> Bulk Ingest Questions
+                <button onclick="openQBankUploadModal()" class="btn btn-ghost">
+                  <i class="fa-solid fa-file-arrow-up"></i> Bulk import
                 </button>
-                <button onclick="openAddQuestionModal()" class="px-3 py-1.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition shadow-xs flex items-center">
-                  <i class="fa-solid fa-plus mr-1.5"></i> Add Question
+                <button onclick="openAddQuestionModal()" class="btn btn-primary">
+                  <i class="fa-solid fa-plus"></i> Add question
                 </button>
               </div>
             </div>
@@ -919,9 +1015,9 @@
           </div>
 
           <!-- Batch Status Action Form -->
-          <div id="status-updater-card" class="mt-4 p-5 rounded-xl bg-amber-50/60 border border-amber-200/80">
-            <h4 class="text-xs font-bold text-amber-900 uppercase tracking-wider mb-3 flex items-center">
-              <i class="fa-solid fa-arrows-spin mr-2 text-amber-700"></i> Bulk Status Transition Tool
+          <div id="status-updater-card" class="mt-4 p-5 rounded-xl bg-zinc-50 border border-zinc-200">
+            <h4 class="eyebrow mb-3 flex items-center">
+              Bulk status transition
             </h4>
             <form onsubmit="handleBulkStatusUpdate(event)" class="space-y-4 text-xs">
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -948,7 +1044,7 @@
                   <textarea id="bulk-status-remarks" required rows="4" placeholder="e.g. End of 2-year NEEM cycle, successfully completed shopfloor assessment..." class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white text-xs"></textarea>
                 </div>
               </div>
-              <div class="flex justify-end space-x-2 pt-2 border-t border-amber-200/60">
+              <div class="flex justify-end space-x-2 pt-2 border-t border-zinc-200">
                 <button type="submit" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-xs shadow-xs flex items-center">
                   <i class="fa-solid fa-check mr-1.5"></i> Apply Batch Status Update
                 </button>
@@ -1183,6 +1279,15 @@
         </div>
       </div>
 
+      <!-- ======================================================== -->
+      <!-- VIEW: REPORTS                                             -->
+      <!-- ======================================================== -->
+      <div id="tab-content-reports" class="tab-pane hidden space-y-6">
+        <div id="reports-header"></div>
+        <div id="reports-body"></div>
+      </div>
+
+      </div>
     </main>
   </div>
 
@@ -1319,8 +1424,8 @@
           </div>
         </div>
         <!-- Real File Attachment -->
-        <div class="bg-purple-50/70 border border-purple-200 rounded-lg p-3">
-          <label class="block font-bold text-purple-900 mb-1">
+        <div class="bg-zinc-50 border border-zinc-200 rounded-lg p-3">
+          <label class="block font-bold text-zinc-700 mb-1">
             <i class="fa-solid fa-paperclip mr-1 text-purple-700"></i> Attach Learning Resource File (PDF, PPT, MP4, Doc)
           </label>
           <input type="file" id="res-file-input" onchange="handleResourceFileChange(event)" accept=".pdf,.ppt,.pptx,.mp4,.doc,.docx,.txt" class="text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700 cursor-pointer w-full">
@@ -1438,8 +1543,8 @@
         </div>
 
         <!-- Optional Blueprint Attachment -->
-        <div class="bg-emerald-50/60 border border-emerald-200/80 rounded-lg p-3">
-          <label class="block font-bold text-emerald-900 mb-1">
+        <div class="bg-zinc-50 border border-zinc-200 rounded-lg p-3">
+          <label class="block font-bold text-zinc-700 mb-1">
             <i class="fa-solid fa-paperclip mr-1 text-emerald-700"></i> Reference Blueprint / Question Paper (Optional)
           </label>
           <input type="file" id="test-file-input" onchange="handleTestFileChange(event)" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" class="text-xs text-slate-600 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer w-full">
@@ -2073,16 +2178,12 @@
       if (!label || !pill) return;
 
       if (status && status.connected) {
-        label.innerHTML = `<span class="text-emerald-700 font-bold">Connected</span> • <span class="font-mono text-[11px] text-slate-600">ysfdatabase</span>`;
-        pill.className = "glass-pill flex items-center space-x-2 px-3 py-1.5 rounded-full border border-emerald-200/90 bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-900 shadow-xs cursor-pointer transition";
-        if (pingDot) pingDot.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
-        if (statusDot) statusDot.className = "relative inline-flex rounded-full h-2 w-2 bg-emerald-500";
+        label.textContent = 'Synced';
+        pill.classList.remove('warn');
         pill.title = `MongoDB Atlas: Connected (Cluster: ${status.cluster || 'ysfdatabase'}, DB: ${status.dbName || 'ysf_kaushalya_lms'})\nLast Synced: ${status.lastSyncedAt || 'Active'}\nClick to force instant cloud sync`;
       } else {
-        label.innerHTML = `<span class="text-amber-700 font-bold">Local Fallback</span>`;
-        pill.className = "glass-pill flex items-center space-x-2 px-3 py-1.5 rounded-full border border-amber-200/90 bg-amber-50/80 hover:bg-amber-100/90 text-amber-900 shadow-xs cursor-pointer transition";
-        if (pingDot) pingDot.className = "hidden";
-        if (statusDot) statusDot.className = "relative inline-flex rounded-full h-2 w-2 bg-amber-500";
+        label.textContent = 'Local mode';
+        pill.classList.add('warn');
         pill.title = `MongoDB Atlas: Offline (${status && status.error ? status.error : 'Operating on local disk mode'})\nClick to retry cloud connection`;
       }
     }
@@ -2195,12 +2296,9 @@
       const openQ = (appData.queries || []).filter(q => q.status === 'Open').length;
       const qBadge = document.getElementById('badge-nav-queries');
       if (qBadge) {
-        qBadge.textContent = `${openQ} Open`;
-        if (openQ === 0) {
-          qBadge.className = 'sidebar-text px-1.5 py-0.2 text-[9px] font-bold text-slate-400 bg-slate-800 rounded';
-        } else {
-          qBadge.className = 'sidebar-text px-1.5 py-0.2 text-[9px] font-bold text-amber-300 bg-amber-950/80 border border-amber-800/60 rounded';
-        }
+        qBadge.textContent = openQ;
+        qBadge.title = `${openQ} open`;
+        qBadge.classList.toggle('alert', openQ > 0);
       }
     }
 
@@ -2209,15 +2307,13 @@
       currentTab = tab;
 
       // Update sidebar nav items
-      document.querySelectorAll('.nav-item').forEach(btn => {
-        btn.classList.remove('text-white', 'bg-slate-800/90', 'border-l-2', 'border-sky-400', 'font-semibold', 'shadow-xs');
-        btn.classList.add('text-slate-300', 'hover:text-white', 'hover:bg-slate-800/50', 'font-medium');
-      });
-
+      document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
       const activeNav = document.getElementById(`nav-${tab}`);
-      if (activeNav) {
-        activeNav.classList.remove('text-slate-300', 'hover:bg-slate-800/50', 'font-medium');
-        activeNav.classList.add('text-white', 'bg-slate-800/90', 'border-l-2', 'border-sky-400', 'font-semibold', 'shadow-xs');
+      if (activeNav) activeNav.classList.add('active');
+
+      if (tab === 'reports') {
+        reportState = { view: 'home' };
+        renderReports();
       }
 
       // Hide all tab panes
@@ -2229,45 +2325,27 @@
 
       // Update Breadcrumb
       const breadcrumbNames = {
-        'dashboard': 'Dashboard Overview',
-        'screentime': 'Trainee Screen Time Telemetry',
-        'trainees': 'User Master & Trainee Registry',
-        'resources': 'Learning Resources Management',
-        'assignments': 'Assignments & Student Submissions',
-        'tests': 'Tests & Trainee Assessments',
-        'update-status': 'Batch & Trainee OJT Status Tracking',
-        'communications': 'Scheduled Events & Published Notices',
-        'masters': 'Master Forms & System Configurations',
-        'cms': 'Institutional CMS (President, Vision, About, Contact)',
-        'queries': 'Technical Queries & Helpdesk Support Feed'
+        'dashboard': 'Dashboard',
+        'screentime': 'Screen Time',
+        'trainees': 'User Master',
+        'resources': 'Learning Resources',
+        'assignments': 'Assignments',
+        'tests': 'Tests & Assessments',
+        'update-status': 'Update Status',
+        'reports': 'Reports',
+        'communications': 'Events & Notices',
+        'masters': 'Master Forms',
+        'cms': 'Institutional CMS',
+        'queries': 'Technical Queries'
       };
+      document.querySelector('main').scrollTop = 0;
       const breadcrumbEl = document.getElementById('header-breadcrumb');
       if (breadcrumbEl) breadcrumbEl.textContent = breadcrumbNames[tab] || 'Control Center';
     }
 
     function toggleSidebar() {
-      const sidebar = document.getElementById('app-sidebar');
-      const toggleIcons = document.querySelectorAll('.sidebar-toggle-icon');
-      const texts = document.querySelectorAll('.sidebar-text');
-
       isSidebarCollapsed = !isSidebarCollapsed;
-      if (isSidebarCollapsed) {
-        sidebar.classList.remove('w-64');
-        sidebar.classList.add('w-16');
-        texts.forEach(t => t.classList.add('hidden'));
-        toggleIcons.forEach(i => {
-          i.classList.remove('fa-angles-left');
-          i.classList.add('fa-angles-right');
-        });
-      } else {
-        sidebar.classList.remove('w-16');
-        sidebar.classList.add('w-64');
-        texts.forEach(t => t.classList.remove('hidden'));
-        toggleIcons.forEach(i => {
-          i.classList.remove('fa-angles-right');
-          i.classList.add('fa-angles-left');
-        });
-      }
+      document.getElementById('app-sidebar').classList.toggle('collapsed', isSidebarCollapsed);
     }
 
     // 3. Render Dashboard Overview
@@ -2314,58 +2392,53 @@
 
       if (logs.length === 0 && asgSubs.length === 0) {
         feed.innerHTML = `
-          <div class="py-6 text-center text-slate-400 text-xs">
-            <i class="fa-solid fa-inbox text-2xl mb-1.5 text-slate-300"></i>
-            <p>No telemetry events logged yet. Trainee mobile apps will stream entry/exit logs here.</p>
+          <div class="py-12 text-center">
+            <div class="text-[13px] font-medium text-zinc-900">No activity yet</div>
+            <p class="text-[12px] text-zinc-500 mt-1">Mobile sessions and submissions will appear here.</p>
           </div>
         `;
         return;
       }
 
+      const row = (icon, title, meta, time, action) => `
+        <div class="flex items-start justify-between gap-4 px-4 py-3 border-b border-zinc-100 last:border-b-0 hover:bg-zinc-50/70 transition">
+          <div class="flex items-start gap-3 min-w-0">
+            <div class="w-7 h-7 rounded-md border border-zinc-200 bg-white grid place-items-center text-zinc-500 text-[11px] flex-shrink-0 mt-0.5">
+              <i class="${icon}"></i>
+            </div>
+            <div class="min-w-0">
+              <div class="text-[13px] text-zinc-900 truncate">${title}</div>
+              <div class="text-[12px] text-zinc-500 truncate mt-0.5">${meta}</div>
+            </div>
+          </div>
+          <div class="flex flex-col items-end gap-1 flex-shrink-0">
+            <span class="text-[11px] text-zinc-400 font-mono whitespace-nowrap">${time || ''}</span>
+            ${action || ''}
+          </div>
+        </div>
+      `;
+
       let html = '';
 
-      // Add recent submissions
       asgSubs.slice(-2).forEach(sub => {
-        html += `
-          <div class="p-3 rounded-lg border border-sky-100 bg-sky-50/50 flex items-start justify-between text-xs transition hover:bg-sky-50">
-            <div class="flex items-start space-x-3">
-              <div class="w-8 h-8 rounded-lg bg-sky-600 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
-                <i class="fa-solid fa-file-arrow-up"></i>
-              </div>
-              <div>
-                <div class="font-bold text-slate-900">${sub.traineeName} submitted assignment reply</div>
-                <div class="text-[11px] text-slate-500 font-medium">${sub.assignmentName} &bull; "${sub.text.slice(0, 60)}..."</div>
-                <div class="text-[10px] text-slate-400 mt-1 font-mono">${sub.submittedAt}</div>
-              </div>
-            </div>
-            <button onclick="switchTab('assignments')" class="px-2 py-1 text-[11px] font-semibold text-sky-700 bg-white border border-sky-200 rounded hover:bg-sky-50">
-              Inspect
-            </button>
-          </div>
-        `;
+        html += row(
+          'fa-regular fa-file-lines',
+          `<span class="font-medium">${sub.traineeName}</span> submitted an assignment`,
+          `${sub.assignmentName} · “${(sub.text || '').slice(0, 60)}${(sub.text || '').length > 60 ? '…' : ''}”`,
+          sub.submittedAt,
+          `<button onclick="switchTab('assignments')" class="text-[12px] text-zinc-600 hover:text-zinc-950 underline underline-offset-2 decoration-zinc-300">Review</button>`
+        );
       });
 
-      // Add recent screen time logs
       logs.forEach(log => {
         const m = Math.floor(log.durationSeconds / 60);
         const s = log.durationSeconds % 60;
-        html += `
-          <div class="p-3 rounded-lg border border-slate-200/80 bg-slate-50/70 flex items-start justify-between text-xs transition hover:bg-slate-100/60">
-            <div class="flex items-start space-x-3">
-              <div class="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
-                <i class="fa-solid fa-mobile-screen-button"></i>
-              </div>
-              <div>
-                <div class="font-bold text-slate-900">${log.traineeName} logged mobile session</div>
-                <div class="text-[11px] text-slate-500">Module: <span class="font-semibold text-sky-700">${log.module}</span> &bull; Duration: <span class="font-bold text-slate-700">${m > 0 ? m + 'm ' : ''}${s}s</span></div>
-                <div class="text-[10px] text-slate-400 mt-1 font-mono">${log.timestamp} &bull; Verified Telemetry</div>
-              </div>
-            </div>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-              Recorded
-            </span>
-          </div>
-        `;
+        html += row(
+          'fa-solid fa-mobile-screen',
+          `<span class="font-medium">${log.traineeName}</span> completed a session`,
+          `${log.module} · ${m > 0 ? m + 'm ' : ''}${s}s`,
+          log.timestamp
+        );
       });
 
       feed.innerHTML = html;
@@ -2454,7 +2527,7 @@
               <div class="text-[11px] text-slate-400 font-mono mt-0.5">${t.email || (t.username ? t.username + '@student.ysfskills.com' : 'trainee@ysfskills.com')}</div>
             </td>
             <td class="py-3 px-4">
-              <div class="inline-flex items-center space-x-1.5 px-2 py-0.5 rounded-full text-[11px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
+              <div class="inline-flex items-center whitespace-nowrap space-x-1.5 px-2 py-0.5 rounded-full text-[11px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
                 <i class="fa-solid fa-shield-halved text-emerald-600 text-[10px]"></i>
                 <span>${maskedAadhaar}</span>
               </div>
@@ -3452,6 +3525,8 @@
               <button onclick="switchTab('trainees'); closeModal('modal-quick-search');" class="text-left p-2 rounded bg-slate-50 hover:bg-slate-100"><i class="fa-solid fa-users mr-1 text-sky-600"></i> User Master</button>
               <button onclick="switchTab('resources'); closeModal('modal-quick-search');" class="text-left p-2 rounded bg-slate-50 hover:bg-slate-100"><i class="fa-solid fa-book-open mr-1 text-purple-600"></i> Learning Resources</button>
               <button onclick="switchTab('masters'); closeModal('modal-quick-search');" class="text-left p-2 rounded bg-slate-50 hover:bg-slate-100"><i class="fa-solid fa-database mr-1 text-teal-600"></i> Master Forms</button>
+              <button onclick="switchTab('reports'); closeModal('modal-quick-search');" class="text-left p-2 rounded bg-slate-50 hover:bg-slate-100"><i class="fa-solid fa-chart-simple mr-1 text-sky-600"></i> Reports</button>
+              <button onclick="switchTab('tests'); closeModal('modal-quick-search');" class="text-left p-2 rounded bg-slate-50 hover:bg-slate-100"><i class="fa-regular fa-square-check mr-1 text-sky-600"></i> Tests &amp; Assessments</button>
             </div>
           </div>
         `;
@@ -3459,6 +3534,23 @@
       }
 
       const results = [];
+
+      // Search Reports
+      Object.entries(REPORTS).forEach(([key, r]) => {
+        const views = r.variants ? Object.entries(r.variants) : [[null, r]];
+        views.forEach(([variantKey, v]) => {
+          const title = variantKey ? `${r.title} — ${v.title}` : r.title;
+          if (title.toLowerCase().includes(q) || 'reports'.includes(q)) {
+            results.push({
+              type: 'Report',
+              icon: 'fa-chart-simple text-sky-600',
+              title,
+              subtitle: v.desc,
+              action: () => { switchTab('reports'); openReport(key, variantKey); }
+            });
+          }
+        });
+      });
 
       // Search Trainees
       (appData.trainees || []).forEach(t => {
@@ -3719,7 +3811,7 @@
       await loadData();
     }
 
-    async // ========================================================
+    // ========================================================
     // TESTS & QUESTION BANK SUBTAB SWITCHING
     // ========================================================
     let currentTestSubtab = 'tests';
@@ -4638,30 +4730,418 @@
       const container = document.getElementById('toast-container');
       if (!container) return;
 
+      const dotColors = { success: '#10b981', error: '#f43f5e', warning: '#f59e0b', info: '#a1a1aa' };
       const toast = document.createElement('div');
-      const colors = {
-        success: 'bg-emerald-600 text-white border-emerald-500',
-        error: 'bg-rose-600 text-white border-rose-500',
-        info: 'bg-slate-900 text-white border-slate-700'
-      };
-      const icons = {
-        success: 'fa-circle-check',
-        error: 'fa-triangle-exclamation',
-        info: 'fa-circle-info'
-      };
-
-      toast.className = `pointer-events-auto flex items-center space-x-2.5 px-4 py-3 rounded-xl shadow-lg border text-xs font-semibold ${colors[type] || colors.info} transition-all duration-300 transform translate-y-2 opacity-0`;
-      toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i> <span>${message}</span>`;
+      toast.className = 'toast';
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(6px)';
+      toast.innerHTML = `<span class="toast-dot" style="background:${dotColors[type] || dotColors.info}"></span><span>${message}</span>`;
       container.appendChild(toast);
 
-      setTimeout(() => {
-        toast.classList.remove('translate-y-2', 'opacity-0');
-      }, 50);
+      requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'none';
+      });
 
       setTimeout(() => {
-        toast.classList.add('translate-y-2', 'opacity-0');
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(6px)';
         setTimeout(() => toast.remove(), 300);
       }, 3500);
+    }
+
+    // ==========================================================
+    // ADMIN SESSION
+    // ==========================================================
+    // Any admin API answering 401 means the session expired → back to sign-in
+    const nativeFetch = window.fetch.bind(window);
+    window.fetch = async (...args) => {
+      const res = await nativeFetch(...args);
+      const url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url) || '';
+      if (res.status === 401 && url.includes('/api/admin/')) {
+        window.location.replace('/admin/login');
+      }
+      return res;
+    };
+
+    async function logoutAdmin() {
+      try {
+        await nativeFetch('/api/admin/logout', { method: 'POST', credentials: 'same-origin' });
+      } finally {
+        window.location.replace('/admin/login');
+      }
+    }
+
+    async function loadAdminSession() {
+      try {
+        const res = await nativeFetch('/api/admin/session', { credentials: 'same-origin' });
+        if (!res.ok) return window.location.replace('/admin/login');
+        const json = await res.json();
+        const name = (json.admin && json.admin.username) || 'Admin';
+        const label = document.getElementById('admin-name-label');
+        if (label) label.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+        const avatar = document.getElementById('admin-avatar');
+        if (avatar) avatar.textContent = name.slice(0, 2).toUpperCase();
+      } catch (e) { /* network hiccup — data load will surface errors */ }
+    }
+
+    function renderGreeting() {
+      const now = new Date();
+      const h = now.getHours();
+      const part = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+      const g = document.getElementById('dash-greeting');
+      if (g) g.textContent = `${part}, Admin`;
+      const d = document.getElementById('dash-date');
+      if (d) d.textContent = now.toLocaleDateString('en-IN', { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    // ==========================================================
+    // REPORTS
+    // Column definitions only for now — rows are supplied by
+    // getReportRows() once the data source is wired up.
+    // ==========================================================
+    const col = (label, opts = {}) => ({ key: opts.key || label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, ''), label, ...opts });
+
+    const REPORTS = {
+      enrollment: {
+        title: 'Enrollment Report',
+        desc: 'Enrollments, active, left and completed trainees across industry partners.',
+        icon: 'fa-solid fa-user-plus',
+        variants: {
+          summary: {
+            title: 'Summary Report',
+            desc: 'Totals per scheme, zone and industry location.',
+            columns: [
+              col('Scheme'), col('Zone'), col('Industry Name'), col('Industry Location'),
+              col('No. of Enrollment', { num: true, key: 'enrollment_count' }),
+              col('Active Count', { num: true }),
+              col('Left Count', { num: true }),
+              col('Completed', { num: true }),
+              col('Logged In', { num: true })
+            ]
+          },
+          detail: {
+            title: 'Detail Report Trainee-wise',
+            desc: 'One row per trainee with course dates and last login.',
+            columns: [
+              col('Scheme'), col('Zone'), col('Industry Name'), col('Industry Location'),
+              col('Trainee Name'), col('Aadhaar Card Number', { key: 'aadhaar' }), col('Sector'), col('Job Role'), col('Course Name'),
+              col('Course Start Date', { hint: 'DD-MM-YYYY' }),
+              col('Course End Date', { hint: 'DD-MM-YYYY' }),
+              col('Academic Year'),
+              col('Last Logged In Time', { hint: 'DD-MM-YYYY HH:MM:SS AM/PM' })
+            ]
+          }
+        }
+      },
+      progress: {
+        title: 'Learning Progress Report',
+        desc: 'Uploaded content against each trainee’s screen time.',
+        icon: 'fa-solid fa-chart-line',
+        columns: [
+          col('Zone'), col('Scheme'), col('Industry Name'), col('Industry Location'),
+          col('Trainee Name'), col('Aadhaar Card Number', { key: 'aadhaar' }), col('Contact No'), col('Sector'), col('Course Name'), col('Academic Year'),
+          col('Uploaded Content', { hint: 'HH:MM:SS', num: true }),
+          col('Trainee Screen Time', { hint: 'HH:MM:SS', num: true })
+        ]
+      },
+      assessment: {
+        title: 'Internal Assessment Report',
+        desc: 'Uploaded tests, marks and completion per trainee.',
+        icon: 'fa-regular fa-square-check',
+        columns: [
+          col('Zone'), col('Scheme'), col('Industry Name'), col('Industry Location'),
+          col('Trainee Name'), col('Aadhaar Card Number', { key: 'aadhaar' }), col('Contact No'), col('Sector'), col('Course Name'),
+          col('Uploaded Tests', { num: true }),
+          col('Marks of Uploaded Tests', { num: true }),
+          col('Completed Tests', { num: true })
+        ]
+      },
+      content: {
+        title: 'Learning Content Report',
+        desc: 'Videos, learning material, tests and LMS storage by course.',
+        icon: 'fa-solid fa-layer-group',
+        variants: {
+          summary: {
+            title: 'Summary Report',
+            desc: 'Content volume, trainee count and storage per course.',
+            columns: [
+              col('Scheme'), col('Sector'), col('Courses'),
+              col('Uploaded Video', { num: true }),
+              col('Learning Material', { hint: 'PDF/PPT', num: true }),
+              col('Test Assessment', { num: true }),
+              col('Trainee Count', { num: true }),
+              col('Storage Occupied by LMS', { num: true, key: 'storage' })
+            ]
+          },
+          detail: {
+            title: 'Detail Report Trainee-wise',
+            desc: 'Content broken down to subject, unit and topic.',
+            columns: [
+              col('Scheme'), col('Sector'), col('Course Name'),
+              col('Academic Year', { hint: 'First Year / Second Year' }),
+              col('Subject'), col('Unit Name'), col('Topic Name'),
+              col('Content Type', { hint: 'Soft Skill / Technical' }),
+              col('Uploaded Video', { group: 'Uploaded Content', num: true }),
+              col('Learning Material', { group: 'Uploaded Content', hint: 'PDF/PPT', num: true, key: 'uploaded_material' }),
+              col('Video', { group: 'Duration', hint: 'HH:MM:SS', num: true, key: 'video_duration' }),
+              col('Learning Material', { group: 'Duration', hint: 'PDF/PPT · HH:MM:SS', num: true, key: 'material_duration' })
+            ]
+          }
+        }
+      }
+    };
+
+    let reportState = { view: 'home' };
+    let reportSearch = '';
+
+    // Hook for real data: return an array of row objects keyed by column `key`.
+    function getReportRows(reportKey, variantKey) {
+      return [];
+    }
+
+    function escapeHtml(v) {
+      return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function openReport(reportKey, variantKey) {
+      const r = REPORTS[reportKey];
+      reportSearch = '';
+      if (r.variants && !variantKey) reportState = { view: 'variants', report: reportKey };
+      else reportState = { view: 'table', report: reportKey, variant: variantKey || null };
+      renderReports();
+      document.querySelector('main').scrollTop = 0;
+    }
+
+    function currentReportDef() {
+      const r = REPORTS[reportState.report];
+      return reportState.variant ? r.variants[reportState.variant] : r;
+    }
+
+    function renderReports() {
+      const header = document.getElementById('reports-header');
+      const body = document.getElementById('reports-body');
+      if (!header || !body) return;
+
+      const crumbs = [`<button onclick="reportState={view:'home'}; renderReports();" class="${reportState.view === 'home' ? 'current' : ''}">Reports</button>`];
+      if (reportState.report) {
+        const r = REPORTS[reportState.report];
+        const isLeaf = reportState.view === 'variants' || !r.variants;
+        crumbs.push('<span class="sep">/</span>');
+        crumbs.push(r.variants
+          ? `<button onclick="openReport('${reportState.report}')" class="${isLeaf ? 'current' : ''}">${r.title}</button>`
+          : `<span class="current">${r.title}</span>`);
+        if (reportState.variant) {
+          crumbs.push('<span class="sep">/</span>');
+          crumbs.push(`<span class="current">${r.variants[reportState.variant].title}</span>`);
+        }
+      }
+
+      let title = 'Reports';
+      let sub = 'Choose a report to view. Data is grouped by scheme, zone and industry partner.';
+      let back = '';
+      if (reportState.view === 'variants') {
+        const r = REPORTS[reportState.report];
+        title = r.title;
+        sub = r.desc;
+      } else if (reportState.view === 'table') {
+        const r = REPORTS[reportState.report];
+        const def = currentReportDef();
+        title = reportState.variant ? `${r.title} — ${def.title}` : r.title;
+        sub = def.desc;
+      }
+      if (reportState.view !== 'home') {
+        const target = reportState.view === 'table' && REPORTS[reportState.report].variants
+          ? `openReport('${reportState.report}')`
+          : `reportState={view:'home'}; renderReports();`;
+        back = `<button onclick="${target}" class="btn btn-ghost"><i class="fa-solid fa-arrow-left"></i> Back</button>`;
+      }
+
+      header.innerHTML = `
+        ${reportState.view === 'home' ? '<div class="eyebrow">Academic &amp; Operations</div>' : `<div class="crumbs">${crumbs.join('')}</div>`}
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mt-2">
+          <div>
+            <h1 class="page-title">${title}</h1>
+            <p class="page-sub">${sub}</p>
+          </div>
+          ${back}
+        </div>
+      `;
+
+      if (reportState.view === 'home') body.innerHTML = renderReportHome();
+      else if (reportState.view === 'variants') body.innerHTML = renderReportVariants();
+      else {
+        body.innerHTML = renderReportTable();
+        layoutReportTable();
+      }
+    }
+
+    function renderReportHome() {
+      const cards = Object.entries(REPORTS).map(([key, r]) => {
+        const meta = r.variants
+          ? `${Object.keys(r.variants).length} views · Summary, Trainee-wise`
+          : `${r.columns.length + 1} columns`;
+        return `
+          <button onclick="openReport('${key}')" class="report-card">
+            <i class="fa-solid fa-arrow-right rc-arrow"></i>
+            <div class="rc-icon"><i class="${r.icon}"></i></div>
+            <div>
+              <div class="rc-title">${r.title}</div>
+              <div class="rc-desc">${r.desc}</div>
+              <div class="rc-meta mt-3">${meta}</div>
+            </div>
+          </button>
+        `;
+      }).join('');
+      return `<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">${cards}</div>`;
+    }
+
+    function renderReportVariants() {
+      const r = REPORTS[reportState.report];
+      const icons = { summary: 'fa-solid fa-table-list', detail: 'fa-solid fa-users-viewfinder' };
+      const cards = Object.entries(r.variants).map(([key, v]) => `
+        <button onclick="openReport('${reportState.report}', '${key}')" class="variant-card group">
+          <div class="rc-icon w-8 h-8 rounded-md border border-zinc-200 bg-zinc-50 grid place-items-center text-zinc-600 text-[13px] flex-shrink-0"><i class="${icons[key] || 'fa-solid fa-table'}"></i></div>
+          <div class="flex-1 min-w-0">
+            <div class="text-[14px] font-semibold text-zinc-950 tracking-tight">${v.title}</div>
+            <div class="text-[12px] text-zinc-500 mt-1">${v.desc}</div>
+            <div class="text-[11px] text-zinc-400 font-mono mt-3">${v.columns.length + 1} columns</div>
+          </div>
+          <i class="fa-solid fa-arrow-right text-[12px] text-zinc-300 group-hover:text-zinc-950 group-hover:translate-x-0.5 transition mt-1"></i>
+        </button>
+      `).join('');
+      return `<div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl">${cards}</div>`;
+    }
+
+    function filteredReportRows() {
+      const rows = getReportRows(reportState.report, reportState.variant);
+      const q = reportSearch.trim().toLowerCase();
+      if (!q) return rows;
+      return rows.filter(row => Object.values(row).some(v => String(v).toLowerCase().includes(q)));
+    }
+
+    function renderReportTable() {
+      const def = currentReportDef();
+      const cols = def.columns;
+      const hasGroups = cols.some(c => c.group);
+      const rows = filteredReportRows();
+      const totalRows = getReportRows(reportState.report, reportState.variant).length;
+
+      const th = (c, extra = '') => `
+        <th class="${c.num ? 'num' : ''}" ${extra}>
+          ${escapeHtml(c.label)}
+          ${c.hint ? `<span class="col-hint">${escapeHtml(c.hint)}</span>` : ''}
+        </th>`;
+
+      let thead = '';
+      if (hasGroups) {
+        let groupRow = `<th class="sr" rowspan="2">Sr. No.</th>`;
+        let leafRow = '';
+        for (let i = 0; i < cols.length;) {
+          const c = cols[i];
+          if (!c.group) {
+            groupRow += th(c, 'rowspan="2"');
+            i++;
+            continue;
+          }
+          let span = 0;
+          while (i + span < cols.length && cols[i + span].group === c.group) {
+            leafRow += th(cols[i + span]);
+            span++;
+          }
+          groupRow += `<th colspan="${span}" class="group">${escapeHtml(c.group)}</th>`;
+          i += span;
+        }
+        thead = `<tr class="group-row">${groupRow}</tr><tr>${leafRow}</tr>`;
+      } else {
+        thead = `<tr><th class="sr">Sr. No.</th>${cols.map(c => th(c)).join('')}</tr>`;
+      }
+
+      const tbody = rows.length
+        ? rows.map((row, idx) => `
+            <tr>
+              <td class="sr">${idx + 1}</td>
+              ${cols.map(c => `<td class="${c.num ? 'num' : ''}">${escapeHtml(row[c.key] ?? '—')}</td>`).join('')}
+            </tr>`).join('')
+        : `<tr class="report-empty"><td colspan="${cols.length + 1}">
+            <div class="report-empty-inner">
+              <div class="ei-icon"><i class="fa-regular fa-folder-open text-[13px]"></i></div>
+              <div class="ei-title">${totalRows ? 'No matching records' : 'No records yet'}</div>
+              <div class="ei-sub">${totalRows ? 'Try a different search term.' : 'Columns are ready. Rows will appear here once report data is connected.'}</div>
+            </div>
+          </td></tr>`;
+
+      return `
+        <div class="panel overflow-hidden">
+          <div class="report-toolbar">
+            <div class="flex items-center gap-3 flex-wrap">
+              <div class="relative no-print">
+                <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-[11px] text-zinc-400"></i>
+                <input type="search" class="report-search" placeholder="Search this report…" value="${escapeHtml(reportSearch)}" oninput="reportSearch=this.value; refreshReportTable(this)">
+              </div>
+              <span class="report-meta">${cols.length + 1} columns · ${rows.length} record${rows.length === 1 ? '' : 's'}</span>
+            </div>
+            <div class="flex items-center gap-2 no-print">
+              <button onclick="exportReportCsv()" class="btn btn-ghost"><i class="fa-solid fa-download"></i> Export CSV</button>
+              <button onclick="window.print()" class="btn btn-ghost"><i class="fa-solid fa-print"></i> Print</button>
+            </div>
+          </div>
+          <div class="report-scroll" id="report-scroll">
+            <table class="report-table">
+              <thead>${thead}</thead>
+              <tbody>${tbody}</tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // Re-render while keeping the search box focused
+    function refreshReportTable(input) {
+      const pos = input.selectionStart;
+      const body = document.getElementById('reports-body');
+      body.innerHTML = renderReportTable();
+      layoutReportTable();
+      const next = body.querySelector('.report-search');
+      if (next) { next.focus(); next.setSelectionRange(pos, pos); }
+    }
+
+    function layoutReportTable() {
+      const scroll = document.getElementById('report-scroll');
+      if (!scroll) return;
+      const table = scroll.querySelector('table');
+      const groupRow = table.querySelector('tr.group-row');
+      if (groupRow) {
+        const groupCell = groupRow.querySelector('th.group');
+        table.style.setProperty('--group-h', `${groupCell ? groupCell.offsetHeight : 30}px`);
+      }
+      table.style.setProperty('--empty-w', `${scroll.clientWidth}px`);
+      // Keep the empty state centred as the container resizes (window or sidebar)
+      if (window.ResizeObserver) {
+        if (layoutReportTable.observer) layoutReportTable.observer.disconnect();
+        layoutReportTable.observer = new ResizeObserver(() => table.style.setProperty('--empty-w', `${scroll.clientWidth}px`));
+        layoutReportTable.observer.observe(scroll);
+      }
+    }
+
+    function exportReportCsv() {
+      const r = REPORTS[reportState.report];
+      const def = currentReportDef();
+      const cols = def.columns;
+      const csvCell = v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`;
+      const header = ['Sr. No.', ...cols.map(c => [c.group, c.label, c.hint ? `(${c.hint})` : ''].filter(Boolean).join(' '))];
+      const lines = [header.map(csvCell).join(',')];
+      filteredReportRows().forEach((row, i) => {
+        lines.push([i + 1, ...cols.map(c => row[c.key])].map(csvCell).join(','));
+      });
+      const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const stamp = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `${[r.title, reportState.variant ? def.title : ''].filter(Boolean).join(' - ').replace(/[^a-z0-9 -]/gi, '').replace(/\s+/g, '_')}_${stamp}.csv`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
     // Keyboard Shortcuts
@@ -4670,12 +5150,12 @@
         e.preventDefault();
         openQuickSearchModal();
       }
-      if (e.key === '[' && !e.target.matches('input, textarea')) {
+      if (e.key === '[' && !e.target.matches('input, textarea, select')) {
         e.preventDefault();
         toggleSidebar();
       }
       if (e.key === 'Escape') {
-        document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
+        document.querySelectorAll('[id^="modal-"]').forEach(m => m.classList.add('hidden'));
         const dd = document.getElementById('profile-dropdown');
         if (dd) dd.classList.add('hidden');
       }
@@ -4690,10 +5170,10 @@
     });
 
     window.addEventListener('DOMContentLoaded', () => {
+      renderGreeting();
+      loadAdminSession();
       loadData();
-      if (window.lucide) {
-        window.lucide.createIcons();
-      }
+      renderReports();
     });
   </script>
 </body>

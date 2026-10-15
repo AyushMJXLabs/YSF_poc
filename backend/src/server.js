@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const dotenv = require('dotenv');
 const multer = require('multer');
 const XLSX = require('xlsx');
@@ -60,6 +61,118 @@ app.use(cors());
 app.use(express.json({ limit: '30mb' }));
 app.use(express.urlencoded({ extended: true, limit: '30mb' }));
 
+// ==========================================
+// ADMIN AUTHENTICATION (signed session cookie)
+// ==========================================
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Admin@YSF2026!';
+const ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || process.env.JWT_SECRET || `ysf_admin_${ADMIN_PASSWORD}`;
+const ADMIN_COOKIE = 'ysf_admin_session';
+const ADMIN_SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
+
+if (!process.env.ADMIN_PASSWORD) {
+  console.warn('[Admin Auth] ADMIN_PASSWORD not set — using built-in default. Set it in .env for production.');
+}
+
+function safeEqual(a, b) {
+  const bufA = Buffer.from(String(a));
+  const bufB = Buffer.from(String(b));
+  return bufA.length === bufB.length && crypto.timingSafeEqual(bufA, bufB);
+}
+
+function signAdminToken(username) {
+  const payload = Buffer.from(JSON.stringify({ u: username, exp: Date.now() + ADMIN_SESSION_TTL_MS })).toString('base64url');
+  const sig = crypto.createHmac('sha256', ADMIN_SESSION_SECRET).update(payload).digest('base64url');
+  return `${payload}.${sig}`;
+}
+
+function verifyAdminToken(token) {
+  if (!token || typeof token !== 'string' || !token.includes('.')) return null;
+  const [payload, sig] = token.split('.');
+  const expected = crypto.createHmac('sha256', ADMIN_SESSION_SECRET).update(payload).digest('base64url');
+  if (!safeEqual(sig, expected)) return null;
+  try {
+    const data = JSON.parse(Buffer.from(payload, 'base64url').toString());
+    return data.exp > Date.now() ? data : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function getCookie(req, name) {
+  const header = req.headers.cookie || '';
+  const match = header.split(';').map(c => c.trim()).find(c => c.startsWith(`${name}=`));
+  return match ? decodeURIComponent(match.slice(name.length + 1)) : null;
+}
+
+function getAdminSession(req) {
+  return verifyAdminToken(getCookie(req, ADMIN_COOKIE));
+}
+
+function setAdminCookie(req, res, value, maxAgeMs) {
+  const secure = req.secure || req.headers['x-forwarded-proto'] === 'https';
+  const parts = [
+    `${ADMIN_COOKIE}=${encodeURIComponent(value)}`,
+    'Path=/',
+    'HttpOnly',
+    'SameSite=Lax',
+    `Max-Age=${Math.floor(maxAgeMs / 1000)}`
+  ];
+  if (secure) parts.push('Secure');
+  res.setHeader('Set-Cookie', parts.join('; '));
+}
+
+// Basic brute-force protection: 10 failed attempts per IP per 15 minutes
+const loginAttempts = new Map();
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_MAX_FAILURES = 10;
+
+app.post('/api/admin/login', (req, res) => {
+  const ip = req.ip || 'unknown';
+  const now = Date.now();
+  const record = loginAttempts.get(ip);
+  if (record && now - record.first < LOGIN_WINDOW_MS && record.count >= LOGIN_MAX_FAILURES) {
+    return res.status(429).json({ success: false, message: 'Too many failed attempts. Try again in a few minutes.' });
+  }
+
+  const { username, password } = req.body || {};
+  if (!username || !password) {
+    return res.status(400).json({ success: false, message: 'Username and password are required' });
+  }
+
+  const userOk = safeEqual(String(username).trim(), ADMIN_USERNAME);
+  const passOk = safeEqual(String(password), ADMIN_PASSWORD);
+  if (!userOk || !passOk) {
+    if (!record || now - record.first >= LOGIN_WINDOW_MS) {
+      loginAttempts.set(ip, { first: now, count: 1 });
+    } else {
+      record.count += 1;
+    }
+    return res.status(401).json({ success: false, message: 'Invalid username or password' });
+  }
+
+  loginAttempts.delete(ip);
+  setAdminCookie(req, res, signAdminToken(ADMIN_USERNAME), ADMIN_SESSION_TTL_MS);
+  return res.json({ success: true, admin: { username: ADMIN_USERNAME } });
+});
+
+app.post('/api/admin/logout', (req, res) => {
+  setAdminCookie(req, res, '', 0);
+  return res.json({ success: true });
+});
+
+app.get('/api/admin/session', (req, res) => {
+  const session = getAdminSession(req);
+  if (!session) return res.status(401).json({ success: false, message: 'Not authenticated' });
+  return res.json({ success: true, admin: { username: session.u }, expiresAt: session.exp });
+});
+
+// Every other /api/admin/* route requires an authenticated admin session
+app.use('/api/admin', (req, res, next) => {
+  if (getAdminSession(req)) return next();
+  return res.status(401).json({ success: false, message: 'Admin authentication required' });
+});
+
 // Dedicated file streaming route with MongoDB Atlas cloud persistence fallback
 app.get(['/uploads/:filename', '/api/files/:filename'], async (req, res) => {
   const filename = path.basename(req.params.filename);
@@ -89,9 +202,14 @@ app.get(['/uploads/:filename', '/api/files/:filename'], async (req, res) => {
 // Static uploads serving
 app.use('/uploads', express.static(UPLOADS_DIR));
 
-// Serve static admin files
-app.use('/admin', express.static(path.join(__dirname, '../public')));
-app.get('/admin', (req, res) => {
+// Admin panel pages — the console is only served to authenticated admins
+app.get('/admin/login', (req, res) => {
+  if (getAdminSession(req)) return res.redirect('/admin');
+  res.sendFile(path.join(__dirname, '../public/login.html'));
+});
+app.get(['/admin', '/admin/', '/admin/admin.html'], (req, res) => {
+  if (!getAdminSession(req)) return res.redirect('/admin/login');
+  res.setHeader('Cache-Control', 'no-store');
   res.sendFile(path.join(__dirname, '../public/admin.html'));
 });
 

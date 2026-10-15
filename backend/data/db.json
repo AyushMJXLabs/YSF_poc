@@ -845,6 +845,38 @@
   ],
   "screenTimeLogs": [
     {
+      "id": "STL-1868",
+      "traineeId": "T001",
+      "traineeName": "KUMARI K",
+      "module": "Profile",
+      "durationSeconds": 50,
+      "timestamp": "2026-10-14 12:19:31"
+    },
+    {
+      "id": "STL-1408",
+      "traineeId": "T001",
+      "traineeName": "KUMARI K",
+      "module": "Dashboard",
+      "durationSeconds": 3,
+      "timestamp": "2026-10-14 12:18:41"
+    },
+    {
+      "id": "STL-8643",
+      "traineeId": "T001",
+      "traineeName": "KUMARI K",
+      "module": "Learning Resource",
+      "durationSeconds": 121,
+      "timestamp": "2026-10-14 12:18:38"
+    },
+    {
+      "id": "STL-7169",
+      "traineeId": "T001",
+      "traineeName": "KUMARI K",
+      "module": "Dashboard",
+      "durationSeconds": 73,
+      "timestamp": "2026-10-14 12:16:37"
+    },
+    {
       "id": "STL-2214",
       "traineeId": "T001",
       "traineeName": "KUMARI K",
