@@ -45,25 +45,43 @@
   </script>
   <style>
     /* ============================================================
-       DESIGN TOKENS
+       THEME — "Midnight": navy sidebar, YSF brand blue → violet accent.
+       Every colour in the console derives from these tokens.
        ============================================================ */
     :root {
-      --bg: #fafafa;
+      --accent: #00a0e3;
+      --accent-2: #7c5cff;
+      --accent-rgb: 0, 160, 227;
+      --accent-2-rgb: 124, 92, 255;
+      --accent-ink: #0369a1;
+      --bg: #f5f7fb;
+      --sb-bg: #0b1020;
+      --sb-line: #1b2236;
+      --sb-ink: #f1f5f9;
+      --sb-ink-2: #c3cad8;
+      --sb-muted: #6b7690;
+      --sb-hover: #141b2f;
+      --sb-active: #1a2238;
+    }
+
+    :root {
       --surface: #ffffff;
-      --subtle: #f4f4f5;
-      --ink: #09090b;
-      --ink-2: #3f3f46;
-      --muted: #71717a;
-      --faint: #a1a1aa;
-      --line: #e4e4e7;
-      --line-soft: #f0f0f2;
-      --line-strong: #d4d4d8;
-      --accent: #2952ff;
-      --accent-soft: rgba(41, 82, 255, 0.08);
-      --ok: #059669;
-      --warn: #d97706;
-      --bad: #e11d48;
-      --sidebar-w: 248px;
+      --subtle: #f3f5f8;
+      --ink: #0b1220;
+      --ink-2: #3c4657;
+      --muted: #6b7486;
+      --faint: #a3abba;
+      --line: #e6e9ef;
+      --line-soft: #f0f2f6;
+      --line-strong: #d3d8e1;
+      --grad: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+      --ok: #10b981;
+      --warn: #f59e0b;
+      --bad: #f43f5e;
+      --sidebar-w: 252px;
+      --shadow-sm: 0 1px 2px rgba(11, 18, 32, 0.04), 0 1px 1px rgba(11, 18, 32, 0.02);
+      --shadow-md: 0 12px 32px -14px rgba(11, 18, 32, 0.16), 0 2px 6px rgba(11, 18, 32, 0.03);
+      --shadow-accent: 0 8px 22px -10px rgba(var(--accent-rgb), 0.65);
     }
 
     body {
@@ -71,170 +89,277 @@
       -webkit-font-smoothing: antialiased;
       background: var(--bg) !important;
       color: var(--ink);
-      font-feature-settings: 'ss01', 'cv11';
     }
+    ::selection { background: rgba(var(--accent-rgb), 0.22); color: var(--ink); }
     .font-mono, code, kbd { font-family: 'Geist Mono', ui-monospace, monospace !important; }
     .tabular { font-variant-numeric: tabular-nums; }
+    .grad-text { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 9999px; border: 2px solid transparent; background-clip: padding-box; }
-    ::-webkit-scrollbar-thumb:hover { background: #a1a1aa; background-clip: padding-box; border: 2px solid transparent; }
+    ::-webkit-scrollbar-thumb { background: #d3d8e1; border-radius: 9999px; border: 2px solid transparent; background-clip: padding-box; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(var(--accent-rgb), 0.5); background-clip: padding-box; border: 2px solid transparent; }
 
     @keyframes spin-slow { to { transform: rotate(360deg); } }
     .spin-active { animation: spin-slow 0.8s linear infinite; }
-    @keyframes fade-up { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-    .tab-pane:not(.hidden) { animation: fade-up .22s ease-out; }
+    @keyframes fade-up { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .tab-pane:not(.hidden) { animation: fade-up .28s cubic-bezier(.2, .8, .2, 1); }
+    @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45); } 100% { box-shadow: 0 0 0 7px rgba(16, 185, 129, 0); } }
+    @keyframes drift { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(30px, -20px) scale(1.06); } }
+
+    /* Soft colour wash behind page content */
+    .aurora { position: absolute; inset: 0 0 auto 0; height: 420px; pointer-events: none; overflow: hidden; z-index: 0; }
+    .aurora::before, .aurora::after {
+      content: ''; position: absolute; border-radius: 9999px; filter: blur(70px); opacity: .55;
+      animation: drift 18s ease-in-out infinite;
+    }
+    .aurora::before { width: 520px; height: 300px; top: -140px; left: 8%; background: rgba(var(--accent-rgb), 0.28); }
+    .aurora::after { width: 460px; height: 280px; top: -120px; right: 6%; background: rgba(var(--accent-2-rgb), 0.24); animation-delay: -9s; }
+    main > .page-wrap { position: relative; z-index: 1; }
 
     /* ============================================================
        SIDEBAR
        ============================================================ */
     #app-sidebar {
       width: var(--sidebar-w);
-      background: var(--bg);
-      border-right: 1px solid var(--line);
-      transition: width .18s ease;
+      background: var(--sb-bg);
+      border-right: 1px solid var(--sb-line);
+      transition: width .2s ease;
     }
-    #app-sidebar.collapsed { width: 60px; }
+    #app-sidebar nav::-webkit-scrollbar-thumb { background: #232c44; background-clip: padding-box; }
+    #app-sidebar.collapsed { width: 64px; }
     #app-sidebar.collapsed .sidebar-text { display: none !important; }
-    #app-sidebar.collapsed .nav-item { justify-content: center; }
-    #app-sidebar.collapsed .nav-group-label { visibility: hidden; height: 8px; margin: 0; }
+    #app-sidebar.collapsed .nav-item { justify-content: center; padding: 0; }
+    #app-sidebar.collapsed .nav-group-label { visibility: hidden; height: 6px; margin: 0; }
+    .brand-mark {
+      width: 30px; height: 30px; border-radius: 8px; background: var(--grad); color: #fff;
+      display: grid; place-items: center; font-size: 10px; font-weight: 700; letter-spacing: .04em;
+      box-shadow: var(--shadow-accent);
+    }
+    .sb-title { color: var(--sb-ink); }
+    .sb-sub { color: var(--sb-muted); }
     .nav-group-label {
       font-family: 'Geist Mono', monospace;
       font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--faint); padding: 0 10px; margin-bottom: 6px;
+      color: var(--sb-muted); padding: 0 10px; margin-bottom: 6px;
     }
     .nav-item {
-      width: 100%; display: flex; align-items: center; justify-content: space-between;
-      gap: 10px; height: 32px; padding: 0 10px;
-      border-radius: 6px; border: 1px solid transparent;
-      font-size: 13px; color: var(--ink-2); font-weight: 450;
-      transition: background .12s, color .12s, border-color .12s;
+      position: relative; width: 100%; display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; height: 36px; padding: 0 8px;
+      border-radius: 8px; border: 1px solid transparent;
+      font-size: 13px; color: var(--sb-ink-2); font-weight: 450;
+      transition: background .15s, color .15s, border-color .15s;
     }
-    .nav-item:hover { background: var(--subtle); color: var(--ink); }
-    .nav-item i { width: 16px; text-align: center; font-size: 13px; color: var(--faint); transition: color .12s; }
-    .nav-item:hover i { color: var(--ink-2); }
+    .nav-item:hover { background: var(--sb-hover); color: var(--sb-ink); }
+    .nav-ico {
+      width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0;
+      display: grid; place-items: center; font-size: 11.5px;
+      color: var(--hue, var(--accent));
+      background: color-mix(in srgb, var(--hue, var(--accent)) 13%, transparent);
+      transition: transform .25s cubic-bezier(.34, 1.56, .64, 1), background .15s, color .15s, box-shadow .15s;
+    }
+    .nav-item:hover .nav-ico { transform: scale(1.1) rotate(-6deg); }
     .nav-item.active {
-      background: var(--surface); color: var(--ink); font-weight: 500;
-      border-color: var(--line);
-      box-shadow: 0 1px 2px rgba(9, 9, 11, 0.04);
+      background: var(--sb-active); color: var(--sb-ink); font-weight: 500;
+      border-color: var(--sb-line); box-shadow: var(--shadow-sm);
     }
-    .nav-item.active i { color: var(--ink); }
+    .nav-item.active::before {
+      content: ''; position: absolute; left: -11px; top: 8px; bottom: 8px; width: 3px;
+      border-radius: 0 3px 3px 0; background: var(--hue, var(--accent));
+    }
+    .nav-item.active .nav-ico {
+      background: var(--hue, var(--accent)); color: #fff;
+      box-shadow: 0 4px 12px -4px color-mix(in srgb, var(--hue, var(--accent)) 70%, transparent);
+    }
     .nav-count {
-      font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--faint);
-      font-variant-numeric: tabular-nums;
+      font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--sb-muted);
+      font-variant-numeric: tabular-nums; min-width: 20px; text-align: center;
+      padding: 1px 6px; border-radius: 9999px; background: transparent;
     }
-    .nav-count.alert { color: var(--warn); }
-    .live-dot { width: 6px; height: 6px; border-radius: 9999px; background: var(--ok); box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15); }
+    .nav-count.alert { color: #fbbf24; background: rgba(245, 158, 11, 0.16); }
+    .live-dot { width: 7px; height: 7px; border-radius: 9999px; background: var(--ok); animation: pulse-ring 1.8s ease-out infinite; }
+    .sb-foot { border-top: 1px solid var(--sb-line); }
+    .sb-toggle { color: var(--sb-muted); }
+    .sb-toggle:hover { background: var(--sb-hover); color: var(--sb-ink); }
 
     /* ============================================================
        HEADER & SHARED CHROME
        ============================================================ */
-    .app-header { height: 56px; background: rgba(250, 250, 250, 0.85); backdrop-filter: saturate(180%) blur(12px); -webkit-backdrop-filter: saturate(180%) blur(12px); border-bottom: 1px solid var(--line); }
+    .app-header { height: 58px; background: rgba(255, 255, 255, 0.72); backdrop-filter: saturate(180%) blur(14px); -webkit-backdrop-filter: saturate(180%) blur(14px); border-bottom: 1px solid var(--line); }
     .icon-btn {
       height: 32px; min-width: 32px; padding: 0 8px;
       display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-      border-radius: 6px; color: var(--muted); font-size: 13px;
-      transition: background .12s, color .12s;
+      border-radius: 8px; color: var(--muted); font-size: 13px;
+      transition: background .15s, color .15s, transform .15s;
     }
-    .icon-btn:hover { background: var(--subtle); color: var(--ink); }
+    .icon-btn:hover { background: rgba(var(--accent-rgb), 0.08); color: var(--accent); }
     .search-trigger {
-      height: 32px; width: 100%; max-width: 360px;
-      display: flex; align-items: center; gap: 8px; padding: 0 6px 0 10px;
-      border: 1px solid var(--line); border-radius: 6px; background: var(--surface);
+      height: 34px; width: 100%; max-width: 380px;
+      display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px;
+      border: 1px solid var(--line); border-radius: 9px; background: var(--surface);
       color: var(--faint); font-size: 13px; cursor: pointer;
-      transition: border-color .12s;
+      transition: border-color .15s, box-shadow .15s;
     }
-    .search-trigger:hover { border-color: var(--line-strong); }
+    .search-trigger:hover { border-color: rgba(var(--accent-rgb), 0.45); box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.08); }
     kbd, .kbd {
       font-family: 'Geist Mono', monospace; font-size: 10.5px; color: var(--muted);
       border: 1px solid var(--line); border-bottom-width: 2px; background: var(--bg);
-      border-radius: 4px; padding: 1px 5px; line-height: 1.4;
+      border-radius: 5px; padding: 1px 5px; line-height: 1.4;
     }
     .status-chip {
-      height: 28px; display: inline-flex; align-items: center; gap: 8px; padding: 0 10px;
-      border: 1px solid var(--line); border-radius: 9999px; background: var(--surface);
-      font-size: 12px; color: var(--ink-2); cursor: pointer; white-space: nowrap;
-      transition: border-color .12s;
+      height: 30px; display: inline-flex; align-items: center; gap: 8px; padding: 0 11px;
+      border: 1px solid rgba(16, 185, 129, 0.28); border-radius: 9999px; background: rgba(16, 185, 129, 0.07);
+      font-size: 12px; font-weight: 500; color: #047857; cursor: pointer; white-space: nowrap;
+      transition: background .15s, border-color .15s;
     }
-    .status-chip:hover { border-color: var(--line-strong); }
-    .status-dot { width: 6px; height: 6px; border-radius: 9999px; background: var(--ok); }
-    .status-chip.warn .status-dot { background: var(--warn); }
+    .status-chip:hover { background: rgba(16, 185, 129, 0.13); }
+    .status-dot { width: 7px; height: 7px; border-radius: 9999px; background: var(--ok); animation: pulse-ring 1.8s ease-out infinite; }
+    .status-chip.warn { border-color: rgba(245, 158, 11, 0.32); background: rgba(245, 158, 11, 0.08); color: #b45309; }
+    .status-chip.warn:hover { background: rgba(245, 158, 11, 0.15); }
+    .status-chip.warn .status-dot { background: var(--warn); animation: none; }
+    .status-chip #mongo-sync-icon { color: inherit; opacity: .7; }
     .avatar {
-      width: 28px; height: 28px; border-radius: 9999px; background: var(--ink); color: #fafafa;
+      width: 30px; height: 30px; border-radius: 9999px; background: var(--grad); color: #fff;
       display: grid; place-items: center; font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+      box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(var(--accent-rgb), 0.3);
     }
     .dropdown {
-      background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
-      box-shadow: 0 16px 40px -12px rgba(9, 9, 11, 0.18), 0 2px 6px rgba(9, 9, 11, 0.04);
+      background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+      box-shadow: 0 20px 48px -16px rgba(11, 18, 32, 0.22), 0 2px 6px rgba(11, 18, 32, 0.04);
     }
     .dropdown-item {
       width: 100%; text-align: left; display: flex; align-items: center; gap: 10px;
-      padding: 7px 10px; border-radius: 6px; font-size: 13px; color: var(--ink-2);
+      padding: 7px 10px; border-radius: 7px; font-size: 13px; color: var(--ink-2);
+      transition: background .12s, color .12s;
     }
-    .dropdown-item:hover { background: var(--subtle); color: var(--ink); }
+    .dropdown-item:hover { background: rgba(var(--accent-rgb), 0.08); color: var(--accent-ink); }
     .dropdown-item i { width: 14px; color: var(--faint); font-size: 12px; }
+    .dropdown-item:hover i { color: var(--accent); }
 
-    /* Page header used by dashboard & reports */
+    /* Page header */
     .eyebrow { font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-    .page-title { font-size: 24px; line-height: 1.15; font-weight: 600; letter-spacing: -0.025em; color: var(--ink); }
-    .page-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .eyebrow.accent { color: var(--accent); }
+    .page-title { font-size: 26px; line-height: 1.15; font-weight: 600; letter-spacing: -0.03em; color: var(--ink); }
+    .page-sub { font-size: 13.5px; color: var(--muted); margin-top: 6px; }
 
     .btn {
-      height: 32px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      border-radius: 6px; font-size: 13px; font-weight: 500; white-space: nowrap;
-      transition: background .12s, border-color .12s, color .12s, transform .05s;
+      position: relative; overflow: hidden;
+      height: 34px; padding: 0 14px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      border-radius: 9px; font-size: 13px; font-weight: 500; white-space: nowrap;
+      transition: background .15s, border-color .15s, color .15s, box-shadow .2s, transform .2s cubic-bezier(.2, .8, .2, 1);
     }
-    .btn:active { transform: translateY(1px); }
-    .btn-primary { background: var(--ink); color: #fafafa; }
-    .btn-primary:hover { background: #27272a; }
-    .btn-ghost { background: var(--surface); color: var(--ink-2); border: 1px solid var(--line); }
-    .btn-ghost:hover { border-color: var(--line-strong); color: var(--ink); background: var(--surface); }
+    .btn:active { transform: translateY(1px) scale(.98); }
+    .btn-primary { background: var(--grad); color: #fff; box-shadow: var(--shadow-accent); }
+    .btn-primary:hover { box-shadow: 0 12px 28px -10px rgba(var(--accent-rgb), 0.75); filter: saturate(1.1) brightness(1.04); }
+    .btn-ghost { background: var(--surface); color: var(--ink-2); border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
+    .btn-ghost:hover { border-color: color-mix(in srgb, var(--hue, var(--accent)) 45%, transparent); color: var(--ink); background: color-mix(in srgb, var(--hue, var(--accent)) 5%, #fff); }
     .btn-ghost i, .btn-primary i { font-size: 12px; }
-    .btn-ghost i { color: var(--muted); }
+    .btn-ghost i { color: var(--hue, var(--accent)); transition: transform .25s cubic-bezier(.34, 1.56, .64, 1); }
+    .btn-ghost:hover i { transform: scale(1.15); }
 
-    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
-    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
-    .panel-title { font-size: 13px; font-weight: 600; color: var(--ink); letter-spacing: -0.005em; }
+    .panel { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow-sm); }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 18px; border-bottom: 1px solid var(--line); }
+    .panel-title { font-size: 13.5px; font-weight: 600; color: var(--ink); letter-spacing: -0.005em; }
     .panel-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
 
-    .kpi { padding: 18px 20px; }
-    .kpi + .kpi { border-left: 1px solid var(--line); }
-    .kpi-label { font-size: 12px; color: var(--muted); }
-    .kpi-value { font-size: 28px; font-weight: 600; letter-spacing: -0.03em; color: var(--ink); margin-top: 6px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+    .chip-ico {
+      width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+      display: grid; place-items: center; font-size: 14px;
+      color: var(--hue, var(--accent));
+      background: color-mix(in srgb, var(--hue, var(--accent)) 12%, transparent);
+      transition: transform .3s cubic-bezier(.34, 1.56, .64, 1);
+    }
+    .chip-ico.sm { width: 28px; height: 28px; border-radius: 8px; font-size: 11.5px; }
+
+    .kpi { position: relative; padding: 20px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow-sm); overflow: hidden; transition: transform .25s cubic-bezier(.2, .8, .2, 1), box-shadow .25s; }
+    .kpi::after {
+      content: ''; position: absolute; width: 160px; height: 160px; right: -60px; top: -70px; border-radius: 9999px;
+      background: radial-gradient(circle, color-mix(in srgb, var(--hue) 22%, transparent), transparent 70%);
+      transition: transform .4s ease;
+    }
+    .kpi:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .kpi:hover::after { transform: scale(1.25); }
+    .kpi:hover .chip-ico { transform: scale(1.08) rotate(-6deg); }
+    .kpi-label { font-size: 12.5px; color: var(--muted); }
+    .kpi-value { font-size: 30px; font-weight: 600; letter-spacing: -0.035em; color: var(--ink); margin-top: 14px; font-variant-numeric: tabular-nums; line-height: 1.05; }
     .kpi-meta { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--faint); margin-top: 8px; }
-    @media (max-width: 1023px) {
-      .kpi:nth-child(odd) { border-left: 0; }
-      .kpi:nth-child(n+3) { border-top: 1px solid var(--line); }
-    }
-    @media (max-width: 639px) {
-      .kpi + .kpi { border-left: 0; border-top: 1px solid var(--line); }
-    }
+    .kpi-bar { height: 3px; border-radius: 9999px; margin-top: 14px; background: var(--line-soft); overflow: hidden; }
+    .kpi-bar > span { display: block; height: 100%; width: var(--w, 60%); border-radius: inherit; background: linear-gradient(90deg, color-mix(in srgb, var(--hue) 60%, #fff), var(--hue)); }
 
     .list-row {
       display: flex; align-items: center; justify-content: space-between; gap: 12px;
-      padding: 10px 16px; font-size: 13px; color: var(--ink-2); cursor: pointer;
-      transition: background .12s;
+      padding: 9px 16px; font-size: 13px; color: var(--ink-2); cursor: pointer;
+      transition: background .15s, color .15s;
     }
     .list-row + .list-row { border-top: 1px solid var(--line-soft); }
-    .list-row:hover { background: var(--bg); color: var(--ink); }
-    .list-row .chev { color: var(--faint); font-size: 11px; transition: transform .12s, color .12s; }
-    .list-row:hover .chev { transform: translateX(2px); color: var(--ink); }
+    .list-row:hover { background: color-mix(in srgb, var(--hue, var(--accent)) 6%, #fff); color: var(--ink); }
+    .list-row:hover .chip-ico { transform: scale(1.1) rotate(-6deg); }
+    .list-row .chev { color: var(--faint); font-size: 11px; transition: transform .2s, color .2s; }
+    .list-row:hover .chev { transform: translateX(3px); color: var(--hue, var(--accent)); }
 
     /* ============================================================
-       GLOBAL DESIGN LAYER — normalizes legacy utility markup
-       (cards, buttons, chips, inputs, tables, modals)
+       CURSOR EFFECTS
+       ============================================================ */
+    /* Spotlight + glowing border that follow the pointer */
+    .spot { position: relative; isolation: isolate; }
+    .spot::before {
+      content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; z-index: 2;
+      background: radial-gradient(260px circle at var(--mx, -999px) var(--my, -999px), color-mix(in srgb, var(--hue, var(--accent)) 75%, transparent), transparent 65%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude;
+      opacity: 0; transition: opacity .35s;
+    }
+    .spot > .spot-glow {
+      position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
+      background: radial-gradient(420px circle at var(--mx, -999px) var(--my, -999px), color-mix(in srgb, var(--hue, var(--accent)) 7%, transparent), transparent 60%);
+      opacity: 0; transition: opacity .35s;
+    }
+    .spot:hover::before, .spot:hover > .spot-glow { opacity: 1; }
+
+    /* Follower ring */
+    #cursor-ring, #cursor-dot { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; border-radius: 9999px; opacity: 0; }
+    #cursor-ring {
+      width: 34px; height: 34px; margin: -17px 0 0 -17px;
+      border: 1.5px solid rgba(var(--accent-rgb), 0.55);
+      background: rgba(var(--accent-rgb), 0.04);
+      transition: width .25s cubic-bezier(.2, .8, .2, 1), height .25s cubic-bezier(.2, .8, .2, 1), margin .25s cubic-bezier(.2, .8, .2, 1), background .25s, border-color .25s, opacity .25s;
+    }
+    #cursor-dot { width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; background: var(--accent); transition: opacity .2s, transform .15s; }
+    body.cursor-on #cursor-ring, body.cursor-on #cursor-dot { opacity: 1; }
+    body.cursor-hover #cursor-ring { width: 52px; height: 52px; margin: -26px 0 0 -26px; background: rgba(var(--accent-rgb), 0.1); border-color: rgba(var(--accent-rgb), 0.35); }
+    body.cursor-hover #cursor-dot { transform: scale(0); }
+    body.cursor-text #cursor-ring, body.cursor-text #cursor-dot { opacity: 0 !important; }
+    body.cursor-down #cursor-ring { width: 26px; height: 26px; margin: -13px 0 0 -13px; background: rgba(var(--accent-rgb), 0.18); }
+
+    /* Click ripple */
+    .ripple {
+      position: absolute; border-radius: 9999px; pointer-events: none; transform: scale(0);
+      background: currentColor; opacity: .18; animation: ripple .6s ease-out forwards;
+    }
+    @keyframes ripple { to { transform: scale(1); opacity: 0; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .aurora::before, .aurora::after, .live-dot, .status-dot { animation: none !important; }
+      #cursor-ring, #cursor-dot { display: none !important; }
+      .tab-pane:not(.hidden) { animation: none; }
+    }
+    @media (hover: none), (pointer: coarse) {
+      #cursor-ring, #cursor-dot { display: none !important; }
+    }
+
+    /* ============================================================
+       GLOBAL DESIGN LAYER — harmonises legacy utility markup
+       (cards, buttons, inputs, tables, modals)
        ============================================================ */
     main, [id^="modal-"] { color: var(--ink-2); }
 
-    .rounded-2xl { border-radius: 12px !important; }
-    .rounded-xl { border-radius: 10px !important; }
-    .rounded-lg { border-radius: 6px !important; }
-    .rounded-md { border-radius: 5px !important; }
-    .rounded { border-radius: 4px !important; }
+    .rounded-2xl { border-radius: 16px !important; }
+    .rounded-xl { border-radius: 12px !important; }
+    .rounded-lg { border-radius: 8px !important; }
+    .rounded-md { border-radius: 6px !important; }
+    .rounded { border-radius: 5px !important; }
 
     .shadow-md, .shadow-sm { box-shadow: none !important; }
-    .hover\:shadow-md:hover { box-shadow: 0 4px 16px -6px rgba(9, 9, 11, 0.08) !important; }
 
     .font-extrabold { font-weight: 600 !important; }
     .font-bold { font-weight: 600 !important; }
@@ -245,54 +370,40 @@
     .text-slate-800, .text-slate-700 { color: var(--ink-2) !important; }
     .text-slate-600, .text-slate-500 { color: var(--muted) !important; }
     .text-slate-400 { color: var(--faint) !important; }
-    .bg-slate-50, .bg-slate-50\/80, .bg-slate-50\/70, .bg-slate-50\/60, .bg-slate-50\/50 { background-color: var(--bg) !important; }
+    .bg-slate-50, .bg-slate-50\/80, .bg-slate-50\/70, .bg-slate-50\/60, .bg-slate-50\/50 { background-color: var(--subtle) !important; }
 
-    main .bg-white.rounded-xl { border: 1px solid var(--line) !important; }
+    main .bg-white.rounded-xl { border: 1px solid var(--line) !important; box-shadow: var(--shadow-sm) !important; border-radius: 14px !important; }
     main h3.text-base { font-size: 15px !important; letter-spacing: -0.015em; }
     main h3, main h4, main h5 { letter-spacing: -0.01em; }
 
-    /* Decorative heading icons → quiet */
-    main h3 > i, main h4 > i, main h5 i, [id^="modal-"] h3 > i, main label > i { color: var(--faint) !important; }
-
-    /* Non-semantic accent text → neutral ink */
-    main :is([class*="text-sky-"], [class*="text-blue-"], [class*="text-indigo-"], [class*="text-violet-"], [class*="text-purple-"], [class*="text-teal-"], [class*="text-cyan-"]),
-    [id^="modal-"] :is([class*="text-sky-"], [class*="text-blue-"], [class*="text-indigo-"], [class*="text-violet-"], [class*="text-purple-"], [class*="text-teal-"], [class*="text-cyan-"]) {
-      color: var(--ink-2) !important;
-    }
-    main i:is([class*="text-sky-"], [class*="text-blue-"], [class*="text-indigo-"], [class*="text-violet-"], [class*="text-purple-"], [class*="text-teal-"], [class*="text-cyan-"]) { color: var(--muted) !important; }
-
-    /* Non-semantic tinted chips & surfaces → neutral */
-    main :is(span, div, p, li):is([class*="bg-sky-50"], [class*="bg-sky-100"], [class*="bg-blue-50"], [class*="bg-blue-100"], [class*="bg-indigo-50"], [class*="bg-indigo-100"], [class*="bg-violet-50"], [class*="bg-violet-100"], [class*="bg-purple-50"], [class*="bg-purple-100"], [class*="bg-teal-50"], [class*="bg-teal-100"], [class*="bg-cyan-50"], [class*="bg-cyan-100"]),
-    [id^="modal-"] :is(span, div, p):is([class*="bg-sky-50"], [class*="bg-sky-100"], [class*="bg-blue-50"], [class*="bg-indigo-50"], [class*="bg-indigo-100"], [class*="bg-purple-50"], [class*="bg-teal-50"], [class*="bg-cyan-50"]) {
-      background-color: var(--subtle) !important;
-      border-color: var(--line) !important;
-      color: var(--ink-2) !important;
-    }
-
-    /* Tinted buttons/links → outlined neutral */
+    /* Tinted buttons/links → crisp outlined, keeping their coloured icon */
     body :is(button, a):is([class*="bg-sky-50"], [class*="bg-blue-50"], [class*="bg-indigo-50"], [class*="bg-violet-50"], [class*="bg-purple-50"], [class*="bg-teal-50"], [class*="bg-cyan-50"], [class*="bg-emerald-50"], [class*="bg-amber-50"], [class*="bg-slate-100"], [class*="bg-slate-200"]):not(.nav-item):not(.keep-style) {
       background: var(--surface) !important;
       border: 1px solid var(--line) !important;
       color: var(--ink-2) !important;
       font-weight: 500 !important;
+      box-shadow: var(--shadow-sm);
+      transition: border-color .15s, background .15s, color .15s, transform .2s;
     }
     body :is(button, a):is([class*="bg-sky-50"], [class*="bg-blue-50"], [class*="bg-indigo-50"], [class*="bg-violet-50"], [class*="bg-purple-50"], [class*="bg-teal-50"], [class*="bg-cyan-50"], [class*="bg-emerald-50"], [class*="bg-amber-50"], [class*="bg-slate-100"], [class*="bg-slate-200"]):not(.nav-item):not(.keep-style):hover {
-      border-color: var(--line-strong) !important;
-      color: var(--ink) !important;
-      background: var(--bg) !important;
+      border-color: rgba(var(--accent-rgb), 0.45) !important;
+      color: var(--accent-ink) !important;
+      background: rgba(var(--accent-rgb), 0.05) !important;
     }
-    body :is(button, a):is([class*="bg-sky-50"], [class*="bg-blue-50"], [class*="bg-indigo-50"], [class*="bg-violet-50"], [class*="bg-purple-50"], [class*="bg-teal-50"], [class*="bg-cyan-50"], [class*="bg-emerald-50"], [class*="bg-amber-50"], [class*="bg-slate-100"], [class*="bg-slate-200"]):not(.nav-item):not(.keep-style) i { color: var(--muted) !important; }
 
-    /* Solid colored buttons → ink primary */
+    /* Solid coloured buttons → theme gradient */
     body :is(button, a):is([class*="bg-sky-500"], [class*="bg-sky-600"], [class*="bg-blue-600"], [class*="bg-indigo-600"], [class*="bg-violet-600"], [class*="bg-purple-600"], [class*="bg-teal-600"], [class*="bg-cyan-600"], [class*="bg-emerald-500"], [class*="bg-emerald-600"], [class*="bg-amber-600"], [class*="bg-red-600"], [class*="bg-rose-600"], [class*="bg-slate-800"]):not(.keep-style) {
-      background: var(--ink) !important;
-      color: #fafafa !important;
-      border: 1px solid var(--ink) !important;
+      background: var(--grad) !important;
+      color: #fff !important;
+      border: 1px solid transparent !important;
       font-weight: 500 !important;
+      box-shadow: var(--shadow-accent) !important;
+      transition: box-shadow .2s, filter .2s, transform .2s;
     }
     body :is(button, a):is([class*="bg-sky-500"], [class*="bg-sky-600"], [class*="bg-blue-600"], [class*="bg-indigo-600"], [class*="bg-violet-600"], [class*="bg-purple-600"], [class*="bg-teal-600"], [class*="bg-cyan-600"], [class*="bg-emerald-500"], [class*="bg-emerald-600"], [class*="bg-amber-600"], [class*="bg-red-600"], [class*="bg-rose-600"], [class*="bg-slate-800"]):not(.keep-style):hover {
-      background: #27272a !important;
-      border-color: #27272a !important;
+      filter: saturate(1.1) brightness(1.05);
+      box-shadow: 0 12px 28px -10px rgba(var(--accent-rgb), 0.75) !important;
+      transform: translateY(-1px);
     }
     body :is(button, a):is([class*="bg-sky-500"], [class*="bg-sky-600"], [class*="bg-blue-600"], [class*="bg-indigo-600"], [class*="bg-violet-600"], [class*="bg-purple-600"], [class*="bg-teal-600"], [class*="bg-cyan-600"], [class*="bg-emerald-500"], [class*="bg-emerald-600"], [class*="bg-amber-600"], [class*="bg-red-600"], [class*="bg-rose-600"], [class*="bg-slate-800"]):not(.keep-style) i { color: inherit !important; }
 
@@ -302,94 +413,119 @@
       border: 1px solid var(--line-strong) !important;
       background-color: var(--surface);
       color: var(--ink);
-      border-radius: 6px !important;
-      transition: border-color .12s, box-shadow .12s;
+      border-radius: 8px !important;
+      transition: border-color .15s, box-shadow .15s;
     }
     main :is(input, select):not([type=checkbox]):not([type=radio]):not([type=file]),
-    [id^="modal-"] :is(input, select):not([type=checkbox]):not([type=radio]):not([type=file]) { min-height: 32px; }
+    [id^="modal-"] :is(input, select):not([type=checkbox]):not([type=radio]):not([type=file]) { min-height: 34px; }
+    main :is(input, select, textarea):hover,
+    [id^="modal-"] :is(input, select, textarea):hover { border-color: rgba(var(--accent-rgb), 0.4) !important; }
     main :is(input, select, textarea):focus,
     [id^="modal-"] :is(input, select, textarea):focus {
       outline: none !important;
-      border-color: var(--ink) !important;
-      box-shadow: 0 0 0 3px rgba(9, 9, 11, 0.07) !important;
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.12) !important;
       --tw-ring-shadow: 0 0 #0000 !important;
     }
     ::placeholder { color: var(--faint) !important; }
-    input[type=checkbox], input[type=radio] { accent-color: var(--ink); }
+    input[type=checkbox], input[type=radio] { accent-color: var(--accent); }
     input[type=file]::file-selector-button {
-      background: var(--ink) !important; color: #fafafa !important; border: 0; border-radius: 5px;
-      padding: 6px 10px; margin-right: 10px; font: inherit; font-size: 12px; cursor: pointer;
+      background: var(--grad) !important; color: #fff !important; border: 0; border-radius: 7px;
+      padding: 6px 12px; margin-right: 10px; font: inherit; font-size: 12px; cursor: pointer;
     }
     [id^="modal-"] label.font-bold, main label.font-bold { font-weight: 500 !important; color: var(--ink-2) !important; }
 
     /* Tables */
     main table thead tr { background: transparent !important; }
     main table thead th {
-      font-size: 11px !important; font-weight: 500 !important; letter-spacing: 0.04em;
+      font-size: 11px !important; font-weight: 500 !important; letter-spacing: 0.05em;
       color: var(--muted) !important; text-transform: uppercase;
       border-bottom: 1px solid var(--line) !important; white-space: nowrap;
     }
-    main table tbody tr:hover { background: var(--bg) !important; }
+    main table tbody tr { transition: background .12s; }
+    main table tbody tr:hover { background: rgba(var(--accent-rgb), 0.035) !important; }
 
     /* Modals */
-    [id^="modal-"].fixed { background: rgba(9, 9, 11, 0.42) !important; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+    [id^="modal-"].fixed { background: rgba(11, 18, 32, 0.38) !important; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
     [id^="modal-"] > div {
       border: 1px solid var(--line) !important;
-      box-shadow: 0 32px 64px -16px rgba(9, 9, 11, 0.28), 0 2px 8px rgba(9, 9, 11, 0.04) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 40px 80px -20px rgba(11, 18, 32, 0.35), 0 2px 8px rgba(11, 18, 32, 0.04) !important;
     }
-    [id^="modal-"]:not(.hidden) > div { animation: fade-up .18s ease-out; }
-    [id^="modal-"] h3 { font-size: 14px !important; letter-spacing: -0.01em; }
+    [id^="modal-"] > div::before {
+      content: ''; display: block; height: 3px; margin: -24px -24px 20px; border-radius: 16px 16px 0 0; background: var(--grad);
+    }
+    #modal-quick-search > div::before { margin: -16px -16px 14px; }
+    [id^="modal-"]:not(.hidden) > div { animation: modal-in .24s cubic-bezier(.2, .8, .2, 1); }
+    @keyframes modal-in { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+    [id^="modal-"] h3 { font-size: 14.5px !important; letter-spacing: -0.01em; }
 
     /* Toasts */
     .toast {
       pointer-events: auto; display: flex; align-items: center; gap: 10px;
-      padding: 10px 14px; border-radius: 8px; font-size: 13px;
-      background: var(--ink); color: #fafafa; border: 1px solid #27272a;
-      box-shadow: 0 16px 40px -12px rgba(9, 9, 11, 0.35);
-      transition: opacity .25s, transform .25s;
+      padding: 11px 15px; border-radius: 11px; font-size: 13px;
+      background: rgba(11, 18, 32, 0.92); color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 18px 44px -12px rgba(11, 18, 32, 0.45);
+      transition: opacity .25s, transform .3s cubic-bezier(.2, .8, .2, 1);
     }
-    .toast .toast-dot { width: 6px; height: 6px; border-radius: 9999px; flex-shrink: 0; }
+    .toast .toast-dot { width: 8px; height: 8px; border-radius: 9999px; flex-shrink: 0; box-shadow: 0 0 10px currentColor; }
 
     /* ============================================================
        REPORTS
        ============================================================ */
     .report-card {
-      position: relative; text-align: left; padding: 18px; min-height: 148px;
-      display: flex; flex-direction: column; justify-content: space-between; gap: 20px;
-      background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
-      transition: border-color .15s, box-shadow .15s, transform .15s;
+      position: relative; text-align: left; padding: 20px; min-height: 172px;
+      display: flex; flex-direction: column; justify-content: space-between; gap: 22px;
+      background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-sm);
+      transform-style: preserve-3d; transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--ty, 0));
+      transition: transform .35s cubic-bezier(.2, .8, .2, 1), box-shadow .3s;
+      overflow: hidden;
     }
-    .report-card:hover { border-color: var(--ink); box-shadow: 0 8px 24px -12px rgba(9, 9, 11, 0.18); }
-    .report-card .rc-icon {
-      width: 32px; height: 32px; border-radius: 7px; border: 1px solid var(--line);
-      display: grid; place-items: center; color: var(--ink-2); font-size: 13px; background: var(--bg);
+    .report-card:hover { --ty: -3px; box-shadow: 0 22px 44px -18px color-mix(in srgb, var(--hue) 45%, transparent); transition: transform .12s linear, box-shadow .3s; }
+    .report-card .rc-band { position: absolute; inset: 0 0 auto 0; height: 3px; background: linear-gradient(90deg, var(--hue), color-mix(in srgb, var(--hue) 40%, #fff)); }
+    .report-card .rc-blob {
+      position: absolute; width: 180px; height: 180px; right: -70px; bottom: -90px; border-radius: 9999px; pointer-events: none;
+      background: radial-gradient(circle, color-mix(in srgb, var(--hue) 20%, transparent), transparent 70%);
+      transition: transform .5s ease;
     }
-    .report-card .rc-title { font-size: 14px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
-    .report-card .rc-desc { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.45; }
-    .report-card .rc-meta { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--faint); }
-    .report-card .rc-arrow { position: absolute; top: 18px; right: 18px; color: var(--faint); font-size: 12px; transform: rotate(-45deg); transition: transform .15s, color .15s; }
-    .report-card:hover .rc-arrow { color: var(--ink); transform: translate(2px, -2px) rotate(-45deg); }
+    .report-card:hover .rc-blob { transform: scale(1.4); }
+    .report-card .chip-ico { width: 40px; height: 40px; border-radius: 11px; font-size: 15px; }
+    .report-card:hover .chip-ico { transform: translateZ(20px) scale(1.06) rotate(-6deg); }
+    .report-card .rc-title { font-size: 14.5px; font-weight: 600; color: var(--ink); letter-spacing: -0.015em; }
+    .report-card .rc-desc { font-size: 12.5px; color: var(--muted); margin-top: 5px; line-height: 1.5; }
+    .report-card .rc-meta { display: inline-flex; align-items: center; gap: 6px; font-family: 'Geist Mono', monospace; font-size: 11px; color: color-mix(in srgb, var(--hue) 75%, #0b1220); background: color-mix(in srgb, var(--hue) 9%, transparent); padding: 3px 8px; border-radius: 9999px; }
+    .report-card .rc-arrow {
+      position: absolute; top: 20px; right: 20px; width: 28px; height: 28px; border-radius: 9999px;
+      display: grid; place-items: center; font-size: 11px; color: var(--faint); background: var(--subtle);
+      transform: rotate(-45deg); transition: transform .3s cubic-bezier(.34, 1.56, .64, 1), background .2s, color .2s;
+    }
+    .report-card:hover .rc-arrow { color: #fff; background: var(--hue); transform: rotate(0deg); }
 
     .crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
-    .crumbs button:hover { color: var(--ink); }
+    .crumbs button { transition: color .15s; }
+    .crumbs button:hover { color: var(--accent); }
     .crumbs .sep { color: var(--line-strong); }
     .crumbs .current { color: var(--ink); font-weight: 500; }
 
     .report-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
     .report-search {
-      height: 32px; width: 240px; max-width: 100%;
-      border: 1px solid var(--line); border-radius: 6px; padding: 0 10px 0 30px;
-      font-size: 13px; background: var(--surface);
+      height: 34px; width: 260px; max-width: 100%;
+      border: 1px solid var(--line); border-radius: 9px; padding: 0 10px 0 32px;
+      font-size: 13px; background: var(--surface); transition: border-color .15s, box-shadow .15s;
     }
+    .report-search:hover { border-color: rgba(var(--accent-rgb), 0.4); }
+    .report-search:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.12); }
     .report-meta { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--muted); }
+    .report-meta b { color: var(--hue, var(--accent)); font-weight: 500; }
 
-    .report-scroll { overflow: auto; max-height: calc(100vh - 290px); min-height: 280px; position: relative; }
+    .report-scroll { overflow: auto; max-height: calc(100vh - 300px); min-height: 280px; position: relative; }
     table.report-table { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; font-size: 13px; }
     .report-table thead th {
       position: sticky; top: 0; z-index: 2;
-      background: var(--bg) !important;
+      background: #f8fafc !important;
       text-align: left; vertical-align: bottom;
-      padding: 10px 14px !important;
+      padding: 11px 14px !important;
       border-bottom: 1px solid var(--line) !important;
       border-right: 1px solid var(--line-soft);
       text-transform: none !important; letter-spacing: 0 !important;
@@ -399,7 +535,9 @@
     .report-table thead tr.group-row th.group {
       top: 0; text-align: center; font-family: 'Geist Mono', monospace;
       font-size: 10.5px !important; text-transform: uppercase !important; letter-spacing: 0.08em !important;
-      color: var(--muted) !important; padding: 7px 14px !important; background: var(--subtle) !important;
+      color: color-mix(in srgb, var(--hue, var(--accent)) 80%, #0b1220) !important; padding: 7px 14px !important;
+      background: color-mix(in srgb, var(--hue, var(--accent)) 9%, #fff) !important;
+      border-bottom: 2px solid color-mix(in srgb, var(--hue, var(--accent)) 45%, transparent) !important;
     }
     .report-table thead tr.group-row + tr th { top: var(--group-h, 30px); }
     .report-table th .col-hint {
@@ -413,8 +551,8 @@
     }
     .report-table td.sr { background: inherit; z-index: 1; color: var(--muted); font-family: 'Geist Mono', monospace; font-size: 12px; }
     .report-table tbody tr { background: var(--surface); }
-    .report-table tbody tr:nth-child(even) { background: #fcfcfc; }
-    .report-table tbody tr:hover { background: var(--subtle) !important; }
+    .report-table tbody tr:nth-child(even) { background: #fafbfd; }
+    .report-table tbody tr:hover { background: color-mix(in srgb, var(--hue, var(--accent)) 6%, #fff) !important; }
     .report-table tbody tr.report-empty, .report-table tbody tr.report-empty:hover { background: var(--surface) !important; }
     .report-table tbody td {
       padding: 10px 14px; border-bottom: 1px solid var(--line-soft); border-right: 1px solid var(--line-soft);
@@ -427,26 +565,33 @@
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
       padding: 56px 16px; text-align: center; white-space: normal; box-sizing: border-box;
     }
-    .report-empty-inner .ei-icon { width: 36px; height: 36px; border-radius: 9px; border: 1px dashed var(--line-strong); display: grid; place-items: center; color: var(--faint); margin-bottom: 6px; }
-    .report-empty-inner .ei-title { font-size: 13px; font-weight: 500; color: var(--ink); }
-    .report-empty-inner .ei-sub { font-size: 12px; color: var(--muted); max-width: 360px; }
+    .report-empty-inner .chip-ico { margin-bottom: 8px; }
+    .report-empty-inner .ei-title { font-size: 13.5px; font-weight: 500; color: var(--ink); }
+    .report-empty-inner .ei-sub { font-size: 12.5px; color: var(--muted); max-width: 360px; }
 
     .variant-card {
-      text-align: left; padding: 18px; display: flex; align-items: flex-start; gap: 14px;
-      background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
-      transition: border-color .15s, box-shadow .15s;
+      position: relative; text-align: left; padding: 20px; display: flex; align-items: flex-start; gap: 14px;
+      background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-sm);
+      transition: transform .25s cubic-bezier(.2, .8, .2, 1), box-shadow .25s;
     }
-    .variant-card:hover { border-color: var(--ink); box-shadow: 0 8px 24px -12px rgba(9, 9, 11, 0.18); }
+    .variant-card:hover { transform: translateY(-2px); box-shadow: 0 18px 40px -18px color-mix(in srgb, var(--hue) 45%, transparent); }
+    .variant-card:hover .chip-ico { transform: scale(1.08) rotate(-6deg); }
+    .variant-card .vc-arrow { transition: transform .25s cubic-bezier(.34, 1.56, .64, 1), color .2s; color: var(--faint); }
+    .variant-card:hover .vc-arrow { transform: translateX(4px); color: var(--hue); }
 
     @media print {
-      #app-sidebar, .app-header, .report-toolbar .no-print, .crumbs, #toast-container { display: none !important; }
+      #app-sidebar, .app-header, .report-toolbar .no-print, .crumbs, #toast-container, .aurora, #cursor-ring, #cursor-dot { display: none !important; }
       main { padding: 0 !important; overflow: visible !important; }
       .report-scroll { max-height: none; overflow: visible; }
       .report-table thead th { position: static; }
     }
   </style>
 </head>
-<body class="h-full flex overflow-hidden text-sm text-slate-800 selection:bg-zinc-900 selection:text-white">
+<body class="h-full flex overflow-hidden text-sm text-slate-800">
+
+  <!-- Cursor follower (desktop pointers only) -->
+  <div id="cursor-ring" aria-hidden="true"></div>
+  <div id="cursor-dot" aria-hidden="true"></div>
 
   <!-- ======================================================== -->
   <!-- 1. COLLAPSIBLE LEFT SIDEBAR NAVIGATION                    -->
@@ -454,88 +599,88 @@
   <aside id="app-sidebar" class="flex-shrink-0 flex flex-col z-40 select-none">
 
     <!-- Brand -->
-    <div class="h-14 px-3 flex items-center justify-between">
-      <button onclick="switchTab('dashboard')" class="flex items-center gap-2.5 min-w-0 px-1">
-        <div class="w-7 h-7 rounded-md bg-zinc-950 text-white grid place-items-center text-[10px] font-semibold tracking-wider flex-shrink-0">YSF</div>
+    <div class="h-[58px] px-3.5 flex items-center">
+      <button onclick="switchTab('dashboard')" class="flex items-center gap-2.5 min-w-0">
+        <div class="brand-mark flex-shrink-0">YSF</div>
         <div class="sidebar-text min-w-0 text-left">
-          <div class="text-[13px] font-semibold text-zinc-950 leading-tight truncate tracking-tight">Kaushalya</div>
-          <div class="text-[11px] text-zinc-500 leading-tight truncate">Admin Console</div>
+          <div class="sb-title text-[13.5px] font-semibold leading-tight truncate tracking-tight">Kaushalya</div>
+          <div class="sb-sub text-[11px] leading-tight truncate">Admin Console</div>
         </div>
       </button>
     </div>
 
     <!-- Navigation -->
-    <nav class="flex-1 overflow-y-auto px-2.5 pt-2 pb-4 space-y-6">
+    <nav class="flex-1 overflow-y-auto overflow-x-hidden px-2.5 pt-3 pb-4 space-y-6">
 
       <div>
         <div class="nav-group-label sidebar-text">Overview</div>
-        <div class="space-y-px">
+        <div class="space-y-0.5">
           <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item active">
-            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-solid fa-table-cells-large"></i><span class="sidebar-text truncate">Dashboard</span></span>
+            <span class="flex items-center gap-2.5 min-w-0"><span class="nav-ico"><i class="fa-solid fa-table-cells-large"></i></span><span class="sidebar-text truncate">Dashboard</span></span>
           </button>
-          <button onclick="switchTab('screentime')" id="nav-screentime" class="nav-item">
-            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-regular fa-clock"></i><span class="sidebar-text truncate">Screen Time</span></span>
-            <span class="sidebar-text live-dot" title="Live"></span>
+          <button onclick="switchTab('screentime')" id="nav-screentime" class="nav-item" style="--hue:#06b6d4">
+            <span class="flex items-center gap-2.5 min-w-0"><span class="nav-ico"><i class="fa-regular fa-clock"></i></span><span class="sidebar-text truncate">Screen Time</span></span>
+            <span class="sidebar-text live-dot mr-1.5" title="Live"></span>
           </button>
         </div>
       </div>
 
       <div>
         <div class="nav-group-label sidebar-text">Academic &amp; Operations</div>
-        <div class="space-y-px">
-          <button onclick="switchTab('trainees')" id="nav-trainees" class="nav-item">
-            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-solid fa-user-group"></i><span class="sidebar-text truncate">User Master</span></span>
+        <div class="space-y-0.5">
+          <button onclick="switchTab('trainees')" id="nav-trainees" class="nav-item" style="--hue:#0ea5e9">
+            <span class="flex items-center gap-2.5 min-w-0"><span class="nav-ico"><i class="fa-solid fa-user-group"></i></span><span class="sidebar-text truncate">User Master</span></span>
             <span id="badge-nav-trainees" class="sidebar-text nav-count">0</span>
           </button>
-          <button onclick="switchTab('resources')" id="nav-resources" class="nav-item">
-            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-solid fa-book-open"></i><span class="sidebar-text truncate">Learning Resources</span></span>
+          <button onclick="switchTab('resources')" id="nav-resources" class="nav-item" style="--hue:#8b5cf6">
+            <span class="flex items-center gap-2.5 min-w-0"><span class="nav-ico"><i class="fa-solid fa-book-open"></i></span><span class="sidebar-text truncate">Learning Resources</span></span>
             <span id="badge-nav-resources" class="sidebar-text nav-count">0</span>
           </button>
-          <button onclick="switchTab('assignments')" id="nav-assignments" class="nav-item">
-            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-regular fa-file-lines"></i><span class="sidebar-text truncate">Assignments</span></span>
+          <button onclick="switchTab('assignments')" id="nav-assignments" class="nav-item" style="--hue:#3b82f6">
+            <span class="flex items-center gap-2.5 min-w-0"><span class="nav-ico"><i class="fa-regular fa-file-lines"></i></span><span class="sidebar-text truncate">Assignments</span></span>
             <span id="badge-nav-assignments" class="sidebar-text nav-count">0</span>
           </button>
-          <button onclick="switchTab('tests')" id="nav-tests" class="nav-item">
-            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-regular fa-square-check"></i><span class="sidebar-text truncate">Tests &amp; Assessments</span></span>
+          <button onclick="switchTab('tests')" id="nav-tests" class="nav-item" style="--hue:#10b981">
+            <span class="flex items-center gap-2.5 min-w-0"><span class="nav-ico"><i class="fa-regular fa-square-check"></i></span><span class="sidebar-text truncate">Tests &amp; Assessments</span></span>
             <span id="badge-nav-tests" class="sidebar-text nav-count">0</span>
           </button>
-          <button onclick="switchTab('update-status')" id="nav-update-status" class="nav-item">
-            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-solid fa-arrows-rotate"></i><span class="sidebar-text truncate">Update Status</span></span>
+          <button onclick="switchTab('update-status')" id="nav-update-status" class="nav-item" style="--hue:#f59e0b">
+            <span class="flex items-center gap-2.5 min-w-0"><span class="nav-ico"><i class="fa-solid fa-arrows-rotate"></i></span><span class="sidebar-text truncate">Update Status</span></span>
           </button>
-          <button onclick="switchTab('reports')" id="nav-reports" class="nav-item">
-            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-solid fa-chart-simple"></i><span class="sidebar-text truncate">Reports</span></span>
+          <button onclick="switchTab('reports')" id="nav-reports" class="nav-item" style="--hue:#ec4899">
+            <span class="flex items-center gap-2.5 min-w-0"><span class="nav-ico"><i class="fa-solid fa-chart-simple"></i></span><span class="sidebar-text truncate">Reports</span></span>
           </button>
         </div>
       </div>
 
       <div>
         <div class="nav-group-label sidebar-text">Communications &amp; CMS</div>
-        <div class="space-y-px">
-          <button onclick="switchTab('queries')" id="nav-queries" class="nav-item">
-            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-regular fa-life-ring"></i><span class="sidebar-text truncate">Technical Queries</span></span>
+        <div class="space-y-0.5">
+          <button onclick="switchTab('queries')" id="nav-queries" class="nav-item" style="--hue:#f43f5e">
+            <span class="flex items-center gap-2.5 min-w-0"><span class="nav-ico"><i class="fa-regular fa-life-ring"></i></span><span class="sidebar-text truncate">Technical Queries</span></span>
             <span id="badge-nav-queries" class="sidebar-text nav-count">0</span>
           </button>
-          <button onclick="switchTab('communications')" id="nav-communications" class="nav-item">
-            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-solid fa-bullhorn"></i><span class="sidebar-text truncate">Events &amp; Notices</span></span>
+          <button onclick="switchTab('communications')" id="nav-communications" class="nav-item" style="--hue:#f97316">
+            <span class="flex items-center gap-2.5 min-w-0"><span class="nav-ico"><i class="fa-solid fa-bullhorn"></i></span><span class="sidebar-text truncate">Events &amp; Notices</span></span>
           </button>
-          <button onclick="switchTab('masters')" id="nav-masters" class="nav-item">
-            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-solid fa-database"></i><span class="sidebar-text truncate">Master Forms</span></span>
+          <button onclick="switchTab('masters')" id="nav-masters" class="nav-item" style="--hue:#14b8a6">
+            <span class="flex items-center gap-2.5 min-w-0"><span class="nav-ico"><i class="fa-solid fa-database"></i></span><span class="sidebar-text truncate">Master Forms</span></span>
           </button>
-          <button onclick="switchTab('cms')" id="nav-cms" class="nav-item">
-            <span class="flex items-center gap-2.5 min-w-0"><i class="fa-solid fa-globe"></i><span class="sidebar-text truncate">Institutional CMS</span></span>
+          <button onclick="switchTab('cms')" id="nav-cms" class="nav-item" style="--hue:#6366f1">
+            <span class="flex items-center gap-2.5 min-w-0"><span class="nav-ico"><i class="fa-solid fa-globe"></i></span><span class="sidebar-text truncate">Institutional CMS</span></span>
           </button>
         </div>
       </div>
     </nav>
 
     <!-- Sidebar footer -->
-    <div class="p-2.5 border-t border-zinc-200">
-      <div class="flex items-center justify-between gap-2 px-2 py-1.5">
+    <div class="sb-foot p-2.5">
+      <div class="flex items-center justify-between gap-2 px-1.5 py-1">
         <div class="sidebar-text min-w-0">
-          <div class="text-[12px] text-zinc-900 font-medium truncate">Institute 21092</div>
-          <div class="text-[11px] text-zinc-500 font-mono truncate">YSF Skill India</div>
+          <div class="sb-title text-[12px] font-medium truncate">Institute 21092</div>
+          <div class="sb-sub text-[11px] font-mono truncate">YSF Skill India</div>
         </div>
-        <button onclick="toggleSidebar()" class="icon-btn" title="Toggle sidebar  [">
+        <button onclick="toggleSidebar()" class="icon-btn sb-toggle" title="Toggle sidebar  [">
           <i class="fa-solid fa-table-columns text-[12px]"></i>
         </button>
       </div>
@@ -552,9 +697,9 @@
 
       <!-- Breadcrumb -->
       <div class="flex items-center gap-2 min-w-0 text-[13px]">
-        <span class="text-zinc-400 hidden sm:inline">Kaushalya</span>
-        <span class="text-zinc-300 hidden sm:inline">/</span>
-        <span id="header-breadcrumb" class="text-zinc-950 font-medium truncate">Dashboard</span>
+        <span class="text-slate-400 hidden sm:inline">Kaushalya</span>
+        <span class="text-slate-300 hidden sm:inline">/</span>
+        <span id="header-breadcrumb" class="text-slate-900 font-medium truncate">Dashboard</span>
       </div>
 
       <!-- Search -->
@@ -572,7 +717,7 @@
           <span id="mongo-ping-dot" class="hidden"></span>
           <span id="mongo-status-dot" class="status-dot"></span>
           <span id="mongo-cluster-name">Connecting…</span>
-          <span id="mongo-sync-icon" class="text-zinc-400"><i class="fa-solid fa-cloud-arrow-up text-[11px]"></i></span>
+          <span id="mongo-sync-icon"><i class="fa-solid fa-cloud-arrow-up text-[11px]"></i></span>
         </button>
 
         <button onclick="refreshData()" id="refresh-spin-btn" class="icon-btn" title="Refresh data">
@@ -584,21 +729,24 @@
         </button>
 
         <div class="relative ml-1">
-          <button onclick="toggleProfileDropdown()" class="flex items-center gap-2 rounded-full p-0.5 pr-2 hover:bg-zinc-100 transition" title="Account">
+          <button onclick="toggleProfileDropdown()" class="flex items-center gap-2 rounded-full p-0.5 pr-2 hover:bg-slate-100 transition" title="Account">
             <div class="avatar" id="admin-avatar">AD</div>
-            <i class="fa-solid fa-chevron-down text-[9px] text-zinc-400"></i>
+            <i class="fa-solid fa-chevron-down text-[9px] text-slate-400"></i>
           </button>
 
           <div id="profile-dropdown" class="dropdown absolute right-0 mt-2 w-60 p-1.5 hidden z-50">
-            <div class="px-2.5 py-2 mb-1 border-b border-zinc-100">
-              <p class="text-[13px] font-medium text-zinc-950" id="admin-name-label">Admin</p>
-              <p class="text-[12px] text-zinc-500 font-mono">admin@ysfskills.com</p>
+            <div class="px-2.5 py-2 mb-1 border-b border-slate-100 flex items-center gap-2.5">
+              <div class="avatar" id="admin-avatar-lg">AD</div>
+              <div class="min-w-0">
+                <p class="text-[13px] font-medium text-slate-900" id="admin-name-label">Admin</p>
+                <p class="text-[11.5px] text-slate-500 font-mono truncate">admin@ysfskills.com</p>
+              </div>
             </div>
             <button onclick="switchTab('dashboard'); toggleProfileDropdown();" class="dropdown-item"><i class="fa-solid fa-table-cells-large"></i> Dashboard</button>
             <button onclick="switchTab('reports'); toggleProfileDropdown();" class="dropdown-item"><i class="fa-solid fa-chart-simple"></i> Reports</button>
             <button onclick="switchTab('masters'); toggleProfileDropdown();" class="dropdown-item"><i class="fa-solid fa-database"></i> Master Forms</button>
             <button onclick="refreshData(); toggleProfileDropdown();" class="dropdown-item"><i class="fa-solid fa-arrows-rotate"></i> Sync data</button>
-            <div class="my-1 border-t border-zinc-100"></div>
+            <div class="my-1 border-t border-slate-100"></div>
             <button onclick="logoutAdmin()" class="dropdown-item !text-rose-600 hover:!bg-rose-50"><i class="fa-solid fa-arrow-right-from-bracket !text-rose-500"></i> Sign out</button>
           </div>
         </div>
@@ -606,8 +754,9 @@
     </header>
 
     <!-- Scrollable Main View Container -->
-    <main class="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-10 py-8">
-      <div class="max-w-[1400px] mx-auto">
+    <main class="relative flex-1 overflow-y-auto px-4 sm:px-6 lg:px-10 py-8">
+      <div class="aurora" aria-hidden="true"></div>
+      <div class="page-wrap max-w-[1400px] mx-auto">
 
       <!-- ======================================================== -->
       <!-- VIEW 1: DASHBOARD OVERVIEW                                -->
@@ -617,35 +766,35 @@
         <!-- Page header -->
         <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
-            <div class="eyebrow" id="dash-date">Overview</div>
+            <div class="eyebrow accent" id="dash-date">Overview</div>
             <h1 class="page-title mt-2" id="dash-greeting">Welcome back</h1>
             <p class="page-sub">On-the-job training, learning content, and assessments across the institute.</p>
           </div>
           <div class="flex items-center gap-2">
-            <button onclick="switchTab('reports')" class="btn btn-ghost"><i class="fa-solid fa-chart-simple"></i> Reports</button>
-            <button onclick="refreshData()" class="btn btn-primary"><i class="fa-solid fa-arrows-rotate"></i> Sync now</button>
+            <button onclick="switchTab('reports')" class="btn btn-ghost" style="--hue:#ec4899"><i class="fa-solid fa-chart-simple"></i> Reports</button>
+            <button onclick="refreshData()" class="btn btn-primary magnetic"><i class="fa-solid fa-arrows-rotate"></i> Sync now</button>
           </div>
         </div>
 
-        <!-- KPI strip -->
-        <div class="panel grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          <div class="kpi">
-            <div class="kpi-label">Enrolled trainees</div>
+        <!-- KPI cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="kpi spot" style="--hue:#0ea5e9">
+            <div class="flex items-center justify-between"><span class="kpi-label">Enrolled trainees</span><span class="chip-ico sm"><i class="fa-solid fa-user-graduate"></i></span></div>
             <div id="stat-trainees" class="kpi-value">0</div>
             <div class="kpi-meta">NEEM / NAPS</div>
           </div>
-          <div class="kpi">
-            <div class="kpi-label">Learning resources</div>
+          <div class="kpi spot" style="--hue:#8b5cf6">
+            <div class="flex items-center justify-between"><span class="kpi-label">Learning resources</span><span class="chip-ico sm"><i class="fa-solid fa-folder-open"></i></span></div>
             <div id="stat-resources" class="kpi-value">0</div>
             <div class="kpi-meta">PDF · PPT · Video</div>
           </div>
-          <div class="kpi">
-            <div class="kpi-label">Active assignments</div>
+          <div class="kpi spot" style="--hue:#f59e0b">
+            <div class="flex items-center justify-between"><span class="kpi-label">Active assignments</span><span class="chip-ico sm"><i class="fa-solid fa-file-pen"></i></span></div>
             <div id="stat-assignments" class="kpi-value">0</div>
             <div class="kpi-meta">Submissions tracked</div>
           </div>
-          <div class="kpi">
-            <div class="kpi-label">Recorded screen time</div>
+          <div class="kpi spot" style="--hue:#10b981">
+            <div class="flex items-center justify-between"><span class="kpi-label">Recorded screen time</span><span class="chip-ico sm"><i class="fa-regular fa-clock"></i></span></div>
             <div id="stat-screentime" class="kpi-value">0m</div>
             <div class="kpi-meta flex items-center gap-1.5"><span class="live-dot"></span> Live from mobile</div>
           </div>
@@ -654,53 +803,58 @@
         <!-- Quick actions -->
         <div class="flex flex-wrap items-center gap-2">
           <span class="eyebrow mr-2">Quick actions</span>
-          <button onclick="openPublishNoticeModal()" class="btn btn-ghost"><i class="fa-solid fa-bullhorn"></i> Notice</button>
-          <button onclick="openAddEventModal()" class="btn btn-ghost"><i class="fa-regular fa-calendar-plus"></i> Event</button>
-          <button onclick="openAddResourceModal()" class="btn btn-ghost"><i class="fa-solid fa-folder-plus"></i> Resource</button>
-          <button onclick="openAddAssignmentModal()" class="btn btn-ghost"><i class="fa-regular fa-file-lines"></i> Assignment</button>
-          <button onclick="openAddTestModal()" class="btn btn-ghost"><i class="fa-regular fa-square-check"></i> MCQ test</button>
+          <button onclick="openPublishNoticeModal()" class="btn btn-ghost" style="--hue:#f97316"><i class="fa-solid fa-bullhorn"></i> Notice</button>
+          <button onclick="openAddEventModal()" class="btn btn-ghost" style="--hue:#f59e0b"><i class="fa-regular fa-calendar-plus"></i> Event</button>
+          <button onclick="openAddResourceModal()" class="btn btn-ghost" style="--hue:#8b5cf6"><i class="fa-solid fa-folder-plus"></i> Resource</button>
+          <button onclick="openAddAssignmentModal()" class="btn btn-ghost" style="--hue:#3b82f6"><i class="fa-regular fa-file-lines"></i> Assignment</button>
+          <button onclick="openAddTestModal()" class="btn btn-ghost" style="--hue:#10b981"><i class="fa-regular fa-square-check"></i> MCQ test</button>
         </div>
 
         <!-- Activity + shortcuts -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-          <div class="lg:col-span-2 panel">
+          <div class="lg:col-span-2 panel spot">
             <div class="panel-head">
-              <div>
-                <div class="panel-title">Recent activity</div>
-                <div class="panel-sub">Mobile sessions and assignment submissions</div>
+              <div class="flex items-center gap-3">
+                <span class="chip-ico sm"><i class="fa-solid fa-wave-square"></i></span>
+                <div>
+                  <div class="panel-title">Recent activity</div>
+                  <div class="panel-sub">Mobile sessions and assignment submissions</div>
+                </div>
               </div>
               <button onclick="refreshData()" class="icon-btn" title="Refresh"><i class="fa-solid fa-arrows-rotate text-[12px]"></i></button>
             </div>
             <div id="dashboard-activity-feed">
-              <div class="py-10 text-center text-zinc-400 text-[13px]">
+              <div class="py-10 text-center text-slate-400 text-[13px]">
                 <i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading…
               </div>
             </div>
           </div>
 
-          <div class="panel self-start">
+          <div class="panel spot self-start overflow-hidden">
             <div class="panel-head">
-              <div>
-                <div class="panel-title">Shortcuts</div>
-                <div class="panel-sub">Jump to modules</div>
+              <div class="flex items-center gap-3">
+                <span class="chip-ico sm" style="--hue:#14b8a6"><i class="fa-solid fa-bolt"></i></span>
+                <div>
+                  <div class="panel-title">Shortcuts</div>
+                  <div class="panel-sub">Jump to modules</div>
+                </div>
               </div>
             </div>
             <div>
-              <div onclick="switchTab('reports')" class="list-row"><span class="flex items-center gap-3"><i class="fa-solid fa-chart-simple w-4 text-zinc-400"></i> Reports</span><i class="fa-solid fa-chevron-right chev"></i></div>
-              <div onclick="switchTab('masters')" class="list-row"><span class="flex items-center gap-3"><i class="fa-solid fa-database w-4 text-zinc-400"></i> Master Forms</span><i class="fa-solid fa-chevron-right chev"></i></div>
-              <div onclick="switchTab('update-status')" class="list-row"><span class="flex items-center gap-3"><i class="fa-solid fa-arrows-rotate w-4 text-zinc-400"></i> Update Status</span><i class="fa-solid fa-chevron-right chev"></i></div>
-              <div onclick="switchTab('cms'); switchCmsTab('president');" class="list-row"><span class="flex items-center gap-3"><i class="fa-regular fa-user w-4 text-zinc-400"></i> President's Message</span><i class="fa-solid fa-chevron-right chev"></i></div>
-              <div onclick="switchTab('cms'); switchCmsTab('vision');" class="list-row"><span class="flex items-center gap-3"><i class="fa-regular fa-compass w-4 text-zinc-400"></i> Vision &amp; Mission</span><i class="fa-solid fa-chevron-right chev"></i></div>
-              <div onclick="switchTab('cms'); switchCmsTab('about');" class="list-row"><span class="flex items-center gap-3"><i class="fa-solid fa-building-columns w-4 text-zinc-400"></i> About Us</span><i class="fa-solid fa-chevron-right chev"></i></div>
-              <div onclick="switchTab('cms'); switchCmsTab('contact');" class="list-row"><span class="flex items-center gap-3"><i class="fa-regular fa-envelope w-4 text-zinc-400"></i> Contact Us</span><i class="fa-solid fa-chevron-right chev"></i></div>
-              <a href="/uploads/LMS Kaushalya User Manual - Updated.pdf" target="_blank" class="list-row"><span class="flex items-center gap-3"><i class="fa-regular fa-file-pdf w-4 text-zinc-400"></i> User manual (PDF)</span><i class="fa-solid fa-arrow-up-right-from-square chev"></i></a>
+              <div onclick="switchTab('reports')" class="list-row" style="--hue:#ec4899"><span class="flex items-center gap-3"><span class="chip-ico sm"><i class="fa-solid fa-chart-simple"></i></span> Reports</span><i class="fa-solid fa-chevron-right chev"></i></div>
+              <div onclick="switchTab('masters')" class="list-row" style="--hue:#14b8a6"><span class="flex items-center gap-3"><span class="chip-ico sm"><i class="fa-solid fa-database"></i></span> Master Forms</span><i class="fa-solid fa-chevron-right chev"></i></div>
+              <div onclick="switchTab('update-status')" class="list-row" style="--hue:#f59e0b"><span class="flex items-center gap-3"><span class="chip-ico sm"><i class="fa-solid fa-arrows-rotate"></i></span> Update Status</span><i class="fa-solid fa-chevron-right chev"></i></div>
+              <div onclick="switchTab('cms'); switchCmsTab('president');" class="list-row" style="--hue:#6366f1"><span class="flex items-center gap-3"><span class="chip-ico sm"><i class="fa-regular fa-user"></i></span> President's Message</span><i class="fa-solid fa-chevron-right chev"></i></div>
+              <div onclick="switchTab('cms'); switchCmsTab('vision');" class="list-row" style="--hue:#0ea5e9"><span class="flex items-center gap-3"><span class="chip-ico sm"><i class="fa-regular fa-compass"></i></span> Vision &amp; Mission</span><i class="fa-solid fa-chevron-right chev"></i></div>
+              <div onclick="switchTab('cms'); switchCmsTab('about');" class="list-row" style="--hue:#8b5cf6"><span class="flex items-center gap-3"><span class="chip-ico sm"><i class="fa-solid fa-building-columns"></i></span> About Us</span><i class="fa-solid fa-chevron-right chev"></i></div>
+              <div onclick="switchTab('cms'); switchCmsTab('contact');" class="list-row" style="--hue:#10b981"><span class="flex items-center gap-3"><span class="chip-ico sm"><i class="fa-regular fa-envelope"></i></span> Contact Us</span><i class="fa-solid fa-chevron-right chev"></i></div>
+              <a href="/uploads/LMS Kaushalya User Manual - Updated.pdf" target="_blank" class="list-row" style="--hue:#f43f5e"><span class="flex items-center gap-3"><span class="chip-ico sm"><i class="fa-regular fa-file-pdf"></i></span> User manual (PDF)</span><i class="fa-solid fa-arrow-up-right-from-square chev"></i></a>
             </div>
           </div>
 
         </div>
 
-      </div>
       </div>
 
       <!-- ======================================================== -->
@@ -914,12 +1068,13 @@
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <div class="flex items-center gap-2">
-                  <span class="eyebrow">Question bank</span>
-                  <span class="text-zinc-300">·</span>
-                  <span id="qbank-count-pill" class="text-[11px] text-zinc-500 font-mono">0 Questions Ready</span>
+                  <span class="chip-ico sm" style="--hue:#6366f1"><i class="fa-solid fa-database"></i></span>
+                  <span class="eyebrow accent">Question bank</span>
+                  <span class="text-slate-300">·</span>
+                  <span id="qbank-count-pill" class="text-[11px] text-slate-500 font-mono">0 Questions Ready</span>
                 </div>
-                <h3 class="text-[15px] font-semibold text-zinc-950 mt-1.5 tracking-tight">Institutional Question Bank</h3>
-                <p class="text-[13px] text-zinc-500 mt-0.5 max-w-xl">
+                <h3 class="text-[15px] font-semibold text-slate-900 mt-2 tracking-tight">Institutional Question Bank</h3>
+                <p class="text-[13px] text-slate-500 mt-0.5 max-w-xl">
                   Bulk-import questions from Excel, deduplicate automatically, and randomize MCQ tests per trade and module.
                 </p>
               </div>
@@ -1015,9 +1170,9 @@
           </div>
 
           <!-- Batch Status Action Form -->
-          <div id="status-updater-card" class="mt-4 p-5 rounded-xl bg-zinc-50 border border-zinc-200">
-            <h4 class="eyebrow mb-3 flex items-center">
-              Bulk status transition
+          <div id="status-updater-card" class="mt-4 p-5 rounded-xl bg-amber-50/60 border border-amber-200/80">
+            <h4 class="eyebrow mb-3 flex items-center !text-amber-700">
+              <i class="fa-solid fa-bolt mr-2"></i> Bulk status transition
             </h4>
             <form onsubmit="handleBulkStatusUpdate(event)" class="space-y-4 text-xs">
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -1044,7 +1199,7 @@
                   <textarea id="bulk-status-remarks" required rows="4" placeholder="e.g. End of 2-year NEEM cycle, successfully completed shopfloor assessment..." class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white text-xs"></textarea>
                 </div>
               </div>
-              <div class="flex justify-end space-x-2 pt-2 border-t border-zinc-200">
+              <div class="flex justify-end space-x-2 pt-2 border-t border-amber-200/70">
                 <button type="submit" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-xs shadow-xs flex items-center">
                   <i class="fa-solid fa-check mr-1.5"></i> Apply Batch Status Update
                 </button>
@@ -1424,9 +1579,9 @@
           </div>
         </div>
         <!-- Real File Attachment -->
-        <div class="bg-zinc-50 border border-zinc-200 rounded-lg p-3">
-          <label class="block font-bold text-zinc-700 mb-1">
-            <i class="fa-solid fa-paperclip mr-1 text-purple-700"></i> Attach Learning Resource File (PDF, PPT, MP4, Doc)
+        <div class="bg-violet-50/70 border border-violet-200 rounded-lg p-3">
+          <label class="block font-bold text-violet-900 mb-1">
+            <i class="fa-solid fa-paperclip mr-1 text-violet-600"></i> Attach Learning Resource File (PDF, PPT, MP4, Doc)
           </label>
           <input type="file" id="res-file-input" onchange="handleResourceFileChange(event)" accept=".pdf,.ppt,.pptx,.mp4,.doc,.docx,.txt" class="text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700 cursor-pointer w-full">
           <p id="res-file-status" class="text-[11px] text-purple-700 mt-1 italic hidden"></p>
@@ -1543,9 +1698,9 @@
         </div>
 
         <!-- Optional Blueprint Attachment -->
-        <div class="bg-zinc-50 border border-zinc-200 rounded-lg p-3">
-          <label class="block font-bold text-zinc-700 mb-1">
-            <i class="fa-solid fa-paperclip mr-1 text-emerald-700"></i> Reference Blueprint / Question Paper (Optional)
+        <div class="bg-emerald-50/60 border border-emerald-200/80 rounded-lg p-3">
+          <label class="block font-bold text-emerald-900 mb-1">
+            <i class="fa-solid fa-paperclip mr-1 text-emerald-600"></i> Reference Blueprint / Question Paper (Optional)
           </label>
           <input type="file" id="test-file-input" onchange="handleTestFileChange(event)" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" class="text-xs text-slate-600 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer w-full">
           <p id="test-file-status" class="text-[11px] text-emerald-700 mt-1 italic hidden"></p>
@@ -2393,17 +2548,17 @@
       if (logs.length === 0 && asgSubs.length === 0) {
         feed.innerHTML = `
           <div class="py-12 text-center">
-            <div class="text-[13px] font-medium text-zinc-900">No activity yet</div>
+            <div class="text-[13px] font-medium text-slate-900">No activity yet</div>
             <p class="text-[12px] text-zinc-500 mt-1">Mobile sessions and submissions will appear here.</p>
           </div>
         `;
         return;
       }
 
-      const row = (icon, title, meta, time, action) => `
-        <div class="flex items-start justify-between gap-4 px-4 py-3 border-b border-zinc-100 last:border-b-0 hover:bg-zinc-50/70 transition">
+      const row = (icon, title, meta, time, action, hue) => `
+        <div class="list-row !cursor-default items-start" style="--hue:${hue}">
           <div class="flex items-start gap-3 min-w-0">
-            <div class="w-7 h-7 rounded-md border border-zinc-200 bg-white grid place-items-center text-zinc-500 text-[11px] flex-shrink-0 mt-0.5">
+            <div class="chip-ico sm mt-0.5">
               <i class="${icon}"></i>
             </div>
             <div class="min-w-0">
@@ -2426,7 +2581,8 @@
           `<span class="font-medium">${sub.traineeName}</span> submitted an assignment`,
           `${sub.assignmentName} · “${(sub.text || '').slice(0, 60)}${(sub.text || '').length > 60 ? '…' : ''}”`,
           sub.submittedAt,
-          `<button onclick="switchTab('assignments')" class="text-[12px] text-zinc-600 hover:text-zinc-950 underline underline-offset-2 decoration-zinc-300">Review</button>`
+          `<button onclick="switchTab('assignments')" class="text-[12px] font-medium text-violet-600 hover:text-violet-800">Review →</button>`,
+          '#8b5cf6'
         );
       });
 
@@ -2437,7 +2593,9 @@
           'fa-solid fa-mobile-screen',
           `<span class="font-medium">${log.traineeName}</span> completed a session`,
           `${log.module} · ${m > 0 ? m + 'm ' : ''}${s}s`,
-          log.timestamp
+          log.timestamp,
+          '',
+          '#10b981'
         );
       });
 
@@ -4735,7 +4893,7 @@
       toast.className = 'toast';
       toast.style.opacity = '0';
       toast.style.transform = 'translateY(6px)';
-      toast.innerHTML = `<span class="toast-dot" style="background:${dotColors[type] || dotColors.info}"></span><span>${message}</span>`;
+      toast.innerHTML = `<span class="toast-dot" style="background:${dotColors[type] || dotColors.info};color:${dotColors[type] || dotColors.info}"></span><span>${message}</span>`;
       container.appendChild(toast);
 
       requestAnimationFrame(() => {
@@ -4782,6 +4940,8 @@
         if (label) label.textContent = name.charAt(0).toUpperCase() + name.slice(1);
         const avatar = document.getElementById('admin-avatar');
         if (avatar) avatar.textContent = name.slice(0, 2).toUpperCase();
+        const avatarLg = document.getElementById('admin-avatar-lg');
+        if (avatarLg) avatarLg.textContent = name.slice(0, 2).toUpperCase();
       } catch (e) { /* network hiccup — data load will surface errors */ }
     }
 
@@ -4807,6 +4967,7 @@
         title: 'Enrollment Report',
         desc: 'Enrollments, active, left and completed trainees across industry partners.',
         icon: 'fa-solid fa-user-plus',
+        hue: '#0ea5e9',
         variants: {
           summary: {
             title: 'Summary Report',
@@ -4838,6 +4999,7 @@
         title: 'Learning Progress Report',
         desc: 'Uploaded content against each trainee’s screen time.',
         icon: 'fa-solid fa-chart-line',
+        hue: '#8b5cf6',
         columns: [
           col('Zone'), col('Scheme'), col('Industry Name'), col('Industry Location'),
           col('Trainee Name'), col('Aadhaar Card Number', { key: 'aadhaar' }), col('Contact No'), col('Sector'), col('Course Name'), col('Academic Year'),
@@ -4849,6 +5011,7 @@
         title: 'Internal Assessment Report',
         desc: 'Uploaded tests, marks and completion per trainee.',
         icon: 'fa-regular fa-square-check',
+        hue: '#10b981',
         columns: [
           col('Zone'), col('Scheme'), col('Industry Name'), col('Industry Location'),
           col('Trainee Name'), col('Aadhaar Card Number', { key: 'aadhaar' }), col('Contact No'), col('Sector'), col('Course Name'),
@@ -4861,6 +5024,7 @@
         title: 'Learning Content Report',
         desc: 'Videos, learning material, tests and LMS storage by course.',
         icon: 'fa-solid fa-layer-group',
+        hue: '#f97316',
         variants: {
           summary: {
             title: 'Summary Report',
@@ -4958,10 +5122,10 @@
       }
 
       header.innerHTML = `
-        ${reportState.view === 'home' ? '<div class="eyebrow">Academic &amp; Operations</div>' : `<div class="crumbs">${crumbs.join('')}</div>`}
+        ${reportState.view === 'home' ? '<div class="eyebrow accent">Academic &amp; Operations</div>' : `<div class="crumbs">${crumbs.join('')}</div>`}
         <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mt-2">
           <div>
-            <h1 class="page-title">${title}</h1>
+            <h1 class="page-title">${reportState.view === 'home' ? 'Reports' : title}</h1>
             <p class="page-sub">${sub}</p>
           </div>
           ${back}
@@ -4982,10 +5146,12 @@
           ? `${Object.keys(r.variants).length} views · Summary, Trainee-wise`
           : `${r.columns.length + 1} columns`;
         return `
-          <button onclick="openReport('${key}')" class="report-card">
-            <i class="fa-solid fa-arrow-right rc-arrow"></i>
-            <div class="rc-icon"><i class="${r.icon}"></i></div>
-            <div>
+          <button onclick="openReport('${key}')" class="report-card spot tilt" style="--hue:${r.hue}">
+            <span class="rc-band"></span>
+            <span class="rc-blob"></span>
+            <span class="rc-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+            <div class="chip-ico"><i class="${r.icon}"></i></div>
+            <div class="relative">
               <div class="rc-title">${r.title}</div>
               <div class="rc-desc">${r.desc}</div>
               <div class="rc-meta mt-3">${meta}</div>
@@ -5000,14 +5166,14 @@
       const r = REPORTS[reportState.report];
       const icons = { summary: 'fa-solid fa-table-list', detail: 'fa-solid fa-users-viewfinder' };
       const cards = Object.entries(r.variants).map(([key, v]) => `
-        <button onclick="openReport('${reportState.report}', '${key}')" class="variant-card group">
-          <div class="rc-icon w-8 h-8 rounded-md border border-zinc-200 bg-zinc-50 grid place-items-center text-zinc-600 text-[13px] flex-shrink-0"><i class="${icons[key] || 'fa-solid fa-table'}"></i></div>
+        <button onclick="openReport('${reportState.report}', '${key}')" class="variant-card spot" style="--hue:${r.hue}">
+          <div class="chip-ico"><i class="${icons[key] || 'fa-solid fa-table'}"></i></div>
           <div class="flex-1 min-w-0">
-            <div class="text-[14px] font-semibold text-zinc-950 tracking-tight">${v.title}</div>
-            <div class="text-[12px] text-zinc-500 mt-1">${v.desc}</div>
-            <div class="text-[11px] text-zinc-400 font-mono mt-3">${v.columns.length + 1} columns</div>
+            <div class="text-[14.5px] font-semibold text-slate-900 tracking-tight">${v.title}</div>
+            <div class="text-[12.5px] text-slate-500 mt-1">${v.desc}</div>
+            <div class="text-[11px] text-slate-400 font-mono mt-3">${v.columns.length + 1} columns</div>
           </div>
-          <i class="fa-solid fa-arrow-right text-[12px] text-zinc-300 group-hover:text-zinc-950 group-hover:translate-x-0.5 transition mt-1"></i>
+          <i class="fa-solid fa-arrow-right text-[12px] vc-arrow mt-1"></i>
         </button>
       `).join('');
       return `<div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl">${cards}</div>`;
@@ -5065,21 +5231,21 @@
             </tr>`).join('')
         : `<tr class="report-empty"><td colspan="${cols.length + 1}">
             <div class="report-empty-inner">
-              <div class="ei-icon"><i class="fa-regular fa-folder-open text-[13px]"></i></div>
+              <div class="chip-ico"><i class="fa-regular fa-folder-open"></i></div>
               <div class="ei-title">${totalRows ? 'No matching records' : 'No records yet'}</div>
               <div class="ei-sub">${totalRows ? 'Try a different search term.' : 'Columns are ready. Rows will appear here once report data is connected.'}</div>
             </div>
           </td></tr>`;
 
       return `
-        <div class="panel overflow-hidden">
+        <div class="panel overflow-hidden" style="--hue:${REPORTS[reportState.report].hue}">
           <div class="report-toolbar">
             <div class="flex items-center gap-3 flex-wrap">
               <div class="relative no-print">
                 <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-[11px] text-zinc-400"></i>
                 <input type="search" class="report-search" placeholder="Search this report…" value="${escapeHtml(reportSearch)}" oninput="reportSearch=this.value; refreshReportTable(this)">
               </div>
-              <span class="report-meta">${cols.length + 1} columns · ${rows.length} record${rows.length === 1 ? '' : 's'}</span>
+              <span class="report-meta"><b>${cols.length + 1}</b> columns · <b>${rows.length}</b> record${rows.length === 1 ? '' : 's'}</span>
             </div>
             <div class="flex items-center gap-2 no-print">
               <button onclick="exportReportCsv()" class="btn btn-ghost"><i class="fa-solid fa-download"></i> Export CSV</button>
@@ -5169,7 +5335,109 @@
       }
     });
 
+    // ==========================================================
+    // CURSOR EFFECTS — spotlight cards, follower ring, magnetic
+    // buttons, 3D tilt and click ripples (fine pointers only)
+    // ==========================================================
+    function initCursorEffects() {
+      const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!finePointer) return;
+
+      const SPOT_SELECTOR = '.spot, main .bg-white.rounded-xl, main .bg-white.rounded-2xl';
+      const HOVER_SELECTOR = 'a, button, select, label, summary, [onclick], [role="button"], .list-row, input[type=checkbox], input[type=file]';
+      const TEXT_SELECTOR = 'input:not([type=checkbox]):not([type=radio]):not([type=file]), textarea, [contenteditable="true"]';
+      const ring = document.getElementById('cursor-ring');
+      const dot = document.getElementById('cursor-dot');
+      const body = document.body;
+      let mx = -100, my = -100, rx = -100, ry = -100;
+      let activeTilt = null;
+
+      document.addEventListener('mousemove', (e) => {
+        mx = e.clientX; my = e.clientY;
+        body.classList.add('cursor-on');
+        dot.style.transform = `translate(${mx}px, ${my}px)`;
+
+        // Spotlight: track pointer position inside the hovered card
+        const spot = e.target.closest(SPOT_SELECTOR);
+        if (spot) {
+          if (!spot.classList.contains('spot')) spot.classList.add('spot');
+          if (!spot.querySelector(':scope > .spot-glow')) {
+            const glow = document.createElement('span');
+            glow.className = 'spot-glow';
+            spot.prepend(glow);
+          }
+          const r = spot.getBoundingClientRect();
+          spot.style.setProperty('--mx', `${e.clientX - r.left}px`);
+          spot.style.setProperty('--my', `${e.clientY - r.top}px`);
+        }
+
+        // Follower ring state
+        body.classList.toggle('cursor-text', !!e.target.closest(TEXT_SELECTOR));
+        body.classList.toggle('cursor-hover', !e.target.closest(TEXT_SELECTOR) && !!e.target.closest(HOVER_SELECTOR));
+
+        if (reduceMotion) return;
+
+        // 3D tilt for report cards
+        const tilt = e.target.closest('.tilt');
+        if (activeTilt && activeTilt !== tilt) {
+          activeTilt.style.setProperty('--rx', '0deg');
+          activeTilt.style.setProperty('--ry', '0deg');
+        }
+        activeTilt = tilt;
+        if (tilt) {
+          const r = tilt.getBoundingClientRect();
+          const px = (e.clientX - r.left) / r.width - 0.5;
+          const py = (e.clientY - r.top) / r.height - 0.5;
+          tilt.style.setProperty('--rx', `${(-py * 7).toFixed(2)}deg`);
+          tilt.style.setProperty('--ry', `${(px * 9).toFixed(2)}deg`);
+        }
+
+        // Magnetic primary buttons
+        document.querySelectorAll('.magnetic').forEach(btn => {
+          const r = btn.getBoundingClientRect();
+          const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+          const dx = e.clientX - cx, dy = e.clientY - cy;
+          const near = Math.abs(dx) < r.width / 2 + 24 && Math.abs(dy) < r.height / 2 + 24;
+          btn.style.transform = near ? `translate(${dx * 0.18}px, ${dy * 0.28}px)` : '';
+        });
+      }, { passive: true });
+
+      document.addEventListener('mouseleave', () => body.classList.remove('cursor-on'));
+      document.addEventListener('mousedown', () => body.classList.add('cursor-down'));
+      document.addEventListener('mouseup', () => body.classList.remove('cursor-down'));
+
+      // Smoothly trailing ring
+      if (!reduceMotion) {
+        const loop = () => {
+          rx += (mx - rx) * 0.2;
+          ry += (my - ry) * 0.2;
+          ring.style.transform = `translate(${rx}px, ${ry}px)`;
+          requestAnimationFrame(loop);
+        };
+        requestAnimationFrame(loop);
+      }
+
+      // Click ripple on primary surfaces
+      document.addEventListener('pointerdown', (e) => {
+        const host = e.target.closest('.btn, .report-card, .variant-card');
+        if (!host || reduceMotion) return;
+        const r = host.getBoundingClientRect();
+        const size = Math.max(r.width, r.height) * 2;
+        const ripple = document.createElement('span');
+        ripple.className = 'ripple';
+        ripple.style.width = ripple.style.height = `${size}px`;
+        ripple.style.left = `${e.clientX - r.left - size / 2}px`;
+        ripple.style.top = `${e.clientY - r.top - size / 2}px`;
+        if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+        host.style.overflow = 'hidden';
+        host.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 650);
+      });
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
+      initCursorEffects();
       renderGreeting();
       loadAdminSession();
       loadData();
