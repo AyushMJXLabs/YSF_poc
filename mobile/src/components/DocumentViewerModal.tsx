@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { LearningTopic } from '../types';
+import { colors, radius, shadow } from '../theme';
 
 interface DocumentViewerModalProps {
   visible: boolean;
@@ -41,7 +42,7 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
         {/* Protected Document Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-            <MaterialIcons name="close" size={24} color="#ffffff" />
+            <MaterialIcons name="close" size={22} color={colors.ink} />
           </TouchableOpacity>
           <View style={styles.headerTitleBox}>
             <Text style={styles.headerTitle} numberOfLines={1}>{topic.title}</Text>
@@ -50,13 +51,13 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
             </Text>
           </View>
           <View style={styles.securityBadge}>
-            <MaterialIcons name="lock" size={16} color="#B3E5FC" />
+            <MaterialIcons name="lock" size={16} color={colors.teal} />
           </View>
         </View>
 
         {/* Anti-Download Constraint Banner */}
         <View style={styles.protectedBanner}>
-          <MaterialIcons name="security" size={16} color="#D32F2F" />
+          <MaterialIcons name="security" size={16} color={colors.red} />
           <Text style={styles.protectedText}>
             Protected Resource: Local file download is strictly disabled per YSF policy.
           </Text>
@@ -70,7 +71,7 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
                 <Ionicons
                   name={isVideoPlaying ? "pause-circle" : "play-circle"}
                   size={72}
-                  color="#ffffff"
+                  color={colors.cyan}
                   onPress={() => setIsVideoPlaying(!isVideoPlaying)}
                 />
                 <Text style={styles.videoStatusText}>
@@ -93,8 +94,8 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
                     <View style={styles.slideTag}>
                       <FontAwesome5
                         name={topic.fileType === 'PDF' ? "file-pdf" : "file-powerpoint"}
-                        size={14}
-                        color="#ffffff"
+                        size={12}
+                        color={colors.teal}
                       />
                       <Text style={styles.slideTagText}>
                         {topic.fileType === 'PDF' ? `Page ${currentSlideIndex + 1} of ${slides.length}` : `Slide ${currentSlideIndex + 1} of ${slides.length}`}
@@ -123,7 +124,7 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
                     onPress={handlePrevSlide}
                     disabled={currentSlideIndex === 0}
                   >
-                    <MaterialIcons name="chevron-left" size={24} color={currentSlideIndex === 0 ? "#BDBDBD" : "#0288D1"} />
+                    <MaterialIcons name="chevron-left" size={24} color={currentSlideIndex === 0 ? colors.faint : colors.teal} />
                     <Text style={[styles.navBtnText, currentSlideIndex === 0 && styles.navBtnTextDisabled]}>Previous</Text>
                   </TouchableOpacity>
 
@@ -137,7 +138,7 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
                     disabled={currentSlideIndex === slides.length - 1}
                   >
                     <Text style={[styles.navBtnText, currentSlideIndex === slides.length - 1 && styles.navBtnTextDisabled]}>Next</Text>
-                    <MaterialIcons name="chevron-right" size={24} color={currentSlideIndex === slides.length - 1 ? "#BDBDBD" : "#0288D1"} />
+                    <MaterialIcons name="chevron-right" size={24} color={currentSlideIndex === slides.length - 1 ? colors.faint : colors.teal} />
                   </TouchableOpacity>
                 </View>
               )}
@@ -152,47 +153,67 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FA',
+    backgroundColor: colors.bg,
   },
   header: {
-    backgroundColor: '#0288D1',
+    backgroundColor: colors.surface,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.line,
   },
   closeBtn: {
-    padding: 6,
-    marginRight: 10,
+    width: 40,
+    height: 40,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceMuted,
+    borderWidth: 1,
+    borderColor: colors.line,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
   headerTitleBox: {
     flex: 1,
   },
   headerTitle: {
-    color: '#ffffff',
+    color: colors.ink,
     fontSize: 16,
     fontWeight: '700',
+    letterSpacing: -0.2,
   },
   headerBadge: {
-    color: '#E1F5FE',
-    fontSize: 11,
-    marginTop: 2,
+    color: colors.teal,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    marginTop: 3,
   },
   securityBadge: {
-    padding: 4,
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: colors.tealSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 10,
   },
   protectedBanner: {
-    backgroundColor: '#FFEBEE',
+    backgroundColor: colors.redSoft,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#FFCDD2',
+    marginHorizontal: 16,
+    marginTop: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: radius.md,
   },
   protectedText: {
-    color: '#C62828',
-    fontSize: 11,
+    color: colors.red,
+    fontSize: 11.5,
     fontWeight: '600',
     marginLeft: 8,
     flex: 1,
@@ -208,18 +229,14 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   slideCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
     padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.line,
     minHeight: 380,
     justifyContent: 'space-between',
+    ...shadow,
   },
   slideHeader: {
     flexDirection: 'row',
@@ -230,36 +247,41 @@ const styles = StyleSheet.create({
   slideTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0288D1',
+    backgroundColor: colors.tealSoft,
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
   },
   slideTagText: {
-    color: '#ffffff',
-    fontSize: 11,
-    fontWeight: '700',
+    color: colors.teal,
+    fontSize: 10.5,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
     marginLeft: 6,
   },
   fileName: {
-    color: '#757575',
+    color: colors.muted,
     fontSize: 11,
     fontFamily: 'monospace',
+    flexShrink: 1,
+    marginLeft: 8,
   },
   slideTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#212121',
+    color: colors.ink,
+    letterSpacing: -0.2,
     lineHeight: 24,
   },
   divider: {
     height: 1,
-    backgroundColor: '#EEEEEE',
+    backgroundColor: colors.line,
     marginVertical: 14,
   },
   slideBody: {
     fontSize: 15,
-    color: '#424242',
+    color: colors.ink2,
     lineHeight: 24,
     flex: 1,
   },
@@ -267,17 +289,17 @@ const styles = StyleSheet.create({
     marginTop: 24,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F5F5F5',
+    borderTopColor: colors.line,
     alignItems: 'center',
   },
   watermarkText: {
-    color: '#BDBDBD',
+    color: colors.faint,
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 1,
   },
   watermarkSub: {
-    color: '#E0E0E0',
+    color: colors.lineStrong,
     fontSize: 9,
     marginTop: 2,
   },
@@ -285,84 +307,91 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 20,
+    backgroundColor: colors.surface,
+    paddingHorizontal: 16,
     paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
+    borderTopColor: colors.line,
   },
   navBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 6,
+    paddingVertical: 8,
     paddingHorizontal: 12,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.lineStrong,
+    backgroundColor: colors.surface,
   },
   navBtnDisabled: {
     opacity: 0.5,
   },
   navBtnText: {
-    color: '#0288D1',
-    fontWeight: '600',
+    color: colors.teal,
+    fontWeight: '700',
     fontSize: 14,
   },
   navBtnTextDisabled: {
-    color: '#BDBDBD',
+    color: colors.faint,
   },
   pageIndicator: {
-    color: '#616161',
-    fontWeight: '700',
-    fontSize: 13,
+    color: colors.muted,
+    fontWeight: '800',
+    fontSize: 12,
+    letterSpacing: 0.6,
   },
   videoPlayerContainer: {
     flex: 1,
     padding: 16,
   },
   videoScreen: {
-    backgroundColor: '#1A1A24',
+    backgroundColor: colors.navy,
     height: 240,
-    borderRadius: 12,
+    borderRadius: radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    ...shadow,
   },
   videoStatusText: {
-    color: '#ffffff',
+    color: colors.navyInk,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
     marginTop: 12,
   },
   videoDurationText: {
-    color: '#90CAF9',
-    fontSize: 12,
-    marginTop: 4,
+    color: colors.navyMuted,
+    fontSize: 10.5,
+    fontWeight: '700',
+    letterSpacing: 0.9,
+    textTransform: 'uppercase',
+    marginTop: 6,
   },
   videoInfoCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
     padding: 18,
     marginTop: 16,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.line,
+    ...shadow,
   },
   videoInfoTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#212121',
+    color: colors.ink,
+    letterSpacing: -0.2,
   },
   videoInfoDesc: {
-    fontSize: 13,
-    color: '#616161',
+    fontSize: 13.5,
+    color: colors.muted,
     marginTop: 6,
-    lineHeight: 18,
+    lineHeight: 19,
   },
   videoWatermark: {
     marginTop: 16,
-    fontSize: 11,
-    color: '#9E9E9E',
-    fontWeight: '600',
+    fontSize: 10.5,
+    color: colors.faint,
+    fontWeight: '700',
+    letterSpacing: 0.6,
   },
 });

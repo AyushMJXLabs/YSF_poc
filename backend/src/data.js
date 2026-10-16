@@ -575,7 +575,7 @@ function getDb() {
 
 async function mirrorCollections(dbObj) {
   if (!mongoDb) return;
-  const collectionsToSync = ['users', 'questionBank', 'tests', 'assignments', 'events', 'notices', 'queries'];
+  const collectionsToSync = ['users', 'questionBank', 'tests', 'assignments', 'selfAssignments', 'events', 'notices', 'queries'];
   for (const colName of collectionsToSync) {
     try {
       const items = colName === 'users' ? (dbObj.users || dbObj.trainees) : dbObj[colName];

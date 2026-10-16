@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
+import { colors, radius } from '../theme';
 
 interface ToastProps {
   message: string | null;
@@ -52,19 +53,22 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   toastPill: {
-    backgroundColor: '#424242',
+    backgroundColor: colors.navy,
     paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.35,
-    shadowRadius: 4,
+    paddingVertical: 11,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.navy2,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 14,
+    elevation: 8,
   },
   toastText: {
     color: '#ffffff',
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '600',
     textAlign: 'center',
   },
 });

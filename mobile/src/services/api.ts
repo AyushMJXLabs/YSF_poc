@@ -10,7 +10,8 @@ import {
   AcademicEvent,
   NoticeItem,
   AttendanceRecord,
-  TechnicalQueryTicket
+  TechnicalQueryTicket,
+  SelfAssignment
 } from '../types';
 
 const getCandidateUrls = (): string[] => {
@@ -424,6 +425,16 @@ class ApiService {
   private activeBaseUrl: string = getCandidateUrls()[0];
   private candidateUrls: string[] = getCandidateUrls();
   private hasDiscovered: boolean = false;
+  private trainee: { id: string; ysfCode?: string; fullName?: string } = { id: 'T001', ysfCode: 'W2307C00001' };
+
+  /** Called after login so every request is made on behalf of the signed-in trainee */
+  setTrainee(trainee: { id: string; ysfCode?: string; fullName?: string }) {
+    if (trainee && trainee.id) this.trainee = trainee;
+  }
+
+  get traineeId(): string {
+    return this.trainee.id;
+  }
 
   constructor() {
     this.initBaseUrl();
@@ -594,6 +605,23 @@ class ApiService {
     return this.activeBaseUrl;
   }
 
+  // Like request(), but hands back error responses (4xx) so callers can show the server's message.
+  // Throws only when no server can be reached.
+  private async send(endpoint: string, options?: RequestInit): Promise<{ ok: boolean; status: number; json: any }> {
+    if (!this.hasDiscovered) {
+      await this.getApiBaseUrl();
+    }
+    let res: Response;
+    try {
+      res = await fetch(`${this.activeBaseUrl}${endpoint}`, options);
+    } catch (e) {
+      const working = await this.discoverWorkingBaseUrl();
+      res = await fetch(`${working}${endpoint}`, options);
+    }
+    const json = await res.json().catch(() => ({}));
+    return { ok: res.ok, status: res.status, json };
+  }
+
   private async request<T = any>(endpoint: string, options?: RequestInit): Promise<T> {
     if (!this.hasDiscovered) {
       await this.getApiBaseUrl();
@@ -721,37 +749,52 @@ class ApiService {
     return mockResourcesHierarchy;
   }
 
-  // Assignments
+  // ---------- Assignments ----------
+  private withFileUrls<T extends { attachments?: any[] }>(item: T): T {
+    return { ...item, attachments: (item.attachments || []).map((att: any) => ({ ...att, url: this.rewriteFileUrl(att.url || att.uri) })) };
+  }
+
+  // Admin-assigned assignments visible to the signed-in trainee (with their own submission status)
   async getAssignments(filter: string = 'all'): Promise<Assignment[]> {
+    const cacheKey = `@ysf_cached_assignments_${this.traineeId}`;
     try {
-      const json = await this.request(`/assignments?filter=${filter}`);
+      const json = await this.request(`/assignments?filter=${filter}&traineeId=${encodeURIComponent(this.traineeId)}`);
       if (json && json.success && json.data) {
         const data = (json.data as Assignment[]).map(asg => ({
           ...asg,
-          submissions: (asg.submissions || []).map(sub => ({
-            ...sub,
-            attachments: (sub.attachments || []).map((att: any) => ({
-              ...att,
-              url: this.rewriteFileUrl(att.url || att.uri)
-            }))
-          }))
+          attachment: asg.attachment ? { ...asg.attachment, url: this.rewriteFileUrl(asg.attachment.url) } : null,
+          submissions: (asg.submissions || []).map(sub => this.withFileUrls(sub)),
+          mySubmission: asg.mySubmission ? this.withFileUrls(asg.mySubmission) : null,
         }));
-        AsyncStorage.setItem(`@ysf_cached_assignments_${filter}`, JSON.stringify(data)).catch(() => {});
+        AsyncStorage.setItem(cacheKey, JSON.stringify(data)).catch(() => {});
         return data;
       }
     } catch (e) {
       try {
-        const c = await AsyncStorage.getItem(`@ysf_cached_assignments_${filter}`);
+        const c = await AsyncStorage.getItem(cacheKey);
         if (c) return JSON.parse(c);
       } catch (err) {}
     }
-    let list = [...mockAssignments];
-    if (filter === 'monthwise') {
-      list.sort((a, b) => a.assignedDate.localeCompare(b.assignedDate));
-    } else if (filter === 'subjectwise') {
-      list.sort((a, b) => a.subject.localeCompare(b.subject));
+    return mockAssignments.map(a => ({ ...a, mySubmission: a.submissions[0] || null, status: a.submissions[0] ? 'Submitted' : 'Pending' }));
+  }
+
+  // Trainee's own uploads (not assigned by admin)
+  async getSelfAssignments(): Promise<SelfAssignment[]> {
+    const cacheKey = `@ysf_cached_self_assignments_${this.traineeId}`;
+    try {
+      const json = await this.request(`/assignments/self?traineeId=${encodeURIComponent(this.traineeId)}`);
+      if (json && json.success && Array.isArray(json.data)) {
+        const data = (json.data as SelfAssignment[]).map(s => this.withFileUrls(s));
+        AsyncStorage.setItem(cacheKey, JSON.stringify(data)).catch(() => {});
+        return data;
+      }
+    } catch (e) {
+      try {
+        const c = await AsyncStorage.getItem(cacheKey);
+        if (c) return JSON.parse(c);
+      } catch (err) {}
     }
-    return list;
+    return [];
   }
 
   // Upload File Attachment to Backend
@@ -780,56 +823,54 @@ class ApiService {
         };
       }
     } catch (e) {
-      console.warn('Upload error, using local fallback', e);
+      console.warn('Upload error', e);
     }
-    return {
-      name: file.name,
-      url: this.rewriteFileUrl(`/uploads/${file.name}`),
-      size: typeof file.size === 'number' ? `${(file.size / 1024).toFixed(1)} KB` : (file.size || '1.0 MB'),
-    };
+    return null;
   }
 
-  // Submit Assignment Reply
+  // Upload the answer file for an admin-assigned assignment
   async submitAssignmentReply(
     id: string,
-    payload: { traineeId: string; traineeName: string; text: string; attachments: any[] }
+    payload: { text: string; attachments: any[] }
   ): Promise<{ success: boolean; message: string }> {
     try {
-      const json = await this.request(`/assignments/${id}/reply`, {
+      const { json } = await this.send(`/assignments/${id}/reply`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...payload, traineeId: this.traineeId })
       });
-      return json;
+      return { success: !!json.success, message: json.message || (json.success ? 'Submitted' : 'Submission failed') };
     } catch (e) {
-      // offline fallback update
-      const asg = mockAssignments.find(a => a.id === id);
-      if (asg) {
-        asg.status = 'Completed';
-        asg.submissions.push({
-          id: `SUB-${Date.now()}`,
-          traineeId: payload.traineeId,
-          traineeName: payload.traineeName,
-          submittedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
-          text: payload.text,
-          attachments: payload.attachments
-        });
-      }
-      return { success: true, message: "Assignment submitted successfully (Offline Mode)" };
+      return { success: false, message: 'You appear to be offline. Please connect to the internet and try again.' };
     }
   }
 
-  // Tests
-  async getTests(): Promise<{ courseSummary: CourseTestSummary[]; tests: TestItem[] }> {
+  // Upload an assignment the admin did not assign
+  async submitSelfAssignment(payload: { name: string; text?: string; attachments: any[] }): Promise<{ success: boolean; message: string }> {
     try {
-      const json = await this.request('/tests');
+      const { json } = await this.send('/assignments/self', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...payload, traineeId: this.traineeId })
+      });
+      return { success: !!json.success, message: json.message || (json.success ? 'Uploaded' : 'Upload failed') };
+    } catch (e) {
+      return { success: false, message: 'You appear to be offline. Please connect to the internet and try again.' };
+    }
+  }
+
+  // ---------- Tests ----------
+  async getTests(): Promise<{ courseSummary: CourseTestSummary[]; tests: TestItem[] }> {
+    const cacheKey = `@ysf_cached_tests_${this.traineeId}`;
+    try {
+      const json = await this.request(`/tests?traineeId=${encodeURIComponent(this.traineeId)}`);
       if (json && json.success) {
-        AsyncStorage.setItem('@ysf_cached_tests', JSON.stringify(json)).catch(() => {});
+        AsyncStorage.setItem(cacheKey, JSON.stringify(json)).catch(() => {});
         return { courseSummary: json.courseSummary, tests: json.tests };
       }
     } catch (e) {
       try {
-        const c = await AsyncStorage.getItem('@ysf_cached_tests');
+        const c = await AsyncStorage.getItem(cacheKey);
         if (c) {
           const parsed = JSON.parse(c);
           return { courseSummary: parsed.courseSummary, tests: parsed.tests };
@@ -851,32 +892,31 @@ class ApiService {
     };
   }
 
-  // Get Test By ID
+  // Get Test By ID (questions come without answers)
   async getTestById(id: string): Promise<TestItem | null> {
     try {
-      const json = await this.request(`/tests/${id}`);
+      const json = await this.request(`/tests/${id}?traineeId=${encodeURIComponent(this.traineeId)}`);
       if (json && json.success) return json.data;
     } catch (e) {}
     return mockTests.find(t => t.id === id) || null;
   }
 
-  // Submit Test
+  // Submit Test — graded on the server
   async submitTest(
     id: string,
-    answers: { [qId: string]: number } | { [qId: number]: number },
-    traineeId: string = 'T001'
+    answers: { [qId: string]: number } | { [qId: number]: number }
   ): Promise<any> {
     try {
-      const json = await this.request(`/tests/${id}/submit`, {
+      const { json } = await this.send(`/tests/${id}/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answers, traineeId })
+        body: JSON.stringify({ answers, traineeId: this.traineeId })
       });
       return json;
     } catch (e) {
-      // offline calculation
+      // offline calculation (demo data only)
       const test = mockTests.find(t => t.id === id);
-      if (!test) return { success: false, message: "Test not found" };
+      if (!test) return { success: false, message: 'You appear to be offline. Your answers were not submitted.' };
 
       let correctCount = 0;
       test.questions?.forEach(q => {
@@ -955,7 +995,7 @@ class ApiService {
   }
 
   // Attendance & OJT Hours
-  async getAttendance(ysfCode: string = 'W2307C00001'): Promise<AttendanceRecord> {
+  async getAttendance(ysfCode: string = this.trainee.ysfCode || this.trainee.id): Promise<AttendanceRecord> {
     try {
       const json = await this.request(`/trainee/attendance?ysfCode=${encodeURIComponent(ysfCode)}`);
       if (json && json.success && json.record) {

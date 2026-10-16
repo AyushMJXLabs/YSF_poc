@@ -13,6 +13,7 @@ import { getTranslation } from '../i18n/translations';
 import { Header } from '../components/Header';
 import { apiService } from '../services/api';
 import { screenTimeTracker } from '../services/ScreenTimeTracker';
+import { colors, radius, shadow } from '../theme';
 
 interface ProfileScreenProps {
   language: Language;
@@ -52,19 +53,24 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
       {loading ? (
         <View style={styles.loaderArea}>
-          <ActivityIndicator size="large" color="#0288D1" />
+          <ActivityIndicator size="large" color={colors.teal} />
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Avatar and Identity Card */}
           <View style={styles.identityCard}>
-            <View style={styles.avatarBox}>
-              <View style={styles.avatarInner}>
-                <FontAwesome5 name="user-alt" size={48} color="#0288D1" />
+            <View style={styles.identityRow}>
+              <View style={styles.avatarBox}>
+                <View style={styles.avatarInner}>
+                  <FontAwesome5 name="user-alt" size={26} color={colors.cyan} />
+                </View>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.identityMicro}>{t.studentProfile}</Text>
+                <Text style={styles.traineeNameText} numberOfLines={2}>{profile?.traineeInfo.fullName || traineeName}</Text>
+                <Text style={styles.traineeCodeText}>{profile?.traineeInfo.ysfCode || 'W2307C00001'}</Text>
               </View>
             </View>
-            <Text style={styles.traineeNameText}>{profile?.traineeInfo.fullName || traineeName}</Text>
-            <Text style={styles.traineeCodeText}>{profile?.traineeInfo.ysfCode || 'W2307C00001'}</Text>
             <View style={styles.enrollmentStatusPill}>
               <View style={styles.statusDot} />
               <Text style={styles.enrollmentStatusText}>Active &bull; In OJT Training</Text>
@@ -180,7 +186,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
                 <View style={styles.dataRow}>
                   <Text style={styles.dataLabel}>{t.presentOJT}</Text>
-                  <Text style={[styles.dataValue, { color: '#2E7D32', fontWeight: '700' }]}>
+                  <Text style={[styles.dataValue, { color: colors.green, fontWeight: '700' }]}>
                     {profile?.courseInfo.presentOJT}
                   </Text>
                 </View>
@@ -214,7 +220,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 <View style={styles.dataRow}>
                   <Text style={styles.dataLabel}>{t.aadharNumber}</Text>
                   <View style={styles.aadhaarBadge}>
-                    <MaterialIcons name="verified-user" size={14} color="#10B981" />
+                    <MaterialIcons name="verified-user" size={14} color={colors.green} />
                     <Text style={styles.aadhaarText}>
                       {profile?.otherInfo.aadharNumber || 'XXXX-XXXX-8921'}
                     </Text>
@@ -226,7 +232,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
           {/* Read-Only Notice Box */}
           <View style={styles.readOnlyBox}>
-            <MaterialIcons name="info-outline" size={18} color="#0288D1" />
+            <MaterialIcons name="info-outline" size={18} color={colors.teal} />
             <Text style={styles.readOnlyText}>{t.profileReadOnlyNotice}</Text>
           </View>
         </ScrollView>
@@ -238,7 +244,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F9FC',
+    backgroundColor: colors.bg,
   },
   loaderArea: {
     flex: 1,
@@ -246,171 +252,176 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scrollContent: {
+    padding: 16,
     paddingBottom: 40,
   },
   identityCard: {
-    backgroundColor: '#02A9EA',
-    paddingBottom: 24,
+    backgroundColor: colors.navy,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.navy2,
+    padding: 18,
+    ...shadow,
+  },
+  identityRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
   },
   avatarBox: {
-    width: 90,
-    height: 90,
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#E1F5FE',
+    width: 64,
+    height: 64,
+    backgroundColor: colors.navy2,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    marginRight: 14,
   },
   avatarInner: {
     alignItems: 'center',
     justifyContent: 'center',
   },
+  identityMicro: {
+    color: colors.navyMuted,
+    fontSize: 10.5,
+    fontWeight: '700',
+    letterSpacing: 0.9,
+    textTransform: 'uppercase',
+    marginBottom: 3,
+  },
   traineeNameText: {
-    color: '#ffffff',
-    fontSize: 20,
-    fontWeight: '800',
-    letterSpacing: 0.5,
+    color: colors.navyInk,
+    fontSize: 19,
+    fontWeight: '700',
+    letterSpacing: -0.2,
   },
   traineeCodeText: {
-    color: '#E1F5FE',
-    fontSize: 14,
-    fontFamily: 'monospace',
-    fontWeight: '600',
-    marginTop: 2,
+    color: colors.cyan,
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    marginTop: 3,
   },
   tabsRow: {
     flexDirection: 'row',
-    marginTop: 14,
-    marginHorizontal: 12,
-    backgroundColor: '#0288D1',
-    borderRadius: 6,
-    overflow: 'hidden',
+    marginTop: 16,
+    backgroundColor: '#E7EAF0',
+    borderRadius: radius.md,
+    padding: 4,
   },
   tabButton: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 9,
+    paddingHorizontal: 4,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRightWidth: 1,
-    borderRightColor: '#0277BD',
+    borderRadius: 9,
   },
   tabButtonActive: {
-    backgroundColor: '#01579B',
+    backgroundColor: colors.surface,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 1,
   },
   tabButtonText: {
-    color: '#E1F5FE',
-    fontSize: 10.5,
+    color: colors.muted,
+    fontSize: 11.5,
     fontWeight: '700',
     textAlign: 'center',
   },
   tabButtonTextActive: {
-    color: '#ffffff',
+    color: colors.teal,
   },
   detailsCard: {
-    backgroundColor: '#ffffff',
-    marginHorizontal: 12,
+    backgroundColor: colors.surface,
     marginTop: 14,
-    borderRadius: 8,
+    borderRadius: radius.lg,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#CFD8DC',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1.5 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
-    elevation: 2,
+    borderColor: colors.line,
+    ...shadow,
   },
   sectionHeader: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#01579B',
-    marginBottom: 16,
-    textAlign: 'center',
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.ink,
+    letterSpacing: -0.2,
+    marginBottom: 12,
   },
   dataRow: {
-    marginBottom: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F5F5F5',
-    paddingBottom: 8,
+    paddingVertical: 11,
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
   },
   dataLabel: {
-    fontSize: 12,
-    color: '#546E7A',
-    fontWeight: '600',
-    marginBottom: 2,
+    fontSize: 10.5,
+    color: colors.muted,
+    fontWeight: '700',
+    letterSpacing: 0.9,
+    textTransform: 'uppercase',
+    marginBottom: 4,
   },
   dataValue: {
-    fontSize: 14,
-    color: '#263238',
-    fontWeight: '700',
+    fontSize: 14.5,
+    color: colors.ink,
+    fontWeight: '600',
   },
   readOnlyBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E1F5FE',
-    marginHorizontal: 12,
-    marginTop: 16,
+    backgroundColor: colors.tealSoft,
+    marginTop: 14,
     padding: 12,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#B3E5FC',
+    borderRadius: radius.md,
   },
   readOnlyText: {
-    color: '#0277BD',
-    fontSize: 11.5,
+    color: colors.tealDark,
+    fontSize: 12,
     marginLeft: 8,
     flex: 1,
-    lineHeight: 16,
+    lineHeight: 17,
   },
   enrollmentStatusPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ECFDF5',
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 20,
-    marginTop: 6,
-    borderWidth: 1,
-    borderColor: '#A7F3D0',
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(34,197,94,0.14)',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: radius.pill,
+    marginTop: 14,
   },
   statusDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#10B981',
+    backgroundColor: '#4ADE80',
     marginRight: 6,
   },
   enrollmentStatusText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#065F46',
+    fontSize: 10.5,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: '#4ADE80',
   },
   aadhaarBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.surfaceMuted,
     alignSelf: 'flex-start',
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: radius.sm,
     marginTop: 2,
   },
   aadhaarText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#1E293B',
+    color: colors.ink,
     fontFamily: 'monospace',
     marginLeft: 6,
   },

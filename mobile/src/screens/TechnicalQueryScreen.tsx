@@ -17,6 +17,7 @@ import { getTranslation } from '../i18n/translations';
 import { Header } from '../components/Header';
 import { screenTimeTracker } from '../services/ScreenTimeTracker';
 import { apiService } from '../services/api';
+import { colors, radius, shadow } from '../theme';
 
 interface TechnicalQueryScreenProps {
   language: Language;
@@ -129,9 +130,9 @@ export const TechnicalQueryScreen: React.FC<TechnicalQueryScreenProps> = ({
         <View style={styles.ticketCard}>
           <View style={styles.cardHeader}>
             <View style={styles.cardHeaderIcon}>
-              <MaterialIcons name="headset-mic" size={20} color="#0288D1" />
+              <MaterialIcons name="headset-mic" size={20} color={colors.teal} />
             </View>
-            <View>
+            <View style={{ flex: 1 }}>
               <Text style={styles.cardTitle}>Raise a Support Query / Ticket</Text>
               <Text style={styles.cardSub}>Direct bi-directional sync with YSF Admin Desk</Text>
             </View>
@@ -142,7 +143,7 @@ export const TechnicalQueryScreen: React.FC<TechnicalQueryScreenProps> = ({
           <TextInput
             style={styles.textInput}
             placeholder="e.g. Need clarification on Module 3 assessment"
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={colors.faint}
             value={subject}
             onChangeText={setSubject}
           />
@@ -171,7 +172,7 @@ export const TechnicalQueryScreen: React.FC<TechnicalQueryScreenProps> = ({
             multiline
             numberOfLines={4}
             placeholder="Explain your doubt or technical issue clearly..."
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={colors.faint}
             value={message}
             onChangeText={setMessage}
           />
@@ -183,7 +184,7 @@ export const TechnicalQueryScreen: React.FC<TechnicalQueryScreenProps> = ({
             activeOpacity={0.8}
           >
             {submitting ? (
-              <ActivityIndicator color="#ffffff" size="small" />
+              <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
               <>
                 <MaterialIcons name="send" size={16} color="#ffffff" style={{ marginRight: 6 }} />
@@ -196,12 +197,12 @@ export const TechnicalQueryScreen: React.FC<TechnicalQueryScreenProps> = ({
         {/* My Tickets & Admin Responses */}
         <View style={styles.historyCard}>
           <Text style={styles.historyTitle}>
-            <FontAwesome5 name="history" size={14} color="#475569" style={{ marginRight: 6 }} />
+            <FontAwesome5 name="history" size={14} color={colors.muted} style={{ marginRight: 6 }} />
             My Query Tickets ({tickets.length})
           </Text>
 
           {loadingTickets ? (
-            <ActivityIndicator size="small" color="#0288D1" style={{ marginVertical: 12 }} />
+            <ActivityIndicator size="small" color={colors.teal} style={{ marginVertical: 12 }} />
           ) : tickets.length === 0 ? (
             <Text style={styles.emptyText}>No tickets logged yet. Submit a query above if you need assistance.</Text>
           ) : (
@@ -227,7 +228,7 @@ export const TechnicalQueryScreen: React.FC<TechnicalQueryScreenProps> = ({
                   {t.reply ? (
                     <View style={styles.replyBox}>
                       <View style={styles.replyHeader}>
-                        <MaterialIcons name="admin-panel-settings" size={16} color="#059669" />
+                        <MaterialIcons name="admin-panel-settings" size={16} color={colors.green} />
                         <Text style={styles.replyByText}>{t.repliedBy || 'YSF Admin Desk'}</Text>
                         <Text style={styles.replyTimeText}>{t.repliedAt || ''}</Text>
                       </View>
@@ -251,16 +252,17 @@ export const TechnicalQueryScreen: React.FC<TechnicalQueryScreenProps> = ({
             activeOpacity={0.7}
           >
             <View style={styles.iconCircle}>
-              <MaterialIcons name="call" size={24} color="#0288D1" />
+              <MaterialIcons name="call" size={20} color={colors.teal} />
             </View>
             <View style={styles.contactInfo}>
               <Text style={styles.contactLabel}>{t.callUs}</Text>
               <Text style={styles.contactValue}>{supportPhone}</Text>
               <Text style={styles.altValue}>Alt: {supportPhoneAlt}</Text>
             </View>
+            <MaterialIcons name="chevron-right" size={22} color={colors.faint} />
           </TouchableOpacity>
 
-          <View style={styles.divider} />
+          <View style={{ height: 8 }} />
 
           {/* Support Email */}
           <TouchableOpacity
@@ -269,19 +271,20 @@ export const TechnicalQueryScreen: React.FC<TechnicalQueryScreenProps> = ({
             activeOpacity={0.7}
           >
             <View style={styles.iconCircle}>
-              <MaterialIcons name="email" size={24} color="#0288D1" />
+              <MaterialIcons name="email" size={20} color={colors.teal} />
             </View>
             <View style={styles.contactInfo}>
               <Text style={styles.contactLabel}>{t.emailUs}</Text>
               <Text style={styles.contactValue}>{supportEmail}</Text>
               <Text style={styles.altValue}>Alt: {supportEmailAlt}</Text>
             </View>
+            <MaterialIcons name="chevron-right" size={22} color={colors.faint} />
           </TouchableOpacity>
         </View>
 
         {/* Support Explanation Text */}
         <View style={styles.helpBox}>
-          <MaterialIcons name="live-help" size={22} color="#0288D1" />
+          <MaterialIcons name="live-help" size={20} color={colors.teal} />
           <Text style={styles.helpText}>{t.needHelp}</Text>
         </View>
       </ScrollView>
@@ -292,156 +295,151 @@ export const TechnicalQueryScreen: React.FC<TechnicalQueryScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.bg,
   },
   scrollContent: {
+    padding: 16,
     paddingBottom: 40,
   },
   logoContainer: {
     alignItems: 'center',
-    paddingVertical: 20,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    paddingVertical: 16,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.line,
+    ...shadow,
   },
   logoImage: {
-    width: 240,
-    height: 120,
+    width: 220,
+    height: 104,
   },
   ticketCard: {
-    backgroundColor: '#ffffff',
-    marginHorizontal: 14,
+    backgroundColor: colors.surface,
     marginTop: 14,
     padding: 16,
-    borderRadius: 14,
+    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1.5 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
+    borderColor: colors.line,
+    ...shadow,
   },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: 12,
   },
   cardHeaderIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#E0F2FE',
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: colors.tealSoft,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10,
+    marginRight: 12,
   },
   cardTitle: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#0F172A',
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.ink,
+    letterSpacing: -0.2,
   },
   cardSub: {
-    fontSize: 11,
-    color: '#64748B',
-    marginTop: 1,
+    fontSize: 12,
+    color: colors.muted,
+    marginTop: 2,
   },
   inputLabel: {
-    fontSize: 11.5,
+    fontSize: 10.5,
     fontWeight: '700',
-    color: '#334155',
-    marginBottom: 5,
-    marginTop: 8,
+    letterSpacing: 0.9,
+    textTransform: 'uppercase',
+    color: colors.muted,
+    marginBottom: 6,
+    marginTop: 12,
   },
   textInput: {
     borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-    fontSize: 13,
-    color: '#0F172A',
-    backgroundColor: '#FFFFFF',
+    borderColor: colors.lineStrong,
+    borderRadius: radius.md,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 14.5,
+    color: colors.ink,
+    backgroundColor: colors.surface,
   },
   textArea: {
-    minHeight: 80,
+    minHeight: 96,
     textAlignVertical: 'top',
   },
   categoryRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 4,
+    gap: 8,
+    marginBottom: 2,
   },
   catPill: {
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 6,
-    backgroundColor: '#F1F5F9',
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.lineStrong,
   },
   catPillActive: {
-    backgroundColor: '#0288D1',
-    borderColor: '#0288D1',
+    backgroundColor: colors.tealSoft,
+    borderColor: colors.teal,
   },
   catPillText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
-    color: '#475569',
+    color: colors.ink2,
   },
   catPillTextActive: {
-    color: '#ffffff',
+    color: colors.teal,
     fontWeight: '700',
   },
   submitBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0288D1',
-    paddingVertical: 11,
-    borderRadius: 8,
-    marginTop: 14,
-    shadowColor: '#0288D1',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 2,
+    backgroundColor: colors.teal,
+    paddingVertical: 14,
+    borderRadius: radius.md,
+    marginTop: 18,
   },
   submitBtnText: {
-    color: '#ffffff',
-    fontSize: 13,
+    color: '#FFFFFF',
+    fontSize: 15,
     fontWeight: '700',
   },
   historyCard: {
-    backgroundColor: '#ffffff',
-    marginHorizontal: 14,
+    backgroundColor: colors.surface,
     marginTop: 14,
     padding: 16,
-    borderRadius: 14,
+    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.line,
+    ...shadow,
   },
   historyTitle: {
-    fontSize: 13.5,
-    fontWeight: '800',
-    color: '#0F172A',
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.ink,
+    letterSpacing: -0.2,
     marginBottom: 12,
   },
   emptyText: {
-    fontSize: 12,
-    color: '#94A3B8',
-    fontStyle: 'italic',
+    fontSize: 13,
+    color: colors.muted,
     textAlign: 'center',
-    paddingVertical: 12,
+    paddingVertical: 14,
+    lineHeight: 18,
   },
   ticketItem: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.surfaceMuted,
     padding: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    marginBottom: 10,
+    borderRadius: radius.md,
+    marginBottom: 8,
   },
   ticketTopRow: {
     flexDirection: 'row',
@@ -449,37 +447,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   ticketSubject: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
-    color: '#0F172A',
+    color: colors.ink,
     flex: 1,
     marginRight: 8,
   },
   statusBadge: {
-    paddingVertical: 2.5,
-    paddingHorizontal: 8,
-    borderRadius: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 9,
+    borderRadius: radius.pill,
   },
   badgeOpen: {
-    backgroundColor: '#FEF3C7',
-    borderWidth: 1,
-    borderColor: '#FDE68A',
+    backgroundColor: colors.amberSoft,
   },
   badgeReplied: {
-    backgroundColor: '#D1FAE5',
-    borderWidth: 1,
-    borderColor: '#A7F3D0',
+    backgroundColor: colors.greenSoft,
   },
   statusBadgeText: {
-    fontSize: 10,
+    fontSize: 10.5,
     fontWeight: '800',
+    letterSpacing: 0.6,
     textTransform: 'uppercase',
   },
   statusOpenText: {
-    color: '#B45309',
+    color: colors.amber,
   },
   statusRepliedText: {
-    color: '#065F46',
+    color: colors.green,
   },
   ticketMetaRow: {
     flexDirection: 'row',
@@ -490,27 +485,27 @@ const styles = StyleSheet.create({
   },
   ticketCategory: {
     fontSize: 10.5,
-    color: '#6366F1',
-    fontWeight: '700',
+    color: colors.teal,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
   },
   ticketDate: {
-    fontSize: 10.5,
-    color: '#94A3B8',
-    fontFamily: 'monospace',
+    fontSize: 11,
+    color: colors.muted,
   },
   ticketMessage: {
-    fontSize: 12,
-    color: '#334155',
-    fontStyle: 'italic',
-    lineHeight: 17,
+    fontSize: 12.5,
+    color: colors.ink2,
+    lineHeight: 18,
   },
   replyBox: {
-    backgroundColor: '#ECFDF5',
-    borderWidth: 1,
-    borderColor: '#A7F3D0',
-    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.green,
+    borderRadius: radius.sm,
     padding: 10,
-    marginTop: 8,
+    marginTop: 10,
   },
   replyHeader: {
     flexDirection: 'row',
@@ -518,92 +513,88 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   replyByText: {
-    fontSize: 11,
+    fontSize: 11.5,
     fontWeight: '800',
-    color: '#065F46',
+    color: colors.green,
     marginLeft: 4,
     flex: 1,
   },
   replyTimeText: {
-    fontSize: 10,
-    color: '#64748B',
-    fontFamily: 'monospace',
+    fontSize: 10.5,
+    color: colors.muted,
   },
   replyBody: {
-    fontSize: 11.5,
-    color: '#064E3B',
-    lineHeight: 16,
+    fontSize: 12.5,
+    color: colors.ink2,
+    lineHeight: 18,
   },
   contactList: {
-    backgroundColor: '#ffffff',
-    marginHorizontal: 14,
+    backgroundColor: colors.surface,
     marginTop: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 14,
+    padding: 16,
+    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.line,
+    ...shadow,
   },
   sectionHeader: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#64748B',
+    fontSize: 10.5,
+    fontWeight: '800',
+    color: colors.teal,
     textTransform: 'uppercase',
-    letterSpacing: 0.4,
-    marginBottom: 8,
+    letterSpacing: 0.9,
+    marginBottom: 12,
   },
   contactRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
+    padding: 12,
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: radius.md,
   },
   iconCircle: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: '#E0F2FE',
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.line,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
+    marginRight: 12,
   },
   contactInfo: {
     flex: 1,
   },
   contactLabel: {
-    fontSize: 14,
+    fontSize: 10.5,
     fontWeight: '700',
-    color: '#1E293B',
+    letterSpacing: 0.9,
+    textTransform: 'uppercase',
+    color: colors.muted,
   },
   contactValue: {
-    fontSize: 13.5,
-    color: '#0288D1',
+    fontSize: 14.5,
+    color: colors.ink,
     fontWeight: '700',
-    marginTop: 1,
+    marginTop: 2,
   },
   altValue: {
-    fontSize: 11,
-    color: '#64748B',
+    fontSize: 12,
+    color: colors.muted,
     marginTop: 1,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#F1F5F9',
-    marginVertical: 4,
   },
   helpBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#E0F2FE',
-    marginHorizontal: 14,
-    marginTop: 16,
+    backgroundColor: colors.tealSoft,
+    marginTop: 14,
     padding: 14,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#BAE6FD',
+    borderRadius: radius.md,
   },
   helpText: {
-    fontSize: 12,
-    color: '#0369A1',
+    fontSize: 12.5,
+    color: colors.tealDark,
     lineHeight: 18,
     marginLeft: 8,
     flex: 1,

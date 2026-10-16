@@ -21,6 +21,7 @@ const {
   saveFileToMongo,
   getFileFromMongo
 } = require('./data');
+const { registerAssessmentRoutes, migrateAssessmentData } = require('./assessments');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -362,6 +363,8 @@ app.post('/api/auth/login', (req, res) => {
       ysfCode: trainee.ysfCode,
       fullName: trainee.fullName,
       courseName: trainee.courseName,
+      schemeName: trainee.schemeName,
+      sectorName: trainee.sectorName,
       status: trainee.status,
       avatar: trainee.avatar
     }
@@ -589,335 +592,10 @@ app.delete('/api/admin/resources/topic/:id', (req, res) => {
 });
 
 // ==========================================
-// 4. ASSIGNMENTS MODULE
+// 4-5. ASSIGNMENT & TEST MODULES (see src/assessments.js)
 // ==========================================
-app.get('/api/assignments', (req, res) => {
-  const db = getDb();
-  const filter = req.query.filter || 'all'; // all, monthwise, subjectwise
-  let list = [...db.assignments];
-
-  if (filter === 'monthwise') {
-    list.sort((a, b) => a.assignedDate.localeCompare(b.assignedDate));
-  } else if (filter === 'subjectwise') {
-    list.sort((a, b) => a.subject.localeCompare(b.subject));
-  }
-
-  return res.json({
-    success: true,
-    data: list
-  });
-});
-
-app.get('/api/assignments/:id', (req, res) => {
-  const db = getDb();
-  const asg = db.assignments.find(a => a.id === req.params.id);
-  if (!asg) {
-    return res.status(404).json({ success: false, message: "Assignment not found" });
-  }
-  return res.json({ success: true, data: asg });
-});
-
-// Trainee submits assignment reply
-app.post('/api/assignments/:id/reply', (req, res) => {
-  const { id } = req.params;
-  const { traineeId, traineeName, text, attachments } = req.body;
-  const db = getDb();
-  const asg = db.assignments.find(a => a.id === id);
-
-  if (!asg) {
-    return res.status(404).json({ success: false, message: "Assignment not found" });
-  }
-
-  const baseUrl = getBaseUrl(req);
-  // Ensure attachments have valid download/view URLs
-  const formattedAttachments = (attachments || []).map((att, idx) => {
-    let fileUrl = att.url || `${baseUrl}/api/files/${encodeURIComponent(att.name || 'document.pdf')}`;
-    // If local file was saved
-    if (att.data) {
-      const fileName = `submission_${Date.now()}_${idx}_${(att.name || 'file.pdf').replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-      const filePath = path.join(UPLOADS_DIR, fileName);
-      const base64Data = att.data.replace(/^data:.*,/, '');
-      const buffer = Buffer.from(base64Data, 'base64');
-      fs.writeFileSync(filePath, buffer);
-      try {
-        saveFileToMongo(fileName, att.name || 'file.pdf', 'application/pdf', buffer);
-      } catch (mErr) {}
-      fileUrl = `${baseUrl}/api/files/${fileName}`;
-    }
-    return {
-      name: att.name || `Attachment_${idx + 1}.pdf`,
-      size: att.size || "1.2 MB",
-      url: fileUrl
-    };
-  });
-
-  const submission = {
-    id: `SUB-${Date.now().toString().slice(-4)}`,
-    traineeId: traineeId || "T001",
-    traineeName: traineeName || "KUMARI K",
-    submittedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
-    text: text || "Assignment answer submitted via Kaushalya App",
-    attachments: formattedAttachments
-  };
-
-  asg.submissions.unshift(submission);
-  asg.status = "Completed";
-  saveDb(db);
-
-  return res.json({
-    success: true,
-    message: "Assignment response submitted successfully",
-    data: submission
-  });
-});
-
-// ADMIN: Create New Assignment
-app.post('/api/admin/assignments', (req, res) => {
-  const {
-    name,
-    shortTitle = "Assignment",
-    course = "Diploma in Automotive Manufacturing Technology",
-    subject = "Industrial Safety",
-    topic = "General Topic",
-    submissionDate = "Mar 30",
-    marks = 15.0,
-    teacher = "Admin1 Admin1",
-    details = "Complete task as instructed."
-  } = req.body;
-
-  if (!name) {
-    return res.status(400).json({ success: false, message: "Assignment name is required" });
-  }
-
-  const db = getDb();
-  const nextNo = db.assignments.length > 0 ? Math.max(...db.assignments.map(a => a.no || 0)) + 1 : 1;
-  const newAssignment = {
-    id: `ASG-${String(nextNo).padStart(3, '0')}`,
-    no: nextNo,
-    name,
-    shortTitle,
-    course,
-    subject,
-    topic,
-    assignedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
-    submissionDate,
-    marks: parseFloat(marks) || 10.0,
-    teacher,
-    details,
-    likes: 0,
-    status: "Pending",
-    submissions: []
-  };
-
-  db.assignments.unshift(newAssignment);
-  saveDb(db);
-
-  return res.json({ success: true, message: "Assignment created successfully", data: newAssignment });
-});
-
-// ADMIN: Delete Assignment
-app.delete('/api/admin/assignments/:id', (req, res) => {
-  const { id } = req.params;
-  const db = getDb();
-  const idx = db.assignments.findIndex(a => a.id === id);
-
-  if (idx !== -1) {
-    db.assignments.splice(idx, 1);
-    saveDb(db);
-    return res.json({ success: true, message: "Assignment deleted successfully" });
-  }
-  return res.status(404).json({ success: false, message: "Assignment not found" });
-});
-
-// ==========================================
-// 5. TEST MODULE
-// ==========================================
-app.get('/api/tests', (req, res) => {
-  const db = getDb();
-  const total = db.tests.length;
-  const solved = db.tests.filter(t => t.status === "Solved").length;
-  const unSolved = total - solved;
-
-  return res.json({
-    success: true,
-    courseSummary: [
-      {
-        course: "Diploma in Automotive Manufacturing Technology",
-        total: total,
-        solved: solved,
-        unSolved: unSolved
-      }
-    ],
-    tests: db.tests.map(t => ({
-      id: t.id,
-      number: t.number,
-      name: t.name,
-      course: t.course,
-      testFor: t.testFor,
-      date: t.date,
-      totalMarks: t.totalMarks,
-      passingMarks: t.passingMarks,
-      duration: t.duration,
-      status: t.status,
-      score: t.score,
-      maxScore: t.maxScore,
-      attachment: t.attachment || null,
-      questions: t.questions || []
-    }))
-  });
-});
-
-app.get('/api/tests/:id', (req, res) => {
-  const db = getDb();
-  const test = db.tests.find(t => t.id === req.params.id);
-  if (!test) {
-    return res.status(404).json({ success: false, message: "Test not found" });
-  }
-  return res.json({ success: true, data: test });
-});
-
-// Test submission and instant grading
-app.post('/api/tests/:id/submit', (req, res) => {
-  const { id } = req.params;
-  const { answers, traineeId } = req.body;
-  const db = getDb();
-  const test = db.tests.find(t => t.id === id);
-
-  if (!test) {
-    return res.status(404).json({ success: false, message: "Test not found" });
-  }
-
-  let correctCount = 0;
-  const results = test.questions.map(q => {
-    const selected = answers ? answers[q.id] : undefined;
-    const isCorrect = selected === q.correctIndex;
-    if (isCorrect) correctCount++;
-    return {
-      questionId: q.id,
-      selected,
-      correctIndex: q.correctIndex,
-      isCorrect
-    };
-  });
-
-  const marksPerQuestion = test.totalMarks / (test.questions.length || 1);
-  const finalScore = Math.round(correctCount * marksPerQuestion);
-  const passed = finalScore >= test.passingMarks;
-
-  test.status = "Solved";
-  test.score = finalScore;
-  test.completedAt = new Date().toISOString();
-  saveDb(db);
-
-  return res.json({
-    success: true,
-    message: "Test completed and assessment synced to admin dashboard",
-    data: {
-      testId: test.id,
-      testName: test.name,
-      totalQuestions: test.questions.length,
-      correctCount: correctCount,
-      score: finalScore,
-      maxScore: test.totalMarks,
-      passingMarks: test.passingMarks,
-      passed: passed,
-      results
-    }
-  });
-});
-
-// ADMIN: Create New MCQ Test
-app.post('/api/admin/tests', (req, res) => {
-  const {
-    name,
-    number,
-    course = "Diploma in Automotive Manufacturing Technology",
-    testFor = "Internal Test",
-    duration = 45,
-    totalMarks = 50,
-    passingMarks = 30,
-    instructions = "You can only select one answer per question.",
-    attachment = null,
-    questions = []
-  } = req.body;
-
-  if (!name) {
-    return res.status(400).json({ success: false, message: "Test name is required" });
-  }
-
-  const db = getDb();
-  const testNum = parseInt(number) || (db.tests.length > 0 ? Math.max(...db.tests.map(t => t.number || 0)) + 1 : 56);
-  
-  // Default MCQ bank if none provided
-  const finalQuestions = questions && questions.length > 0 ? questions : [
-    {
-      id: 1,
-      question: "Which manufacturing concept focuses on eliminating waste and continuous improvement?",
-      options: ["Kaizen & Lean Manufacturing", "Random Batching", "Ad-hoc Staging", "Postponed QA"],
-      correctIndex: 0
-    },
-    {
-      id: 2,
-      question: "What is the primary color for Emergency Stop switches in industrial machinery?",
-      options: ["Blue", "Red with yellow background", "Green", "White"],
-      correctIndex: 1
-    }
-  ];
-
-  const newTest = {
-    id: `TEST-${testNum}`,
-    number: testNum,
-    name,
-    course,
-    testFor,
-    date: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }),
-    expiryDate: "30 Apr 2024",
-    duration: parseInt(duration) || 45,
-    totalMarks: parseInt(totalMarks) || 50,
-    passingMarks: parseInt(passingMarks) || 30,
-    instructions,
-    attachment: attachment || null,
-    status: "Not solved",
-    score: null,
-    maxScore: parseInt(totalMarks) || 50,
-    completedAt: null,
-    questions: finalQuestions
-  };
-
-  db.tests.unshift(newTest);
-  saveDb(db);
-
-  return res.json({ success: true, message: "MCQ Test created successfully", data: newTest });
-});
-
-// ADMIN: Delete Test
-app.delete('/api/admin/tests/:id', (req, res) => {
-  const { id } = req.params;
-  const db = getDb();
-  const idx = db.tests.findIndex(t => t.id === id);
-
-  if (idx !== -1) {
-    db.tests.splice(idx, 1);
-    saveDb(db);
-    return res.json({ success: true, message: "Test deleted successfully" });
-  }
-  return res.status(404).json({ success: false, message: "Test not found" });
-});
-
-// ADMIN: Reset Test
-app.post('/api/admin/tests/:id/reset', (req, res) => {
-  const { id } = req.params;
-  const db = getDb();
-  const test = db.tests.find(t => t.id === id);
-
-  if (test) {
-    test.status = "Not solved";
-    test.score = null;
-    test.completedAt = null;
-    saveDb(db);
-    return res.json({ success: true, message: "Test status reset successfully" });
-  }
-  return res.status(404).json({ success: false, message: "Test not found" });
+const assessments = registerAssessmentRoutes(app, {
+  getDb, saveDb, upload, getBaseUrl, UPLOADS_DIR, saveFileToMongo, getFileFromMongo
 });
 
 // ==========================================
@@ -1888,44 +1566,6 @@ app.post('/api/queries', (req, res) => {
 });
 
 // ==========================================
-// 13. ASSIGNMENT GRADING & FEEDBACK
-// ==========================================
-
-app.post('/api/admin/assignments/grade', (req, res) => {
-  const { assignmentId, submissionId, remarks } = req.body;
-  const gradeStatus = req.body.gradeStatus || req.body.status || 'Graded';
-  const gradedMarks = req.body.gradedMarks !== undefined ? req.body.gradedMarks : req.body.marks;
-
-  if (!assignmentId || !submissionId) {
-    return res.status(400).json({ success: false, message: 'assignmentId and submissionId are required' });
-  }
-
-  const db = getDb();
-  const asg = (db.assignments || []).find(a => a.id === assignmentId);
-  if (!asg) {
-    return res.status(404).json({ success: false, message: 'Assignment not found' });
-  }
-
-  const sub = (asg.submissions || []).find(s => s.id === submissionId || s.traineeId === submissionId);
-  if (!sub) {
-    return res.status(404).json({ success: false, message: 'Submission not found' });
-  }
-
-  sub.gradeStatus = gradeStatus;
-  sub.gradedMarks = parseFloat(gradedMarks) || 0;
-  sub.remarks = remarks || 'Submission reviewed and graded by YSF Admin.';
-  sub.gradedAt = new Date().toISOString().replace('T', ' ').slice(0, 16);
-
-  saveDb(db);
-  return res.json({
-    success: true,
-    message: `Submission marked as ${sub.gradeStatus} with ${sub.gradedMarks} marks`,
-    submission: sub,
-    assignment: asg
-  });
-});
-
-// ==========================================
 // 14. INSTITUTIONAL CMS PUBLIC API
 // ==========================================
 
@@ -1972,8 +1612,9 @@ app.get('/api/sync', (req, res) => {
     attendance,
     resourcesSummary: db.learningResources.summary,
     resourcesHierarchy: db.learningResources.hierarchy,
-    assignments: db.assignments,
-    tests: db.tests,
+    assignments: (db.assignments || []).filter(a => assessments.visibleToTrainee(a, trainee)).map(a => assessments.assignmentForTrainee(a, trainee)),
+    selfAssignments: (db.selfAssignments || []).filter(s => s.traineeId === trainee.id),
+    tests: (db.tests || []).filter(t => assessments.visibleToTrainee(t, trainee)).map(t => assessments.testForTrainee(t, trainee, { withQuestions: false })),
     events: db.events,
     notices: db.notices,
     cms: db.cms,
@@ -1988,6 +1629,12 @@ app.get('/api/sync', (req, res) => {
     await initDatabase();
   } catch (err) {
     console.warn('[Startup] MongoDB Atlas initialization warning:', err.message);
+  }
+
+  const db = getDb();
+  if (migrateAssessmentData(db)) {
+    saveDb(db);
+    console.log('[Startup] Assignment & test records migrated to the per-trainee format.');
   }
 
   app.listen(PORT, '0.0.0.0', () => {

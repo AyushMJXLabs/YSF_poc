@@ -18,6 +18,8 @@ import { NoticesScreen } from './src/screens/NoticesScreen';
 import { TechnicalQueryScreen } from './src/screens/TechnicalQueryScreen';
 import { ChangePasswordScreen } from './src/screens/ChangePasswordScreen';
 import { screenTimeTracker } from './src/services/ScreenTimeTracker';
+import { apiService } from './src/services/api';
+import { colors } from './src/theme';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenName>('INSTITUTE_CODE');
@@ -27,7 +29,14 @@ export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const [trainee, setTrainee] = useState({
+  const [trainee, setTrainee] = useState<{
+    id: string;
+    fullName: string;
+    ysfCode: string;
+    courseName: string;
+    status: string;
+    avatar?: string;
+  }>({
     id: 'T001',
     fullName: 'KUMARI K',
     ysfCode: 'W2307C00001',
@@ -90,6 +99,7 @@ export default function App() {
 
   const handleLoginSuccess = (traineeData: any) => {
     setTrainee(traineeData);
+    apiService.setTrainee(traineeData);
     setCurrentScreen('DASHBOARD');
     screenTimeTracker.showToast("Welcome to Kaushalya LMS");
   };
@@ -109,7 +119,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.rootContainer}>
-      <StatusBar barStyle="light-content" backgroundColor="#0288D1" />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.surface} />
 
       {/* Main Screen Router */}
       <View style={styles.screenWrapper}>
@@ -137,6 +147,8 @@ export default function App() {
             onOpenDrawer={() => setDrawerOpen(true)}
             onLogout={handleLogout}
             traineeName={trainee.fullName}
+            ysfCode={trainee.ysfCode}
+            avatarUrl={trainee.avatar}
           />
         )}
 
@@ -238,10 +250,10 @@ export default function App() {
 const styles = StyleSheet.create({
   rootContainer: {
     flex: 1,
-    backgroundColor: '#0288D1',
+    backgroundColor: colors.surface,
   },
   screenWrapper: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: colors.bg,
   },
 });

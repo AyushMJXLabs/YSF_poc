@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { apiService } from '../services/api';
+import { colors, radius } from '../theme';
 
 interface ServerConfigModalProps {
   visible: boolean;
@@ -119,7 +120,7 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
           <View style={styles.header}>
             <View style={styles.headerTitleRow}>
               <View style={styles.iconBadge}>
-                <Ionicons name="cloud-outline" size={20} color="#0284C7" />
+                <Ionicons name="cloud-outline" size={20} color={colors.teal} />
               </View>
               <View style={{ marginLeft: 10, flex: 1 }}>
                 <Text style={styles.title}>Cloud Server Settings</Text>
@@ -127,7 +128,7 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
               </View>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Ionicons name="close" size={20} color="#64748B" />
+              <Ionicons name="close" size={20} color={colors.ink} />
             </TouchableOpacity>
           </View>
 
@@ -168,13 +169,13 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
             {/* URL Input */}
             <Text style={styles.sectionLabel}>SERVER URL (RENDER / CUSTOM HOST)</Text>
             <View style={styles.inputWrapper}>
-              <Ionicons name="link-outline" size={18} color="#94A3B8" style={{ marginRight: 8 }} />
+              <Ionicons name="link-outline" size={18} color={colors.faint} style={{ marginRight: 8 }} />
               <TextInput
                 style={styles.input}
                 value={inputUrl}
                 onChangeText={setInputUrl}
                 placeholder="https://ysf-kaushalya-lms.onrender.com/api"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={colors.faint}
                 autoCapitalize="none"
                 autoCorrect={false}
                 keyboardType="url"
@@ -191,11 +192,11 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
                   <Ionicons
                     name={testResult.ok ? 'checkmark-circle' : 'alert-circle'}
                     size={18}
-                    color={testResult.ok ? '#10B981' : '#EF4444'}
+                    color={testResult.ok ? colors.green : colors.red}
                   />
                   <Text style={[
                     styles.resultTitle,
-                    { color: testResult.ok ? '#065F46' : '#991B1B' }
+                    { color: testResult.ok ? colors.green : colors.red }
                   ]}>
                     {testResult.ok ? `Backend Healthy (${testResult.latencyMs}ms)` : 'Connection Check Failed'}
                   </Text>
@@ -217,7 +218,7 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
 
             {/* Info Notice */}
             <View style={styles.infoBanner}>
-              <Ionicons name="information-circle-outline" size={16} color="#0369A1" />
+              <Ionicons name="information-circle-outline" size={16} color={colors.teal} />
               <Text style={styles.infoBannerText}>
                 Any custom Render URL entered here is saved directly to your phone. It persists across app restarts!
               </Text>
@@ -255,10 +256,12 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
   );
 };
 
+const mono = Platform.OS === 'ios' ? 'Menlo' : 'monospace';
+
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    backgroundColor: 'rgba(17,26,51,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16
@@ -266,14 +269,16 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 420,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.line,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 18,
-    elevation: 8,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.16,
+    shadowRadius: 24,
+    elevation: 10,
     maxHeight: '90%'
   },
   header: {
@@ -281,9 +286,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 18,
-    paddingVertical: 14,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9'
+    borderBottomColor: colors.line
   },
   headerTitleRow: {
     flexDirection: 'row',
@@ -291,183 +296,192 @@ const styles = StyleSheet.create({
     flex: 1
   },
   iconBadge: {
-    width: 36,
-    height: 36,
+    width: 38,
+    height: 38,
     borderRadius: 10,
-    backgroundColor: '#E0F2FE',
+    backgroundColor: colors.tealSoft,
     justifyContent: 'center',
     alignItems: 'center'
   },
   title: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
-    color: '#0F172A'
+    color: colors.ink,
+    letterSpacing: -0.2
   },
   subtitle: {
-    fontSize: 11,
-    color: '#64748B',
-    marginTop: 1
+    fontSize: 10.5,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: colors.teal,
+    marginTop: 2
   },
   closeBtn: {
-    padding: 6,
-    borderRadius: 8,
-    backgroundColor: '#F8FAFC'
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: colors.surfaceMuted,
+    borderWidth: 1,
+    borderColor: colors.line,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   body: {
     paddingHorizontal: 18,
-    paddingVertical: 14
+    paddingVertical: 16
   },
   statusBox: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 10,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    marginBottom: 14
+    backgroundColor: colors.navy,
+    borderRadius: radius.md,
+    padding: 14,
+    marginBottom: 16
   },
   statusLabel: {
-    fontSize: 10,
+    fontSize: 10.5,
     fontWeight: '700',
-    color: '#64748B',
-    letterSpacing: 0.5,
-    marginBottom: 4
+    color: colors.navyMuted,
+    letterSpacing: 0.9,
+    marginBottom: 6
   },
   statusUrl: {
-    fontSize: 12,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontSize: 12.5,
+    fontFamily: mono,
     fontWeight: '600',
-    color: '#0284C7'
+    color: colors.cyan
   },
   sectionLabel: {
-    fontSize: 10,
+    fontSize: 10.5,
     fontWeight: '700',
-    color: '#475569',
-    letterSpacing: 0.5,
-    marginBottom: 6,
-    marginTop: 4
+    color: colors.muted,
+    letterSpacing: 0.9,
+    marginBottom: 8,
+    marginTop: 2
   },
   presetRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 14
+    gap: 8,
+    marginBottom: 16
   },
   presetChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#CBD5E1'
+    borderColor: colors.lineStrong
   },
   presetChipText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
-    color: '#334155'
+    color: colors.ink2
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: '#0284C7',
-    borderRadius: 10,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.lineStrong,
+    borderRadius: radius.md,
     paddingHorizontal: 12,
-    paddingVertical: Platform.OS === 'ios' ? 10 : 6,
+    paddingVertical: Platform.OS === 'ios' ? 12 : 6,
     marginBottom: 12
   },
   input: {
     flex: 1,
-    fontSize: 13,
-    color: '#0F172A',
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace'
+    fontSize: 13.5,
+    color: colors.ink,
+    fontFamily: mono
   },
   resultCard: {
-    borderRadius: 10,
-    padding: 10,
+    borderRadius: radius.md,
+    padding: 12,
     marginBottom: 12,
     borderWidth: 1
   },
   resultSuccess: {
-    backgroundColor: '#ECFDF5',
-    borderColor: '#A7F3D0'
+    backgroundColor: colors.greenSoft,
+    borderColor: '#BBF7D0'
   },
   resultError: {
-    backgroundColor: '#FEF2F2',
-    borderColor: '#FECACA'
+    backgroundColor: colors.redSoft,
+    borderColor: '#F9CFD0'
   },
   resultRow: {
     flexDirection: 'row',
     alignItems: 'center'
   },
   resultTitle: {
-    fontSize: 12,
+    fontSize: 12.5,
     fontWeight: '700',
     marginLeft: 6
   },
   resultDetails: {
-    fontSize: 11,
-    color: '#065F46',
+    fontSize: 11.5,
+    color: colors.ink2,
     marginTop: 4,
     marginLeft: 24,
     fontWeight: '500'
   },
   resultErrorText: {
-    fontSize: 11,
-    color: '#991B1B',
+    fontSize: 11.5,
+    color: colors.red,
     marginTop: 4,
     marginLeft: 24
   },
   infoBanner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#F0F9FF',
-    borderRadius: 8,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#BAE6FD',
-    marginBottom: 10
+    backgroundColor: colors.tealSoft,
+    borderRadius: radius.md,
+    padding: 12,
+    marginBottom: 12
   },
   infoBannerText: {
-    fontSize: 11,
-    color: '#0369A1',
-    marginLeft: 6,
+    fontSize: 12,
+    color: colors.tealDark,
+    marginLeft: 8,
     flex: 1,
-    lineHeight: 15
+    lineHeight: 17
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: 10,
     paddingHorizontal: 18,
-    paddingVertical: 12,
-    backgroundColor: '#F8FAFC',
+    paddingVertical: 14,
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9'
+    borderTopColor: colors.line
   },
   resetBtn: {
+    flex: 1,
     paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 8,
+    paddingVertical: 12,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center'
+    borderColor: colors.lineStrong,
+    backgroundColor: colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   resetBtnText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#64748B'
+    fontSize: 13.5,
+    fontWeight: '700',
+    color: colors.ink2
   },
   saveBtn: {
+    flex: 1.3,
     paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: '#0284C7',
+    paddingVertical: 12,
+    borderRadius: radius.md,
+    backgroundColor: colors.teal,
     justifyContent: 'center',
     alignItems: 'center'
   },
   saveBtnText: {
-    fontSize: 12,
+    fontSize: 13.5,
     fontWeight: '700',
     color: '#FFFFFF'
   }

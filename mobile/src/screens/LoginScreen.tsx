@@ -9,7 +9,8 @@ import {
   Platform,
   ScrollView,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  StatusBar
 } from 'react-native';
 import { FontAwesome, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { Language } from '../types';
@@ -17,6 +18,7 @@ import { getTranslation } from '../i18n/translations';
 import { Footer } from '../components/Footer';
 import { apiService } from '../services/api';
 import { ServerConfigModal } from '../components/ServerConfigModal';
+import { colors, radius, shadow } from '../theme';
 
 interface LoginScreenProps {
   language: Language;
@@ -37,6 +39,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [serverModalVisible, setServerModalVisible] = useState(false);
+  const [focusedField, setFocusedField] = useState<'user' | 'pass' | null>(null);
 
   const handleLogin = async () => {
     if (!username.trim() || !password) {
@@ -81,52 +84,65 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.container}
     >
+      <StatusBar barStyle="dark-content" backgroundColor={colors.bg} />
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         {/* Top Header & Cloud Server Configurator */}
-        <View style={styles.topHeader}>
+        <View style={styles.topBar}>
+          <View style={styles.brandTile}>
+            <MaterialIcons name="school" size={22} color={colors.cyan} />
+          </View>
           <TouchableOpacity
             style={styles.serverGearBtn}
             onPress={() => setServerModalVisible(true)}
             accessibilityLabel="Cloud Server Settings"
             activeOpacity={0.7}
           >
-            <Ionicons name="settings-sharp" size={18} color="#0284C7" />
+            <Ionicons name="settings-sharp" size={18} color={colors.ink} />
           </TouchableOpacity>
-          <Text style={styles.companyNameText}>{t.companyName}</Text>
-          <Text style={styles.lmsSubText}>{t.lmsSubtitle}</Text>
         </View>
 
-        {/* Input Cards */}
+        <View style={styles.topHeader}>
+          <Text style={styles.lmsSubText}>{t.lmsSubtitle}</Text>
+          <Text style={styles.companyNameText}>{t.companyName}</Text>
+        </View>
+
+        {/* Input Card */}
         <View style={styles.formContainer}>
           {/* Username Input */}
-          <View style={styles.inputCard}>
-            <FontAwesome name="user" size={22} color="#757575" style={styles.inputIcon} />
+          <Text style={styles.inputLabel}>{t.userName}</Text>
+          <View style={[styles.inputCard, focusedField === 'user' && styles.inputCardFocused]}>
+            <FontAwesome name="user" size={18} color={focusedField === 'user' ? colors.teal : colors.faint} style={styles.inputIcon} />
             <TextInput
               style={styles.inputField}
               placeholder={t.userName}
-              placeholderTextColor="#757575"
+              placeholderTextColor={colors.faint}
               value={username}
               onChangeText={(text) => {
                 setUsername(text);
                 if (errorMsg) setErrorMsg(null);
               }}
+              onFocus={() => setFocusedField('user')}
+              onBlur={() => setFocusedField(null)}
               autoCapitalize="none"
             />
           </View>
 
           {/* Password Input */}
-          <View style={styles.inputCard}>
-            <MaterialIcons name="lock" size={24} color="#757575" style={styles.inputIcon} />
+          <Text style={styles.inputLabel}>{t.password}</Text>
+          <View style={[styles.inputCard, focusedField === 'pass' && styles.inputCardFocused]}>
+            <MaterialIcons name="lock" size={19} color={focusedField === 'pass' ? colors.teal : colors.faint} style={styles.inputIcon} />
             <TextInput
               style={styles.inputField}
               placeholder={t.password}
-              placeholderTextColor="#757575"
+              placeholderTextColor={colors.faint}
               secureTextEntry
               value={password}
               onChangeText={(text) => {
                 setPassword(text);
                 if (errorMsg) setErrorMsg(null);
               }}
+              onFocus={() => setFocusedField('pass')}
+              onBlur={() => setFocusedField(null)}
             />
           </View>
 
@@ -137,6 +153,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
           {errorMsg ? (
             <View style={styles.errorBox}>
+              <MaterialIcons name="error-outline" size={16} color={colors.red} />
               <Text style={styles.errorText}>{errorMsg}</Text>
             </View>
           ) : null}
@@ -145,43 +162,44 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           <TouchableOpacity
             style={styles.actionButton}
             onPress={handleLogin}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#ffffff" />
+              <ActivityIndicator color="#FFFFFF" />
             ) : (
               <Text style={styles.actionButtonText}>{t.login}</Text>
             )}
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.actionButton}
+            style={[styles.actionButton, styles.secondaryButton]}
             onPress={handleGuestLogin}
             activeOpacity={0.8}
           >
-            <Text style={styles.actionButtonText}>{t.guest}</Text>
+            <Text style={[styles.actionButtonText, styles.secondaryButtonText]}>{t.guest}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.actionButton}
+            style={[styles.actionButton, styles.ghostButton]}
             onPress={onChangeInstitute}
-            activeOpacity={0.8}
+            activeOpacity={0.7}
           >
-            <Text style={styles.actionButtonText}>{t.changeInstitute}</Text>
+            <MaterialIcons name="swap-horiz" size={18} color={colors.teal} style={{ marginRight: 6 }} />
+            <Text style={[styles.actionButtonText, styles.ghostButtonText]}>{t.changeInstitute}</Text>
           </TouchableOpacity>
+        </View>
 
-          {/* Copyright & Terms */}
-          <View style={styles.termsBox}>
-            <Text style={styles.copyrightText}>{t.copyright}</Text>
-            <TouchableOpacity onPress={onTermsPressed}>
-              <Text style={styles.termsText}>{t.termsConditions}</Text>
-            </TouchableOpacity>
-          </View>
+        {/* Copyright & Terms */}
+        <View style={styles.termsBox}>
+          <Text style={styles.copyrightText}>{t.copyright}</Text>
+          <TouchableOpacity onPress={onTermsPressed}>
+            <Text style={styles.termsText}>{t.termsConditions}</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
-      {/* Manual-accurate Footer */}
+      {/* Footer */}
       <Footer title={t.lmsHeader} subtitle={t.poweredBy} />
 
       {/* In-App Cloud Server Configurator Modal */}
@@ -196,135 +214,175 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#EAF6FB',
-  },
-  serverGearBtn: {
-    position: 'absolute',
-    top: -5,
-    right: 12,
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: '#F0F9FF',
-    borderWidth: 1,
-    borderColor: '#BAE6FD',
-    zIndex: 10,
-    shadowColor: '#0284C7',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3
+    backgroundColor: colors.bg,
   },
   scrollContent: {
     flexGrow: 1,
     alignItems: 'center',
-    paddingTop: 50,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 16 : 56,
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+  },
+  topBar: {
+    width: '100%',
+    maxWidth: 420,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 28,
+  },
+  brandTile: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.md,
+    backgroundColor: colors.navy,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  serverGearBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.line,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   topHeader: {
     width: '100%',
-    alignItems: 'center',
-    marginBottom: 28,
-    position: 'relative',
-  },
-  companyNameText: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#0277BD',
-    textAlign: 'center',
-    letterSpacing: 0.3,
+    maxWidth: 420,
+    marginBottom: 20,
   },
   lmsSubText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#263238',
+    fontSize: 10.5,
+    fontWeight: '800',
+    letterSpacing: 0.9,
+    textTransform: 'uppercase',
+    color: colors.teal,
+  },
+  companyNameText: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: colors.ink,
+    letterSpacing: -0.4,
     marginTop: 6,
   },
   formContainer: {
     width: '100%',
-    maxWidth: 310,
-    alignItems: 'center',
+    maxWidth: 420,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.line,
+    padding: 18,
+    ...shadow,
+  },
+  inputLabel: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    letterSpacing: 0.9,
+    textTransform: 'uppercase',
+    color: colors.muted,
+    marginBottom: 6,
   },
   inputCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: '#607D8B',
-    borderRadius: 6,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.lineStrong,
+    borderRadius: radius.md,
     width: '100%',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: Platform.OS === 'ios' ? 13 : 4,
     marginBottom: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+  },
+  inputCardFocused: {
+    borderColor: colors.teal,
+    borderWidth: 1.5,
   },
   inputIcon: {
     marginRight: 10,
+    width: 20,
+    textAlign: 'center',
   },
   inputField: {
     flex: 1,
     fontSize: 15,
-    color: '#212121',
+    color: colors.ink,
   },
   forgotPassLink: {
     alignSelf: 'flex-end',
+    marginTop: -4,
     marginBottom: 16,
   },
   forgotPassText: {
-    color: '#0288D1',
+    color: colors.teal,
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   errorBox: {
-    backgroundColor: '#FFEBEE',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.redSoft,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: radius.md,
     marginBottom: 14,
     width: '100%',
   },
   errorText: {
-    color: '#C62828',
-    fontSize: 12,
+    color: colors.red,
+    fontSize: 12.5,
     fontWeight: '600',
-    textAlign: 'center',
+    marginLeft: 8,
+    flex: 1,
   },
   actionButton: {
-    backgroundColor: '#00A0E3',
+    flexDirection: 'row',
+    backgroundColor: colors.teal,
     width: '100%',
-    paddingVertical: 12,
-    borderRadius: 6,
+    paddingVertical: 14,
+    borderRadius: radius.md,
     alignItems: 'center',
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 3,
+    justifyContent: 'center',
+    marginBottom: 10,
   },
   actionButtonText: {
-    color: '#ffffff',
+    color: '#FFFFFF',
     fontSize: 15,
-    fontWeight: '800',
-    letterSpacing: 0.8,
+    fontWeight: '700',
+  },
+  secondaryButton: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.lineStrong,
+  },
+  secondaryButtonText: {
+    color: colors.ink,
+  },
+  ghostButton: {
+    backgroundColor: 'transparent',
+    marginBottom: 0,
+    paddingVertical: 10,
+  },
+  ghostButtonText: {
+    color: colors.teal,
+    fontSize: 14,
   },
   termsBox: {
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 20,
   },
   copyrightText: {
-    color: '#78909C',
+    color: colors.muted,
     fontSize: 12,
   },
   termsText: {
-    color: '#0288D1',
+    color: colors.teal,
     fontSize: 13,
-    textDecorationLine: 'underline',
-    fontWeight: '600',
+    fontWeight: '700',
     marginTop: 4,
   },
 });

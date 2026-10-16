@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { colors } from '../theme';
 
 interface FooterProps {
   title?: string;
@@ -20,22 +21,25 @@ export const Footer: React.FC<FooterProps> = ({
 
 const styles = StyleSheet.create({
   footerContainer: {
-    backgroundColor: '#0288D1',
+    backgroundColor: colors.navy,
     paddingVertical: 14,
+    paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
   },
   titleText: {
-    color: '#ffffff',
-    fontSize: 16,
+    color: colors.navyInk,
+    fontSize: 14,
     fontWeight: '700',
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
   },
   subtitleText: {
-    color: '#B3E5FC',
-    fontSize: 13,
-    fontWeight: '500',
-    marginTop: 2,
+    color: colors.navyMuted,
+    fontSize: 10.5,
+    fontWeight: '700',
+    letterSpacing: 0.9,
+    textTransform: 'uppercase',
+    marginTop: 4,
   },
 });

@@ -579,6 +579,142 @@
     .variant-card .vc-arrow { transition: transform .25s cubic-bezier(.34, 1.56, .64, 1), color .2s; color: var(--faint); }
     .variant-card:hover .vc-arrow { transform: translateX(4px); color: var(--hue); }
 
+    /* ============================================================
+       ASSIGNMENT & TEST MODULES — page head, segmented tabs,
+       data tables, slide-over drawers, upload zones
+       ============================================================ */
+    .page-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; }
+    .seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 11px; background: #eceff5; border: 1px solid var(--line); }
+    .seg button {
+      height: 30px; padding: 0 13px; border-radius: 8px; display: inline-flex; align-items: center; gap: 8px;
+      font-size: 13px; font-weight: 500; color: var(--muted); transition: color .15s, background .15s, box-shadow .15s;
+    }
+    .seg button:hover { color: var(--ink); }
+    .seg button i { font-size: 12px; }
+    .seg button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(11, 18, 32, .08), 0 0 0 1px var(--line); }
+    .seg button.on i { color: var(--hue, var(--accent)); }
+    .seg .cnt { font-family: 'Geist Mono', monospace; font-size: 11px; min-width: 20px; padding: 1px 6px; border-radius: 9999px; background: var(--line-soft); color: var(--muted); }
+    .seg button.on .cnt { background: color-mix(in srgb, var(--hue, var(--accent)) 13%, transparent); color: color-mix(in srgb, var(--hue, var(--accent)) 80%, #0b1220); }
+
+    .mini-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    @media (max-width: 900px) { .mini-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .mstat { position: relative; overflow: hidden; padding: 15px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 13px; box-shadow: var(--shadow-sm); }
+    .mstat .l { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 7px; }
+    .mstat .l i { font-size: 11px; color: var(--tone, var(--hue, var(--accent))); }
+    .mstat .v { font-size: 23px; font-weight: 600; letter-spacing: -0.035em; color: var(--ink); margin-top: 8px; font-variant-numeric: tabular-nums; line-height: 1; }
+    .mstat .v small { font-size: 12px; font-weight: 500; color: var(--faint); letter-spacing: 0; margin-left: 4px; }
+    .mstat::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: linear-gradient(90deg, var(--tone, var(--hue, var(--accent))), transparent 70%); opacity: .7; }
+
+    .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--line); background: linear-gradient(#fff, #fcfcfe); }
+    .toolbar .tb-label { font-family: 'Geist Mono', monospace; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); margin-right: 2px; }
+    .toolbar select { height: 34px; font-size: 13px; padding: 0 30px 0 10px; max-width: 180px; }
+    .tb-search { position: relative; }
+    .tb-search i { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--faint); pointer-events: none; }
+    .tb-search input { height: 34px; width: 230px; padding: 0 10px 0 30px !important; font-size: 13px; }
+
+    table.dt { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+    .dt thead th {
+      position: sticky; top: 0; z-index: 1; background: #f8f9fc !important; text-align: left; white-space: nowrap;
+      padding: 10px 14px !important; font-size: 11px !important; font-weight: 500 !important; letter-spacing: .06em; text-transform: uppercase; color: var(--muted) !important;
+      border-bottom: 1px solid var(--line) !important;
+    }
+    .dt tbody td { padding: 12px 14px; border-bottom: 1px solid var(--line-soft); vertical-align: middle; color: var(--ink-2); }
+    .dt tbody tr:last-child td { border-bottom: 0; }
+    .dt tbody tr { transition: background .12s; }
+    .dt tbody tr:hover { background: color-mix(in srgb, var(--hue, var(--accent)) 4%, #fff) !important; }
+    .dt tbody tr.sel { background: color-mix(in srgb, var(--hue, var(--accent)) 7%, #fff) !important; }
+    .dt .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .dt .t-title { font-weight: 500; color: var(--ink); letter-spacing: -0.005em; }
+    .dt .t-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .dt .mono { font-family: 'Geist Mono', monospace; font-size: 12px; }
+    .dt .trunc { display: block; max-width: 210px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .tag { display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 8px; border-radius: 9999px; white-space: nowrap;
+      font-size: 11.5px; font-weight: 500; --tone: #64748b;
+      background: color-mix(in srgb, var(--tone) 11%, transparent); color: color-mix(in srgb, var(--tone) 82%, #0b1220); }
+    .tag.ok { --tone: #10b981; } .tag.warn { --tone: #f59e0b; } .tag.bad { --tone: #f43f5e; } .tag.info { --tone: #0ea5e9; } .tag.violet { --tone: #8b5cf6; }
+    .tag .d { width: 6px; height: 6px; border-radius: 9999px; background: var(--tone); }
+
+    .row-act { width: 30px; height: 30px; border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted); font-size: 12px; transition: background .15s, color .15s; }
+    .row-act:hover { background: rgba(var(--accent-rgb), .09); color: var(--accent-ink); }
+    .row-act.danger:hover { background: rgba(244, 63, 94, .09); color: #e11d48; }
+    .link-act { font-size: 12.5px; font-weight: 500; color: var(--accent-ink); padding: 5px 9px; border-radius: 7px; transition: background .15s; white-space: nowrap; }
+    .link-act:hover { background: rgba(var(--accent-rgb), .09); }
+    .file-link { display: inline-flex; align-items: center; gap: 6px; max-width: 190px; padding: 3px 8px; border-radius: 7px; border: 1px solid var(--line); background: var(--surface); font-size: 12px; color: var(--ink-2); transition: border-color .15s, color .15s; }
+    .file-link:hover { border-color: rgba(var(--accent-rgb), .5); color: var(--accent-ink); }
+    .file-link span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-link i { color: var(--accent); font-size: 11px; }
+
+    .empty-state { padding: 60px 16px; text-align: center; }
+    .empty-state .chip-ico { margin: 0 auto 12px; width: 44px; height: 44px; border-radius: 12px; font-size: 16px; }
+    .empty-state .t { font-size: 14px; font-weight: 500; color: var(--ink); }
+    .empty-state .s { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+
+    .bulkbar {
+      position: sticky; bottom: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 16px;
+      background: var(--sb-bg); color: #e2e8f0; font-size: 13px; border-top: 1px solid var(--sb-line);
+    }
+    .bulkbar b { color: #fff; font-weight: 600; }
+    .bulkbar .btn-ghost { background: transparent; color: #e2e8f0; border-color: #2a3350; box-shadow: none; height: 30px; }
+    .bulkbar .btn-ghost:hover { background: #18203a; color: #fff; }
+
+    /* Slide-over drawer */
+    .drawer-wrap { position: fixed; inset: 0; z-index: 60; display: flex; justify-content: flex-end; background: rgba(11, 18, 32, .4); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+    .drawer-wrap.hidden { display: none; }
+    .drawer { position: relative; width: min(600px, 100%); height: 100%; display: flex; flex-direction: column; background: var(--surface); box-shadow: -40px 0 90px -30px rgba(11, 18, 32, .45); }
+    .drawer-wrap:not(.hidden) .drawer { animation: drawer-in .32s cubic-bezier(.2, .8, .2, 1); }
+    @keyframes drawer-in { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+    .drawer::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 3px; background: var(--grad); }
+    .drawer-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 22px 26px 18px; border-bottom: 1px solid var(--line); }
+    .drawer-title { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; color: var(--ink); }
+    .drawer-sub { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+    .drawer-body { flex: 1; overflow-y: auto; padding: 6px 26px 22px; }
+    .drawer-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 26px; border-top: 1px solid var(--line); background: #fafbfd; }
+    .drawer :is(input:not([type=checkbox]):not([type=radio]):not([type=file]), select, textarea) {
+      width: 100%; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); border-radius: 9px;
+      font-size: 13.5px; transition: border-color .15s, box-shadow .15s;
+    }
+    .drawer :is(input:not([type=checkbox]):not([type=radio]):not([type=file]), select) { height: 38px; padding: 0 12px; }
+    .drawer textarea { padding: 10px 12px; min-height: 84px; resize: vertical; }
+    .drawer :is(input, select, textarea):hover { border-color: rgba(var(--accent-rgb), .45); }
+    .drawer :is(input, select, textarea):focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(var(--accent-rgb), .12); }
+    .fstep { display: grid; grid-template-columns: 26px 1fr; gap: 14px; padding: 16px 0; border-bottom: 1px dashed var(--line); }
+    .fstep:last-child { border-bottom: 0; }
+    .fstep .n { width: 26px; height: 26px; border-radius: 9999px; display: grid; place-items: center; margin-top: 1px;
+      font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--muted); background: var(--subtle); border: 1px solid var(--line); transition: all .2s; }
+    .fstep:focus-within .n, .fstep.done .n { background: var(--grad); color: #fff; border-color: transparent; box-shadow: var(--shadow-accent); }
+    .fstep .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .flabel { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12.5px; font-weight: 500; color: var(--ink-2); margin-bottom: 7px; }
+    .flabel .opt { font-weight: 400; color: var(--faint); font-size: 11.5px; }
+    .fhint { font-size: 11.5px; color: var(--muted); margin-top: 6px; }
+    .ferr { display: none; margin: 14px 0 0; padding: 10px 12px; border-radius: 10px; font-size: 12.5px; color: #be123c; background: #fff1f3; border: 1px solid #fecdd6; }
+    .ferr.show { display: block; }
+
+    .chipset { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip-toggle { height: 30px; padding: 0 12px; border-radius: 9999px; border: 1px solid var(--line-strong); background: var(--surface);
+      display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-2); transition: all .15s; }
+    .chip-toggle i { font-size: 11px; color: var(--faint); }
+    .chip-toggle:hover { border-color: rgba(var(--accent-rgb), .5); }
+    .chip-toggle.on { border-color: var(--accent); background: rgba(var(--accent-rgb), .08); color: var(--accent-ink); font-weight: 500; }
+    .chip-toggle.on i { color: var(--accent); }
+
+    .dropzone { display: flex; align-items: center; gap: 14px; padding: 16px; border: 1.5px dashed var(--line-strong); border-radius: 12px; cursor: pointer; background: #fcfcfe; transition: border-color .15s, background .15s; }
+    .dropzone:hover, .dropzone.drag { border-color: var(--accent); background: rgba(var(--accent-rgb), .04); }
+    .dropzone .chip-ico { width: 40px; height: 40px; border-radius: 11px; }
+    .dropzone .dz-t { font-size: 13px; font-weight: 500; color: var(--ink); }
+    .dropzone .dz-s { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .file-pill { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 11px; background: var(--subtle); }
+    .file-pill .fp-name { font-size: 13px; font-weight: 500; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-pill .fp-meta { font-size: 11.5px; color: var(--muted); }
+    .qprev { margin-top: 10px; border: 1px solid var(--line); border-radius: 11px; max-height: 240px; overflow-y: auto; }
+    .qprev .q { padding: 10px 12px; border-bottom: 1px solid var(--line-soft); font-size: 12.5px; color: var(--ink-2); }
+    .qprev .q:last-child { border-bottom: 0; }
+    .qprev .q b { font-family: 'Geist Mono', monospace; font-weight: 500; color: var(--faint); margin-right: 6px; }
+    .qprev .q .ans { color: #047857; font-size: 11.5px; margin-top: 3px; }
+
+    .kv { display: grid; grid-template-columns: 110px 1fr; gap: 6px 12px; font-size: 13px; }
+    .kv dt { color: var(--muted); } .kv dd { color: var(--ink); }
+
     @media print {
       #app-sidebar, .app-header, .report-toolbar .no-print, .crumbs, #toast-container, .aurora, #cursor-ring, #cursor-dot { display: none !important; }
       main { padding: 0 !important; overflow: visible !important; }
@@ -1006,58 +1142,126 @@
       </div>
 
       <!-- ======================================================== -->
-      <!-- VIEW 5: ASSIGNMENTS & SUBMISSIONS                         -->
+      <!-- VIEW 5: ASSIGNMENT MODULE (list + submitted)              -->
       <!-- ======================================================== -->
-      <div id="tab-content-assignments" class="tab-pane hidden space-y-6">
-        <div class="bg-white rounded-xl shadow-card border border-slate-200/80 p-6">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
-            <div>
-              <h3 class="text-base font-bold text-slate-900 flex items-center">
-                <i class="fa-solid fa-file-pen mr-2 text-blue-600"></i>
-                Assignments &amp; Student Reply Submissions
-              </h3>
-              <p class="text-xs text-slate-500 mt-1">
-                Create assignments and inspect submitted student text and attached files.
-              </p>
-            </div>
-            <button onclick="openAddAssignmentModal()" class="px-3.5 py-2 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-xs flex items-center">
-              <i class="fa-solid fa-plus mr-1.5"></i> Create New Assignment
-            </button>
+      <div id="tab-content-assignments" class="tab-pane hidden space-y-5" style="--hue:#3b82f6">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow accent">Academic · Assignment module</div>
+            <h1 class="page-title mt-2">Assignments</h1>
+            <p class="page-sub">Publish assignments to the Kaushalya app and mark what trainees send back.</p>
           </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="seg" role="tablist">
+              <button id="asg-seg-list" class="on" onclick="setAsgView('list')"><i class="fa-regular fa-file-lines"></i> Assignments <span class="cnt" id="asg-count-list">0</span></button>
+              <button id="asg-seg-submitted" onclick="setAsgView('submitted')"><i class="fa-solid fa-inbox"></i> Submitted <span class="cnt" id="asg-count-submitted">0</span></button>
+            </div>
+            <button class="btn btn-primary" onclick="openAssignmentDrawer()"><i class="fa-solid fa-plus"></i> New assignment</button>
+          </div>
+        </div>
 
-          <div id="assignments-list" class="mt-4 space-y-4"></div>
+        <div class="mini-stats">
+          <div class="mstat" style="--tone:#3b82f6"><div class="l"><i class="fa-regular fa-file-lines"></i> Published</div><div class="v" id="asg-stat-published">0</div></div>
+          <div class="mstat" style="--tone:#8b5cf6"><div class="l"><i class="fa-solid fa-inbox"></i> Submissions</div><div class="v" id="asg-stat-subs">0</div></div>
+          <div class="mstat" style="--tone:#f59e0b"><div class="l"><i class="fa-regular fa-hourglass-half"></i> Awaiting marks</div><div class="v" id="asg-stat-pending">0</div></div>
+          <div class="mstat" style="--tone:#10b981"><div class="l"><i class="fa-solid fa-check"></i> Marked</div><div class="v" id="asg-stat-graded">0</div></div>
+        </div>
+
+        <!-- Assignments list (provided by admin) -->
+        <div id="asg-pane-list" class="panel overflow-hidden">
+          <div class="toolbar">
+            <div class="tb-search"><i class="fa-solid fa-magnifying-glass"></i><input id="asg-search" type="search" placeholder="Search assignments…" oninput="renderAssignments()"></div>
+            <select id="asg-filter-course" onchange="renderAssignments()"><option value="">All courses</option></select>
+            <span class="ml-auto report-meta" id="asg-list-meta"></span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="dt">
+              <thead><tr>
+                <th>Assignment</th><th>Scheme · Sector · Course</th><th>Zone · Industry</th><th class="num">Marks</th><th>Accepts</th><th>Deadline</th><th>Submitted</th><th class="text-right">Actions</th>
+              </tr></thead>
+              <tbody id="asg-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Submitted tab: trainee list, filters, bulk download, marks -->
+        <div id="asg-pane-submitted" class="panel overflow-hidden hidden">
+          <div class="toolbar">
+            <span class="tb-label">Filter</span>
+            <select id="sub-f-scheme" onchange="loadSubmissions()"><option value="">All schemes</option></select>
+            <select id="sub-f-sector" onchange="loadSubmissions()"><option value="">All sectors</option></select>
+            <select id="sub-f-course" onchange="loadSubmissions()"><option value="">All courses</option></select>
+            <select id="sub-f-assignment" onchange="loadSubmissions()"><option value="">All assignments</option></select>
+            <select id="sub-f-status" onchange="loadSubmissions()">
+              <option value="">Any status</option><option value="Pending">Awaiting marks</option><option value="Graded">Marked</option><option value="Needs Revision">Needs revision</option>
+            </select>
+            <div class="tb-search"><i class="fa-solid fa-magnifying-glass"></i><input id="sub-f-search" type="search" placeholder="Trainee or YSF code…" oninput="debouncedLoadSubmissions()"></div>
+            <div class="ml-auto flex items-center gap-2">
+              <button class="btn btn-ghost" onclick="downloadSubmissions()" title="Download every file in the filtered list as a .zip, with an Excel index"><i class="fa-solid fa-file-zipper"></i> Download <span class="font-mono text-[11px] opacity-70" id="sub-dl-count">0</span></button>
+              <button class="btn btn-primary" onclick="openMarksModal()"><i class="fa-solid fa-marker"></i> <span id="sub-bulk-label">Give marks to all</span></button>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="dt">
+              <thead><tr>
+                <th class="!pr-0 w-8"><input type="checkbox" id="sub-check-all" onchange="toggleAllSubs(this.checked)" title="Select all"></th>
+                <th>Trainee</th><th>Scheme · Course</th><th>Assignment</th><th>Submitted</th><th>Files</th><th class="num">Marks</th><th>Status</th>
+              </tr></thead>
+              <tbody id="sub-table-body"></tbody>
+            </table>
+          </div>
+          <div id="sub-bulkbar" class="bulkbar hidden">
+            <span><b id="sub-sel-count">0</b> selected</span>
+            <button class="btn btn-ghost" onclick="openMarksModal()"><i class="fa-solid fa-marker"></i> Give marks to selected</button>
+            <button class="btn btn-ghost ml-auto" onclick="toggleAllSubs(false)">Clear selection</button>
+          </div>
         </div>
       </div>
 
       <!-- ======================================================== -->
-      <!-- VIEW 6: TESTS & ASSESSMENTS                               -->
+      <!-- VIEW 6: TEST MODULE                                       -->
       <!-- ======================================================== -->
-      <div id="tab-content-tests" class="tab-pane hidden space-y-6">
-        <!-- Sub-navigation tabs: Active Tests vs Question Bank -->
-        <div class="flex items-center justify-between bg-white rounded-xl shadow-card border border-slate-200/80 p-2.5">
-          <div class="flex items-center space-x-2">
-            <button onclick="switchTestSubtab('tests')" id="subtab-btn-tests" class="px-4 py-2 rounded-lg text-xs font-bold bg-emerald-600 text-white shadow-xs transition flex items-center">
-              <i class="fa-solid fa-clipboard-check mr-2"></i> Active MCQ Tests (<span id="subtab-badge-tests">0</span>)
-            </button>
-            <button onclick="switchTestSubtab('qbank')" id="subtab-btn-qbank" class="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition flex items-center">
-              <i class="fa-solid fa-database mr-2 text-indigo-500"></i> Question Bank Repository (<span id="subtab-badge-qbank">0</span>)
-            </button>
+      <div id="tab-content-tests" class="tab-pane hidden space-y-5" style="--hue:#10b981">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow accent">Academic · Test module</div>
+            <h1 class="page-title mt-2">Tests &amp; assessments</h1>
+            <p class="page-sub">Every uploaded test is listed below. Saved tests appear in the trainee's Test Module straight away.</p>
           </div>
-          <div class="flex items-center space-x-2">
-            <button onclick="openAddTestModal()" class="px-3.5 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition shadow-xs flex items-center">
-              <i class="fa-solid fa-plus mr-1.5"></i> Create New MCQ Test
-            </button>
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="seg" role="tablist">
+              <button id="subtab-btn-tests" class="on" onclick="switchTestSubtab('tests')"><i class="fa-regular fa-square-check"></i> Tests <span class="cnt" id="subtab-badge-tests">0</span></button>
+              <button id="subtab-btn-qbank" onclick="switchTestSubtab('qbank')"><i class="fa-solid fa-database"></i> Question bank <span class="cnt" id="subtab-badge-qbank">0</span></button>
+            </div>
+            <button class="btn btn-primary" onclick="openTestDrawer()"><i class="fa-solid fa-plus"></i> New test</button>
           </div>
         </div>
 
-        <!-- Sub-Pane 1: Active Tests & Assessments -->
-        <div id="test-subpane-tests" class="space-y-4">
-          <div class="bg-white rounded-xl shadow-card border border-slate-200/80 p-6">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-200">
-              <h4 class="text-sm font-bold text-slate-900">Configured MCQ Tests &amp; Mobile Submissions</h4>
-              <span class="text-xs text-slate-500 font-mono">Live Sync Active</span>
+        <div id="test-subpane-tests" class="space-y-5">
+          <div class="mini-stats">
+            <div class="mstat" style="--tone:#10b981"><div class="l"><i class="fa-regular fa-square-check"></i> Tests published</div><div class="v" id="test-stat-count">0</div></div>
+            <div class="mstat" style="--tone:#6366f1"><div class="l"><i class="fa-solid fa-list-ol"></i> Questions</div><div class="v" id="test-stat-questions">0</div></div>
+            <div class="mstat" style="--tone:#0ea5e9"><div class="l"><i class="fa-solid fa-user-check"></i> Attempts</div><div class="v" id="test-stat-attempts">0</div></div>
+            <div class="mstat" style="--tone:#f59e0b"><div class="l"><i class="fa-solid fa-trophy"></i> Pass rate</div><div class="v" id="test-stat-pass">—</div></div>
+          </div>
+
+          <div class="panel overflow-hidden">
+            <div class="toolbar">
+              <span class="tb-label">Filter · optional</span>
+              <select id="test-f-scheme" onchange="renderTests()"><option value="">All schemes</option></select>
+              <select id="test-f-sector" onchange="renderTests()"><option value="">All sectors</option></select>
+              <select id="test-f-course" onchange="renderTests()"><option value="">All courses</option></select>
+              <button id="test-f-clear" class="link-act hidden" onclick="clearTestFilters()"><i class="fa-solid fa-xmark mr-1"></i>Clear</button>
+              <span class="ml-auto report-meta" id="test-list-meta"></span>
             </div>
-            <div id="tests-list" class="mt-4 space-y-4"></div>
+            <div class="overflow-x-auto">
+              <table class="dt">
+                <thead><tr>
+                  <th>Test name</th><th>Scheme · Sector</th><th>Course</th><th class="num">Questions</th><th class="num">Marks</th><th class="num">Passing</th><th class="num">Duration</th><th>Attempts</th><th class="text-center !px-2">Edit</th><th class="text-center !px-2">Delete</th>
+                </tr></thead>
+                <tbody id="tests-table-body"></tbody>
+              </table>
+            </div>
           </div>
         </div>
 
@@ -1602,245 +1806,96 @@
     </div>
   </div>
 
-  <!-- Modal 4: Create Assignment -->
-  <div id="modal-assignment" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto border border-slate-200">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-        <h3 class="font-bold text-slate-900 text-sm flex items-center">
-          <i class="fa-solid fa-file-circle-plus mr-2 text-blue-600"></i> Create New Assignment
-        </h3>
-        <button onclick="closeModal('modal-assignment')" class="text-slate-400 hover:text-slate-600">
-          <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
+  <!-- Drawer: New / edit assignment (fields follow the Assignment Module flow) -->
+  <div id="drawer-assignment" class="drawer-wrap hidden" onclick="if (event.target === this) closeDrawer('drawer-assignment')">
+    <form class="drawer" onsubmit="submitAssignmentForm(event)" novalidate>
+      <div class="drawer-head">
+        <div>
+          <div class="eyebrow accent" id="asg-drawer-eyebrow">New assignment</div>
+          <div class="drawer-title mt-1" id="asg-drawer-title">Create an assignment</div>
+          <div class="drawer-sub">Saved assignments are published to the Kaushalya app for the selected course.</div>
+        </div>
+        <button type="button" class="icon-btn" onclick="closeDrawer('drawer-assignment')" title="Close (Esc)"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <form onsubmit="handleCreateAssignment(event)" class="space-y-3 text-xs">
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">Assignment Full Name *</label>
-          <input type="text" id="asg-name" required placeholder="e.g. Battery Management & EV Powertrain Audit" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Short Title (Badge)</label>
-            <input type="text" id="asg-short" value="EV Module" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
+      <div class="drawer-body">
+        <input type="hidden" id="asg-f-id">
+        <div class="fstep"><span class="n">1</span><div><label class="flabel" for="asg-f-scheme">Scheme <span class="opt">optional</span></label><select id="asg-f-scheme" onchange="refreshCourseOptions('asg')"></select></div></div>
+        <div class="fstep"><span class="n">2</span><div><label class="flabel" for="asg-f-sector">Sector <span class="opt">optional</span></label><select id="asg-f-sector" onchange="refreshCourseOptions('asg')"></select></div></div>
+        <div class="fstep"><span class="n">3</span><div><label class="flabel" for="asg-f-course">Course name</label><select id="asg-f-course" required></select><div class="fhint">Only trainees enrolled in this course will see the assignment.</div></div></div>
+        <div class="fstep"><span class="n">4</span><div><label class="flabel" for="asg-f-name">Assignment name</label><input id="asg-f-name" type="text" required maxlength="140" placeholder="e.g. Brake system inspection report"></div></div>
+        <div class="fstep"><span class="n">5</span><div><label class="flabel" for="asg-f-zone">Zone <span class="opt">optional</span></label><select id="asg-f-zone"></select></div></div>
+        <div class="fstep"><span class="n">6</span><div><label class="flabel" for="asg-f-industry">Industry name <span class="opt">optional</span></label><select id="asg-f-industry"></select></div></div>
+        <div class="fstep"><span class="n">7</span><div><label class="flabel" for="asg-f-marks">Marks</label><input id="asg-f-marks" type="number" min="1" step="0.5" required placeholder="e.g. 25"></div></div>
+        <div class="fstep"><span class="n">8</span><div>
+          <label class="flabel">Upload / choose file type</label>
+          <input type="file" id="asg-f-file" class="hidden" onchange="pickAssignmentBrief(this.files[0])">
+          <div id="asg-f-dropzone" class="dropzone" onclick="document.getElementById('asg-f-file').click()">
+            <span class="chip-ico" style="--hue:#3b82f6"><i class="fa-solid fa-cloud-arrow-up"></i></span>
+            <div><div class="dz-t">Attach the assignment brief <span class="opt font-normal text-[11.5px] text-slate-400">optional</span></div><div class="dz-s">PDF, image or document — trainees can open it in the app</div></div>
           </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Submission Date</label>
-            <input type="text" id="asg-subdate" value="Mar 30" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
-          </div>
+          <div id="asg-f-filepill" class="hidden"></div>
+          <div class="flabel mt-4 !mb-2">Trainees may answer with</div>
+          <div class="chipset" id="asg-f-types"></div>
+        </div></div>
+        <div class="fstep"><span class="n">9</span><div>
+          <label class="flabel" for="asg-f-deadline">Deadline</label><input id="asg-f-deadline" type="date">
+          <label class="flabel mt-4" for="asg-f-details">Instructions for trainees <span class="opt">optional</span></label>
+          <textarea id="asg-f-details" rows="3" placeholder="What should the answer file contain?"></textarea>
+        </div></div>
+        <div id="asg-f-error" class="ferr"></div>
+      </div>
+      <div class="drawer-foot">
+        <span class="text-[12px] text-slate-500"><i class="fa-solid fa-mobile-screen mr-1.5"></i>Publishes to the trainee app</span>
+        <div class="flex gap-2">
+          <button type="button" class="btn btn-ghost" onclick="closeDrawer('drawer-assignment')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="asg-f-submit"><i class="fa-solid fa-check"></i> Save</button>
         </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Marks</label>
-            <input type="number" id="asg-marks" value="20" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Assigned Teacher</label>
-            <input type="text" id="asg-teacher" value="Admin1 Admin1" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
-          </div>
-        </div>
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">Assignment Details &amp; Instructions *</label>
-          <textarea id="asg-details" required rows="3" placeholder="Explain the assignment requirements and expected trainee replies..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
-        </div>
-        <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
-          <button type="button" onclick="closeModal('modal-assignment')" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 font-semibold">Cancel</button>
-          <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-xs">Publish Assignment</button>
-        </div>
-      </form>
-    </div>
+      </div>
+    </form>
   </div>
 
-  <!-- Modal 5: Create MCQ Test (With Question Bank Randomizer & Picker) -->
-  <div id="modal-test" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full p-6 max-h-[92vh] overflow-y-auto border border-slate-200">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+  <!-- Drawer: New / edit test (fields follow the Test Module flow) -->
+  <div id="drawer-test" class="drawer-wrap hidden" onclick="if (event.target === this) closeDrawer('drawer-test')">
+    <form class="drawer" onsubmit="submitTestForm(event)" novalidate>
+      <div class="drawer-head">
         <div>
-          <h3 class="font-bold text-slate-900 text-sm flex items-center">
-            <i class="fa-solid fa-clipboard-question mr-2 text-emerald-600"></i> Smart MCQ Test &amp; Assessment Builder
-          </h3>
-          <p class="text-[11px] text-slate-500 mt-0.5">Populate test questions via Question Bank Randomizer, Manual Bank Picker, or Custom Entry</p>
+          <div class="eyebrow accent" id="test-drawer-eyebrow">New test</div>
+          <div class="drawer-title mt-1" id="test-drawer-title">Create a test</div>
+          <div class="drawer-sub">Questions come from the Excel file. The saved test is added to the list and published to the app.</div>
         </div>
-        <button onclick="closeModal('modal-test')" class="text-slate-400 hover:text-slate-600">
-          <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
+        <button type="button" class="icon-btn" onclick="closeDrawer('drawer-test')" title="Close (Esc)"><i class="fa-solid fa-xmark"></i></button>
       </div>
-
-      <form onsubmit="handleCreateTest(event)" class="space-y-4 text-xs">
-        <!-- Basic Test Details -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Test Name *</label>
-            <input type="text" id="test-name" required placeholder="e.g. Automotive Safety &amp; Electrical Inspection" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+      <div class="drawer-body">
+        <input type="hidden" id="test-f-id">
+        <div class="fstep"><span class="n">1</span><div><label class="flabel" for="test-f-scheme-in">Scheme <span class="opt">optional</span></label><select id="test-f-scheme-in" onchange="refreshCourseOptions('test')"></select></div></div>
+        <div class="fstep"><span class="n">2</span><div><label class="flabel" for="test-f-sector-in">Sector <span class="opt">optional</span></label><select id="test-f-sector-in" onchange="refreshCourseOptions('test')"></select></div></div>
+        <div class="fstep"><span class="n">3</span><div><label class="flabel" for="test-f-course-in">Course name</label><select id="test-f-course-in" required></select><div class="fhint">The test appears for trainees enrolled in this course.</div></div></div>
+        <div class="fstep"><span class="n">4</span><div><label class="flabel" for="test-f-name">Test name</label><input id="test-f-name" type="text" required maxlength="140" placeholder="e.g. Workshop safety — unit test"></div></div>
+        <div class="fstep"><span class="n">5</span><div class="grid2">
+          <div><label class="flabel" for="test-f-marks">Marks</label><input id="test-f-marks" type="number" min="1" step="0.5" required placeholder="50"></div>
+          <div><label class="flabel" for="test-f-pass">Passing marks</label><input id="test-f-pass" type="number" min="0" step="0.5" required placeholder="25"></div>
+        </div></div>
+        <div class="fstep"><span class="n">6</span><div><label class="flabel" for="test-f-duration">Test duration <span class="opt">minutes</span></label><input id="test-f-duration" type="number" min="1" max="600" required placeholder="30"></div></div>
+        <div class="fstep"><span class="n">7</span><div><label class="flabel" for="test-f-instructions">Instruction</label><textarea id="test-f-instructions" rows="3" placeholder="You can only select one answer per question."></textarea></div></div>
+        <div class="fstep"><span class="n">8</span><div>
+          <label class="flabel">Upload Excel file <a href="/api/admin/tests/template" class="link-act !px-1.5 !py-0.5" download><i class="fa-regular fa-file-excel mr-1"></i>Download template</a></label>
+          <input type="file" id="test-f-file" class="hidden" accept=".xlsx,.xls,.csv" onchange="parseTestExcel(this.files[0])">
+          <div id="test-f-dropzone" class="dropzone" onclick="document.getElementById('test-f-file').click()">
+            <span class="chip-ico" style="--hue:#10b981"><i class="fa-regular fa-file-excel"></i></span>
+            <div><div class="dz-t" id="test-f-dz-title">Choose or drop the question sheet</div><div class="dz-s">.xlsx / .csv · columns: Question, Option A–D, Correct Option, Marks</div></div>
           </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Target Course / Trade *</label>
-            <select id="test-course" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs bg-white outline-none">
-              <option value="Diploma in Automotive Manufacturing Technology">Diploma in Automotive Manufacturing Technology</option>
-              <option value="Welding Technology &amp; Heavy Fabrication">Welding Technology &amp; Heavy Fabrication</option>
-              <option value="CNC &amp; Mechatronics Operations">CNC &amp; Mechatronics Operations</option>
-            </select>
-          </div>
+          <div id="test-f-parsed" class="hidden"></div>
+        </div></div>
+        <div id="test-f-error" class="ferr"></div>
+      </div>
+      <div class="drawer-foot">
+        <span class="text-[12px] text-slate-500"><i class="fa-solid fa-mobile-screen mr-1.5"></i>Publishes to the trainee app</span>
+        <div class="flex gap-2">
+          <button type="button" class="btn btn-ghost" onclick="closeDrawer('drawer-test')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="test-f-submit"><i class="fa-solid fa-check"></i> Create / Save</button>
         </div>
-
-        <div class="grid grid-cols-3 gap-3">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Duration (Mins)</label>
-            <input type="number" id="test-duration" value="30" min="5" max="180" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs outline-none">
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Total Marks</label>
-            <input type="number" id="test-totalmarks" value="50" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs outline-none bg-slate-50 font-bold text-slate-800">
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Passing Marks</label>
-            <input type="number" id="test-passmarks" value="30" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs outline-none">
-          </div>
-        </div>
-
-        <!-- Optional Blueprint Attachment -->
-        <div class="bg-emerald-50/60 border border-emerald-200/80 rounded-lg p-3">
-          <label class="block font-bold text-emerald-900 mb-1">
-            <i class="fa-solid fa-paperclip mr-1 text-emerald-600"></i> Reference Blueprint / Question Paper (Optional)
-          </label>
-          <input type="file" id="test-file-input" onchange="handleTestFileChange(event)" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" class="text-xs text-slate-600 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer w-full">
-          <p id="test-file-status" class="text-[11px] text-emerald-700 mt-1 italic hidden"></p>
-        </div>
-
-        <!-- Question Ingestion Mode Switcher -->
-        <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-50/70">
-          <div class="flex items-center justify-between pb-2 mb-3 border-b border-slate-200">
-            <span class="font-bold text-slate-800 text-xs flex items-center">
-              <i class="fa-solid fa-layer-group mr-1.5 text-indigo-600"></i> Add Questions to Test:
-            </span>
-            <div class="inline-flex rounded-lg border border-slate-300 p-0.5 bg-white">
-              <button type="button" onclick="setTestBuilderMode('randomize')" id="btn-mode-randomize" class="px-2.5 py-1 text-[11px] font-bold rounded-md bg-indigo-600 text-white transition">
-                🎲 Smart Randomize
-              </button>
-              <button type="button" onclick="setTestBuilderMode('pick')" id="btn-mode-pick" class="px-2.5 py-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900 transition">
-                ☑️ Pick from Bank
-              </button>
-              <button type="button" onclick="setTestBuilderMode('custom')" id="btn-mode-custom" class="px-2.5 py-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900 transition">
-                ➕ Custom Entry
-              </button>
-            </div>
-          </div>
-
-          <!-- MODE 1: SMART RANDOMIZE -->
-          <div id="test-mode-randomize" class="space-y-3">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <div>
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">Module / Topic</label>
-                <select id="rand-module" class="w-full border border-slate-300 rounded-md px-2 py-1.5 bg-white text-xs">
-                  <option value="ALL">All Modules</option>
-                  <option value="Safety">Safety &amp; Compliance</option>
-                  <option value="Electrical">Electrical Fundamentals</option>
-                  <option value="Quality">Quality &amp; Standards</option>
-                  <option value="Welding">Welding Technology</option>
-                  <option value="CNC">CNC Operations</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">Question Count</label>
-                <input type="number" id="rand-count" value="5" min="1" max="25" class="w-full border border-slate-300 rounded-md px-2 py-1.5 bg-white text-xs">
-              </div>
-              <div>
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">Difficulty</label>
-                <select id="rand-difficulty" class="w-full border border-slate-300 rounded-md px-2 py-1.5 bg-white text-xs">
-                  <option value="ALL">Any Difficulty</option>
-                  <option value="Easy">Easy</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Hard">Hard</option>
-                </select>
-              </div>
-            </div>
-            <div class="flex items-center space-x-2 pt-1">
-              <button type="button" onclick="handleGenerateRandomQuestions()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md font-bold text-xs shadow-2xs flex items-center">
-                <i class="fa-solid fa-dice mr-1.5"></i> Pick Questions Randomly
-              </button>
-              <button type="button" onclick="handleGenerateRandomQuestions()" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-md font-semibold text-xs transition flex items-center">
-                <i class="fa-solid fa-arrows-rotate mr-1"></i> Re-roll / Shuffle
-              </button>
-              <span id="rand-feedback" class="text-[11px] text-emerald-700 font-semibold italic"></span>
-            </div>
-          </div>
-
-          <!-- MODE 2: PICK FROM QUESTION BANK -->
-          <div id="test-mode-pick" class="hidden space-y-2.5">
-            <div class="flex items-center justify-between gap-2">
-              <input type="text" id="pick-search" oninput="renderPickableQuestions()" placeholder="Filter question bank items..." class="border border-slate-300 rounded-md px-2.5 py-1 text-xs w-full bg-white">
-              <button type="button" onclick="toggleSelectAllPickable()" class="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-xs font-semibold whitespace-nowrap">
-                Select All
-              </button>
-            </div>
-            <div id="pickable-questions-list" class="max-h-48 overflow-y-auto border border-slate-200 rounded-lg p-2 bg-white space-y-1.5 divide-y divide-slate-100">
-              <!-- Populated by renderPickableQuestions() -->
-            </div>
-            <div class="flex justify-between items-center pt-1">
-              <span id="pick-count-display" class="text-[11px] text-slate-500 font-semibold">0 questions selected</span>
-              <button type="button" onclick="addSelectedBankQuestionsToTest()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md font-bold text-xs shadow-2xs">
-                Add Selected to Test
-              </button>
-            </div>
-          </div>
-
-          <!-- MODE 3: CUSTOM ENTRY -->
-          <div id="test-mode-custom" class="hidden space-y-2.5">
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">Question (in English) *</label>
-              <input type="text" id="cust-q-text" placeholder="e.g. What is the standard tolerance limit for automotive crankshaft grinding?" class="w-full border border-slate-300 rounded-md px-2.5 py-1.5 text-xs outline-none">
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-              <input type="text" id="cust-q-o1" placeholder="Option A" class="border border-slate-300 rounded px-2 py-1 text-xs">
-              <input type="text" id="cust-q-o2" placeholder="Option B" class="border border-slate-300 rounded px-2 py-1 text-xs">
-              <input type="text" id="cust-q-o3" placeholder="Option C" class="border border-slate-300 rounded px-2 py-1 text-xs">
-              <input type="text" id="cust-q-o4" placeholder="Option D" class="border border-slate-300 rounded px-2 py-1 text-xs">
-            </div>
-            <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
-              <div class="flex items-center space-x-2">
-                <label class="font-bold text-slate-600 text-xs">Correct:</label>
-                <select id="cust-q-correct" class="border border-slate-300 rounded px-2 py-1 text-xs bg-white">
-                  <option value="0">Option A</option>
-                  <option value="1">Option B</option>
-                  <option value="2">Option C</option>
-                  <option value="3">Option D</option>
-                </select>
-                <label class="font-bold text-slate-600 text-xs ml-2">Marks:</label>
-                <input type="number" id="cust-q-marks" value="10" min="1" max="50" class="w-16 border border-slate-300 rounded px-2 py-1 text-xs">
-              </div>
-              <div class="flex items-center space-x-2">
-                <label class="flex items-center text-[11px] text-slate-600 cursor-pointer">
-                  <input type="checkbox" id="cust-q-savebank" checked class="mr-1 rounded text-indigo-600">
-                  Save to Question Bank
-                </label>
-                <button type="button" onclick="handleAddCustomQuestionToTest()" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold shadow-2xs">
-                  + Add to Test
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Staged Questions in Current Test -->
-        <div>
-          <div class="flex items-center justify-between mb-2">
-            <h4 class="font-bold text-slate-800 text-xs flex items-center">
-              <i class="fa-solid fa-list-check mr-1.5 text-emerald-600"></i> Questions Staged in This Test (<span id="staged-q-count">0</span>):
-            </h4>
-            <button type="button" onclick="clearStagedQuestions()" class="text-[11px] text-red-600 hover:underline font-semibold">
-              Clear All
-            </button>
-          </div>
-          <div id="staged-questions-container" class="max-h-56 overflow-y-auto space-y-2 border border-slate-200 rounded-xl p-2.5 bg-slate-50/50">
-            <p class="text-slate-400 text-center py-4 text-xs italic">No questions added yet. Use the Smart Randomizer, Question Bank Picker, or Custom Entry above.</p>
-          </div>
-        </div>
-
-        <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
-          <button type="button" onclick="closeModal('modal-test')" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 font-semibold">Cancel</button>
-          <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold shadow-xs">Publish MCQ Test</button>
-        </div>
-      </form>
-    </div>
+      </div>
+    </form>
   </div>
 
   <!-- Modal 6: File Preview / Download Modal -->
@@ -2185,55 +2240,72 @@
     </div>
   </div>
 
-  <!-- Modal: Grade Assignment Submission -->
-  <div id="modal-grade-submission" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 border border-slate-200">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+  <!-- Modal: give marks (one trainee or many) -->
+  <div id="modal-marks" class="fixed inset-0 z-50 flex items-center justify-center hidden p-4" onclick="if (event.target === this) closeModal('modal-marks')">
+    <div class="bg-white max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto"><form onsubmit="saveMarks(event)">
+      <div class="flex items-start justify-between gap-3">
         <div>
-          <h3 class="font-bold text-slate-900 text-sm flex items-center">
-            <i class="fa-solid fa-marker mr-2 text-blue-600"></i> Grade Assignment Submission
-          </h3>
-          <p id="grade-modal-subtitle" class="text-[11px] text-slate-500 mt-0.5">Evaluation &amp; Feedback</p>
+          <div class="eyebrow accent" id="marks-eyebrow">Give marks</div>
+          <h3 class="font-semibold text-slate-900 mt-1" id="marks-title">Mark submission</h3>
         </div>
-        <button onclick="closeModal('modal-grade-submission')" class="text-slate-400 hover:text-slate-600">
-          <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
+        <button type="button" class="icon-btn" onclick="closeModal('modal-marks')"><i class="fa-solid fa-xmark"></i></button>
       </div>
-
-      <form onsubmit="handleSaveSubmissionGrade(event)" class="space-y-3.5 text-xs">
-        <input type="hidden" id="grade-assignment-id">
-        <input type="hidden" id="grade-submission-id">
-
-        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-          <div class="font-bold text-slate-900" id="grade-student-name">Student Name</div>
-          <div class="text-[11px] text-slate-500 mt-0.5" id="grade-asg-title">Assignment Title</div>
-          <div class="mt-2 text-slate-700 italic bg-white p-2 rounded border border-slate-200" id="grade-submission-text">Submission text</div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Marks Awarded *</label>
-            <input type="number" id="grade-marks-input" required min="0" step="0.5" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs outline-none">
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Evaluation Status</label>
-            <select id="grade-status-select" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs bg-white">
-              <option value="Graded">Graded (Approved)</option>
-              <option value="Needs Revision">Needs Revision</option>
-            </select>
-          </div>
-        </div>
-
+      <div id="marks-context" class="mt-4"></div>
+      <div class="grid grid-cols-2 gap-3 mt-4">
         <div>
-          <label class="block font-bold text-slate-700 mb-1">Instructor Remarks / Feedback</label>
-          <textarea id="grade-remarks-input" rows="3" placeholder="Provide constructive remarks for the trainee..." class="w-full border border-slate-300 rounded-lg p-2.5 text-xs outline-none"></textarea>
+          <label class="block text-[12.5px] font-medium text-slate-700 mb-1.5" for="marks-value">Marks awarded</label>
+          <div class="flex items-center gap-2"><input id="marks-value" type="number" min="0" step="0.5" required class="w-full px-3 text-[13.5px]"><span class="text-[12.5px] text-slate-500 whitespace-nowrap" id="marks-max-label"></span></div>
         </div>
+        <div>
+          <label class="block text-[12.5px] font-medium text-slate-700 mb-1.5" for="marks-status">Result</label>
+          <select id="marks-status" class="w-full px-3 text-[13.5px]"><option value="Graded">Marked</option><option value="Needs Revision">Needs revision</option></select>
+        </div>
+      </div>
+      <div id="marks-selfmax-row" class="mt-3 hidden">
+        <label class="block text-[12.5px] font-medium text-slate-700 mb-1.5" for="marks-selfmax">Out of <span class="text-slate-400 font-normal">(own uploads have no preset marks)</span></label>
+        <input id="marks-selfmax" type="number" min="1" step="0.5" value="10" class="w-full px-3 text-[13.5px]">
+      </div>
+      <div class="mt-3">
+        <label class="block text-[12.5px] font-medium text-slate-700 mb-1.5" for="marks-remarks">Remarks <span class="text-slate-400 font-normal">optional — shown to the trainee</span></label>
+        <textarea id="marks-remarks" rows="3" class="w-full p-3 text-[13.5px]" placeholder="Feedback for the trainee"></textarea>
+      </div>
+      <div id="marks-error" class="ferr"></div>
+      <div class="flex justify-end gap-2 mt-5 pt-4 border-t border-slate-100">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-marks')">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="marks-submit"><i class="fa-solid fa-check"></i> Save marks</button>
+      </div>
+    </form></div>
+  </div>
 
-        <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
-          <button type="button" onclick="closeModal('modal-grade-submission')" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 font-semibold">Cancel</button>
-          <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-xs">Save Grade &amp; Sync</button>
+  <!-- Modal: test attempts / results -->
+  <div id="modal-attempts" class="fixed inset-0 z-50 flex items-center justify-center hidden p-4" onclick="if (event.target === this) closeModal('modal-attempts')">
+    <div class="bg-white max-w-2xl w-full p-6 max-h-[88vh] overflow-y-auto">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <div class="eyebrow accent">Results</div>
+          <h3 class="font-semibold text-slate-900 mt-1" id="attempts-title">Attempts</h3>
+          <p class="text-[12.5px] text-slate-500 mt-0.5" id="attempts-sub"></p>
         </div>
-      </form>
+        <button type="button" class="icon-btn" onclick="closeModal('modal-attempts')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="attempts-body" class="mt-4"></div>
+    </div>
+  </div>
+
+  <!-- Modal: confirmation -->
+  <div id="modal-confirm" class="fixed inset-0 z-[70] flex items-center justify-center hidden p-4">
+    <div class="bg-white max-w-sm w-full p-6">
+      <div class="flex items-start gap-3">
+        <span class="chip-ico" id="confirm-ico" style="--hue:#f43f5e"><i class="fa-regular fa-trash-can"></i></span>
+        <div>
+          <h3 class="font-semibold text-slate-900" id="confirm-title">Are you sure?</h3>
+          <p class="text-[13px] text-slate-500 mt-1 leading-relaxed" id="confirm-message"></p>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 mt-6">
+        <button type="button" class="btn btn-ghost" id="confirm-cancel">Cancel</button>
+        <button type="button" class="btn btn-primary keep-style" id="confirm-ok">Delete</button>
+      </div>
     </div>
   </div>
 
@@ -2764,152 +2836,6 @@
                   </div>
                 </div>
               `).join('')}
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    // 7. Render Assignments & Submissions
-    function renderAssignments() {
-      const container = document.getElementById('assignments-list');
-      if (!container || !appData.assignments) return;
-
-      if (appData.assignments.length === 0) {
-        container.innerHTML = '<div class="py-8 text-center text-slate-400 text-xs">No assignments published. Click "+ Create New Assignment" to publish.</div>';
-        return;
-      }
-
-      container.innerHTML = appData.assignments.map(a => {
-        return `
-          <div class="border border-slate-200/90 rounded-xl p-5 bg-white shadow-card">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <span class="text-[11px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded">No. ${a.no} &bull; ${a.shortTitle}</span>
-                <h4 class="text-sm font-bold text-slate-900 mt-1">${a.name}</h4>
-                <p class="text-[11px] text-slate-500 mt-0.5">${a.course} &bull; ${a.subject} &bull; Total Marks: <b>${a.marks}</b> &bull; Due: <b>${a.submissionDate}</b> &bull; Teacher: ${a.teacher}</p>
-              </div>
-              <div class="flex items-center space-x-2">
-                <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full ${a.status === 'Completed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
-                  ${a.status}
-                </span>
-                <button onclick="deleteAssignment('${a.id}')" class="text-red-500 hover:text-red-700 p-1.5 rounded hover:bg-red-50" title="Delete Assignment">
-                  <i class="fa-solid fa-trash-can text-xs"></i>
-                </button>
-              </div>
-            </div>
-            <p class="text-xs text-slate-600 mt-2 bg-slate-50 p-2.5 rounded-lg border border-slate-200/60">${a.details}</p>
-            
-            <!-- Student Submissions with File Viewer & Grading -->
-            <div class="mt-4 pt-3 border-t border-slate-100">
-              <h5 class="text-xs font-bold text-slate-800 mb-2 flex items-center justify-between">
-                <span class="flex items-center">
-                  <i class="fa-solid fa-inbox mr-1.5 text-blue-600"></i> Student Submissions (${(a.submissions || []).length})
-                </span>
-                <span class="text-[11px] text-slate-400 font-mono">Bi-Directional Evaluation Active</span>
-              </h5>
-              ${(a.submissions || []).length === 0 ? '<p class="text-[11px] text-slate-400 italic">No student submissions recorded yet.</p>' : ''}
-              ${(a.submissions || []).map(sub => {
-                const isGraded = sub.gradeStatus === 'Graded';
-                return `
-                  <div class="text-xs bg-slate-50/80 border border-slate-200 p-3.5 rounded-xl mt-2">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div class="font-semibold text-slate-900 flex items-center">
-                        <span class="text-sky-950 font-bold mr-2"><i class="fa-solid fa-user-check mr-1 text-emerald-600"></i> ${sub.traineeName}</span>
-                        <span class="text-slate-400 font-normal font-mono text-[10px]">${sub.submittedAt}</span>
-                      </div>
-                      <div class="flex items-center space-x-2">
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isGraded ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-amber-100 text-amber-800 border border-amber-200'}">
-                          ${isGraded ? `Graded: ${sub.gradedMarks || 0} / ${a.marks}` : 'Pending Evaluation'}
-                        </span>
-                        <button onclick="openGradeModal('${a.id}', '${sub.id || sub.traineeId}')" class="px-2.5 py-1 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-2xs flex items-center">
-                          <i class="fa-solid fa-marker mr-1 text-xs"></i> Grade &amp; Review
-                        </button>
-                      </div>
-                    </div>
-                    <p class="text-slate-700 mt-2 italic bg-white p-2.5 rounded-lg border border-slate-200">"${sub.text}"</p>
-                    
-                    ${sub.remarks ? `
-                      <div class="mt-2 bg-emerald-50/80 border border-emerald-200 p-2 rounded-lg text-emerald-900 text-[11px]">
-                        <span class="font-bold"><i class="fa-solid fa-comment-dots mr-1 text-emerald-700"></i> Instructor Remarks:</span> "${sub.remarks}"
-                        <span class="text-slate-400 ml-2 font-mono">(${sub.gradedAt || 'Recently graded'})</span>
-                      </div>
-                    ` : ''}
-
-                    <!-- Submitted Files View -->
-                    <div class="mt-2.5">
-                      <p class="text-[11px] font-bold text-slate-600 mb-1">Attached Files (${(sub.attachments || []).length}):</p>
-                      <div class="flex flex-wrap gap-2">
-                        ${(sub.attachments || []).map(att => `
-                          <div class="inline-flex items-center bg-white px-2.5 py-1 rounded-md border border-slate-300 text-slate-700 shadow-2xs">
-                            <i class="fa-solid fa-paperclip mr-1.5 text-blue-600"></i>
-                            <span class="font-medium mr-2">${att.name || att}</span>
-                            <span class="text-[10px] text-slate-400 mr-2">${att.size || ''}</span>
-                            <button onclick="previewStudentFile('${att.name || 'document'}', '${att.url || ''}')" class="text-xs text-blue-600 hover:text-blue-800 font-bold hover:underline">
-                              <i class="fa-solid fa-eye mr-0.5"></i> Inspect
-                            </button>
-                          </div>
-                        `).join('')}
-                      </div>
-                    </div>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    // 8. Render Tests & Assessments
-    function renderTests() {
-      const container = document.getElementById('tests-list');
-      if (!container || !appData.tests) return;
-
-      if (appData.tests.length === 0) {
-        container.innerHTML = '<div class="py-8 text-center text-slate-400 text-xs">No tests configured. Click "+ Create New MCQ Test" to add.</div>';
-        return;
-      }
-
-      container.innerHTML = appData.tests.map(t => {
-        return `
-          <div class="border border-slate-200/90 rounded-xl p-5 bg-white shadow-card">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <span class="text-[11px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">Test #${t.number} &bull; ${t.testFor}</span>
-                <h4 class="text-sm font-bold text-slate-900 mt-1">${t.name}</h4>
-                <p class="text-[11px] text-slate-500 mt-0.5">${t.course} &bull; Duration: <b>${t.duration} mins</b> &bull; Total: <b>${t.totalMarks}</b> (Passing: <b>${t.passingMarks}</b>)</p>
-              </div>
-              <div class="text-right flex items-center space-x-2">
-                <div>
-                  <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full ${t.status === 'Solved' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}">
-                    ${t.status}
-                  </span>
-                  ${t.score !== null ? `<div class="text-xs font-bold text-emerald-600 mt-0.5">Score: ${t.score}/${t.maxScore}</div>` : ''}
-                </div>
-                <button onclick="resetTestStatus('${t.id}')" class="text-amber-600 hover:text-amber-800 px-2 py-1 text-xs font-semibold rounded bg-amber-50 border border-amber-200 transition" title="Reset Solved Status">
-                  <i class="fa-solid fa-rotate-left mr-1"></i> Reset
-                </button>
-                <button onclick="deleteTest('${t.id}')" class="text-red-500 hover:text-red-700 p-1.5 rounded hover:bg-red-50 transition" title="Delete Test">
-                  <i class="fa-solid fa-trash-can text-xs"></i>
-                </button>
-              </div>
-            </div>
-            ${t.attachment ? `
-              <div class="mt-2.5 flex items-center bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 text-xs text-emerald-900">
-                <i class="fa-solid fa-paperclip mr-2 text-emerald-600"></i>
-                <span class="font-semibold mr-2">${t.attachment.name}</span>
-                <span class="text-slate-400 mr-3 text-[11px]">${t.attachment.size || ''}</span>
-                <button onclick="previewStudentFile('${t.attachment.name}', '${t.attachment.url}')" class="text-emerald-700 hover:text-emerald-900 font-bold underline">
-                  <i class="fa-solid fa-eye mr-0.5"></i> Inspect Reference File
-                </button>
-              </div>
-            ` : ''}
-            <div class="mt-3 bg-slate-50 p-2.5 rounded-lg border border-slate-200/60 text-xs text-slate-600">
-              <span class="font-bold text-slate-800">MCQ Bank (${(t.questions || []).length} questions):</span>
-              <ul class="list-disc pl-5 mt-1 space-y-1 text-[11px]">
-                ${(t.questions || []).map(q => `<li>${q.question} <span class="text-emerald-600 font-bold">(Ans: ${q.options[q.correctIndex]})</span></li>`).join('')}
-              </ul>
             </div>
           </div>
         `;
@@ -3785,8 +3711,8 @@
     function openPublishNoticeModal() { document.getElementById('modal-notice').classList.remove('hidden'); }
     function openAddEventModal() { document.getElementById('modal-event').classList.remove('hidden'); }
     function openAddResourceModal() { document.getElementById('modal-resource').classList.remove('hidden'); }
-    function openAddAssignmentModal() { document.getElementById('modal-assignment').classList.remove('hidden'); }
-    function openAddTestModal() { document.getElementById('modal-test').classList.remove('hidden'); }
+    function openAddAssignmentModal() { switchTab('assignments'); openAssignmentDrawer(); }
+    function openAddTestModal() { switchTab('tests'); openTestDrawer(); }
     function openAddTraineeModal() { document.getElementById('modal-add-trainee').classList.remove('hidden'); }
     function openBulkUploadModal() { document.getElementById('modal-bulk-upload').classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
@@ -3861,7 +3787,6 @@
 
     // Real File Attachment for Resources & Tests
     let selectedResourceFile = null;
-    let selectedTestFile = null;
 
     function handleResourceFileChange(e) {
       if (e.target.files && e.target.files.length > 0) {
@@ -3879,17 +3804,6 @@
           if (['mp4', 'mov', 'webm', 'mkv', 'avi'].includes(ext)) typeSelect.value = 'VIDEO';
           else if (['ppt', 'pptx'].includes(ext)) typeSelect.value = 'PPT';
           else typeSelect.value = 'PDF';
-        }
-      }
-    }
-
-    function handleTestFileChange(e) {
-      if (e.target.files && e.target.files.length > 0) {
-        selectedTestFile = e.target.files[0];
-        const statusEl = document.getElementById('test-file-status');
-        if (statusEl) {
-          statusEl.classList.remove('hidden');
-          statusEl.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Reference File Attached: <b>${selectedTestFile.name}</b> (${(selectedTestFile.size / 1024).toFixed(1)} KB)`;
         }
       }
     }
@@ -3940,58 +3854,6 @@
       await fetch(`/api/admin/resources/topic/${id}`, { method: 'DELETE' });
       showToast("Resource removed", "info");
       await loadData();
-    }
-
-    async function handleCreateAssignment(e) {
-      e.preventDefault();
-      const name = document.getElementById('asg-name').value;
-      const shortTitle = document.getElementById('asg-short').value;
-      const submissionDate = document.getElementById('asg-subdate').value;
-      const marks = document.getElementById('asg-marks').value;
-      const teacher = document.getElementById('asg-teacher').value;
-      const details = document.getElementById('asg-details').value;
-
-      await fetch('/api/admin/assignments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, shortTitle, submissionDate, marks, teacher, details })
-      });
-      closeModal('modal-assignment');
-      e.target.reset();
-      showToast("Assignment published to course trainees!", "success");
-      await loadData();
-    }
-
-    async function deleteAssignment(id) {
-      if (!confirm("Delete this assignment?")) return;
-      await fetch(`/api/admin/assignments/${id}`, { method: 'DELETE' });
-      showToast("Assignment deleted", "info");
-      await loadData();
-    }
-
-    // ========================================================
-    // TESTS & QUESTION BANK SUBTAB SWITCHING
-    // ========================================================
-    let currentTestSubtab = 'tests';
-    function switchTestSubtab(subtab) {
-      currentTestSubtab = subtab;
-      const btnTests = document.getElementById('subtab-btn-tests');
-      const btnQB = document.getElementById('subtab-btn-qbank');
-      const paneTests = document.getElementById('test-subpane-tests');
-      const paneQB = document.getElementById('test-subpane-qbank');
-
-      if (subtab === 'tests') {
-        if (btnTests) btnTests.className = 'px-4 py-2 rounded-lg text-xs font-bold bg-emerald-600 text-white shadow-xs transition flex items-center';
-        if (btnQB) btnQB.className = 'px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition flex items-center';
-        if (paneTests) paneTests.classList.remove('hidden');
-        if (paneQB) paneQB.classList.add('hidden');
-      } else {
-        if (btnQB) btnQB.className = 'px-4 py-2 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-xs transition flex items-center';
-        if (btnTests) btnTests.className = 'px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition flex items-center';
-        if (paneQB) paneQB.classList.remove('hidden');
-        if (paneTests) paneTests.classList.add('hidden');
-        renderQuestionBank();
-      }
     }
 
     // ========================================================
@@ -4210,299 +4072,6 @@
       } catch (err) {
         showToast("Error deleting question", "error");
       }
-    }
-
-    // ========================================================
-    // UPGRADED SMART MCQ TEST BUILDER
-    // ========================================================
-    let testBuilderMode = 'randomize';
-    let stagedTestQuestions = [];
-
-    function setTestBuilderMode(mode) {
-      testBuilderMode = mode;
-      const modes = ['randomize', 'pick', 'custom'];
-      modes.forEach(m => {
-        const btn = document.getElementById(`btn-mode-${m}`);
-        const panel = document.getElementById(`test-mode-${m}`);
-        if (m === mode) {
-          if (btn) btn.className = 'px-2.5 py-1 text-[11px] font-bold rounded-md bg-indigo-600 text-white transition';
-          if (panel) panel.classList.remove('hidden');
-        } else {
-          if (btn) btn.className = 'px-2.5 py-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900 transition';
-          if (panel) panel.classList.add('hidden');
-        }
-      });
-
-      if (mode === 'pick') {
-        renderPickableQuestions();
-      }
-    }
-
-    async function handleGenerateRandomQuestions() {
-      const course = document.getElementById('test-course').value;
-      const module = document.getElementById('rand-module').value;
-      const count = parseInt(document.getElementById('rand-count').value) || 5;
-      const difficulty = document.getElementById('rand-difficulty').value;
-      const feedback = document.getElementById('rand-feedback');
-
-      feedback.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Randomizing...';
-
-      try {
-        const res = await fetch('/api/admin/question-bank/randomize', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ course, module, count, difficulty })
-        });
-        const data = await res.json();
-
-        if (data.success && data.questions) {
-          stagedTestQuestions = [...data.questions];
-          renderStagedQuestions();
-          feedback.innerHTML = `<i class="fa-solid fa-check text-emerald-600 mr-1"></i> ${data.questions.length} questions populated!`;
-        }
-      } catch (err) {
-        feedback.textContent = 'Error randomizing';
-      }
-    }
-
-    function renderPickableQuestions() {
-      const container = document.getElementById('pickable-questions-list');
-      if (!container || !appData.questionBank) return;
-
-      const searchText = (document.getElementById('pick-search')?.value || '').toLowerCase().trim();
-
-      const filtered = appData.questionBank.filter(q => {
-        if (!searchText) return true;
-        return (q.question || '').toLowerCase().includes(searchText) || (q.module || '').toLowerCase().includes(searchText);
-      });
-
-      if (filtered.length === 0) {
-        container.innerHTML = '<p class="text-slate-400 text-center py-2 text-xs">No matching bank questions.</p>';
-        return;
-      }
-
-      container.innerHTML = filtered.map(q => {
-        const isStaged = stagedTestQuestions.some(sq => sq.id === q.id);
-        return `
-          <label class="flex items-start p-1.5 rounded hover:bg-slate-50 cursor-pointer text-xs">
-            <input type="checkbox" data-qid="${q.id}" ${isStaged ? 'checked' : ''} onchange="updatePickCount()" class="mt-0.5 mr-2 rounded text-indigo-600 pickable-q-checkbox">
-            <div class="flex-1">
-              <span class="font-bold text-slate-900">${q.question}</span>
-              <div class="text-[10px] text-slate-400 font-mono mt-0.5">
-                <span class="text-indigo-600 font-bold">${q.module}</span> &bull; ${q.difficulty} &bull; ${q.marks} Marks
-              </div>
-            </div>
-          </label>
-        `;
-      }).join('');
-
-      updatePickCount();
-    }
-
-    function updatePickCount() {
-      const checked = document.querySelectorAll('.pickable-q-checkbox:checked').length;
-      const display = document.getElementById('pick-count-display');
-      if (display) display.textContent = `${checked} questions selected`;
-    }
-
-    let allPickableSelected = false;
-    function toggleSelectAllPickable() {
-      allPickableSelected = !allPickableSelected;
-      document.querySelectorAll('.pickable-q-checkbox').forEach(cb => {
-        cb.checked = allPickableSelected;
-      });
-      updatePickCount();
-    }
-
-    function addSelectedBankQuestionsToTest() {
-      const checkboxes = document.querySelectorAll('.pickable-q-checkbox:checked');
-      checkboxes.forEach(cb => {
-        const qid = cb.getAttribute('data-qid');
-        const q = appData.questionBank.find(item => String(item.id) === String(qid));
-        if (q && !stagedTestQuestions.some(sq => String(sq.id) === String(q.id))) {
-          stagedTestQuestions.push(q);
-        }
-      });
-      renderStagedQuestions();
-      showToast("Selected questions added to test staging!", "info");
-    }
-
-    async function handleAddCustomQuestionToTest() {
-      const qText = document.getElementById('cust-q-text').value;
-      const o1 = document.getElementById('cust-q-o1').value;
-      const o2 = document.getElementById('cust-q-o2').value;
-      const o3 = document.getElementById('cust-q-o3').value;
-      const o4 = document.getElementById('cust-q-o4').value;
-      const correctIdx = parseInt(document.getElementById('cust-q-correct').value);
-      const marks = parseInt(document.getElementById('cust-q-marks').value) || 10;
-      const saveToBank = document.getElementById('cust-q-savebank').checked;
-
-      if (!qText.trim() || !o1.trim() || !o2.trim()) {
-        alert("Please enter question text and at least 2 options.");
-        return;
-      }
-
-      const newQ = {
-        id: `CUST-${Date.now()}`,
-        question: qText.trim(),
-        options: [o1.trim(), o2.trim(), o3.trim() || 'N/A', o4.trim() || 'N/A'],
-        correctIndex: correctIdx,
-        marks: marks,
-        module: 'Custom Assessment'
-      };
-
-      stagedTestQuestions.push(newQ);
-      renderStagedQuestions();
-
-      if (saveToBank) {
-        try {
-          await fetch('/api/admin/question-bank', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              course: document.getElementById('test-course').value,
-              module: 'General Engineering',
-              topic: 'Custom Assessments',
-              question: qText.trim(),
-              options: newQ.options,
-              correctIndex: correctIdx,
-              marks: marks,
-              difficulty: 'Medium'
-            })
-          });
-          loadData();
-        } catch (err) {}
-      }
-
-      // Reset custom inputs
-      document.getElementById('cust-q-text').value = '';
-      document.getElementById('cust-q-o1').value = '';
-      document.getElementById('cust-q-o2').value = '';
-      document.getElementById('cust-q-o3').value = '';
-      document.getElementById('cust-q-o4').value = '';
-    }
-
-    function renderStagedQuestions() {
-      const container = document.getElementById('staged-questions-container');
-      const countEl = document.getElementById('staged-q-count');
-      const totalMarksInput = document.getElementById('test-totalmarks');
-
-      if (!container) return;
-
-      if (countEl) countEl.textContent = stagedTestQuestions.length;
-
-      let calculatedMarks = 0;
-      stagedTestQuestions.forEach(q => calculatedMarks += (q.marks || 10));
-      if (totalMarksInput && calculatedMarks > 0) totalMarksInput.value = calculatedMarks;
-
-      if (stagedTestQuestions.length === 0) {
-        container.innerHTML = '<p class="text-slate-400 text-center py-4 text-xs italic">No questions added yet. Use the Smart Randomizer, Question Bank Picker, or Custom Entry above.</p>';
-        return;
-      }
-
-      container.innerHTML = stagedTestQuestions.map((q, idx) => `
-        <div class="flex items-start justify-between bg-white p-2.5 rounded-lg border border-slate-200 text-xs shadow-2xs">
-          <div class="flex-1 mr-2">
-            <div class="font-bold text-slate-900 leading-snug">
-              <span class="text-indigo-600 mr-1">Q${idx + 1}.</span> ${q.question}
-            </div>
-            <div class="text-[11px] text-slate-500 mt-1 flex flex-wrap gap-2">
-              <span class="text-emerald-700 font-bold">Ans: ${q.options[q.correctIndex] || 'Option A'}</span>
-              <span class="text-slate-400">&bull;</span>
-              <span class="font-mono text-slate-600 font-semibold">${q.marks || 10} Marks</span>
-              ${q.module ? `<span class="bg-indigo-50 text-indigo-700 px-1.5 py-0.2 rounded text-[10px] font-bold">${q.module}</span>` : ''}
-            </div>
-          </div>
-          <button type="button" onclick="removeStagedQuestion(${idx})" class="text-slate-400 hover:text-rose-600 p-1 rounded" title="Remove question">
-            <i class="fa-solid fa-xmark text-xs"></i>
-          </button>
-        </div>
-      `).join('');
-    }
-
-    function removeStagedQuestion(index) {
-      stagedTestQuestions.splice(index, 1);
-      renderStagedQuestions();
-    }
-
-    function clearStagedQuestions() {
-      stagedTestQuestions = [];
-      renderStagedQuestions();
-    }
-
-    async function handleCreateTest(e) {
-      e.preventDefault();
-      const name = document.getElementById('test-name').value;
-      const course = document.getElementById('test-course').value;
-      const duration = document.getElementById('test-duration').value;
-      const totalMarks = document.getElementById('test-totalmarks').value;
-      const passingMarks = document.getElementById('test-passmarks').value;
-
-      if (stagedTestQuestions.length === 0) {
-        alert("Please add at least 1 question to the test before publishing.");
-        return;
-      }
-
-      let attachment = null;
-      if (selectedTestFile) {
-        const formData = new FormData();
-        formData.append('file', selectedTestFile);
-        try {
-          const upRes = await fetch('/api/upload', { method: 'POST', body: formData }).then(r => r.json());
-          if (upRes.success && upRes.file) {
-            attachment = { name: upRes.file.name, url: upRes.file.url, size: upRes.file.size };
-          }
-        } catch (err) {
-          console.error("Test file upload error", err);
-        }
-      }
-
-      const questions = stagedTestQuestions.map((q, idx) => ({
-        id: idx + 1,
-        question: q.question,
-        options: q.options,
-        correctIndex: q.correctIndex,
-        course: q.course || course,
-        module: q.module || 'General',
-        marks: q.marks || 10,
-        difficulty: q.difficulty || 'Medium'
-      }));
-
-      await fetch('/api/admin/tests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          course,
-          duration,
-          totalMarks,
-          passingMarks,
-          attachment,
-          questions
-        })
-      });
-
-      closeModal('modal-test');
-      e.target.reset();
-      selectedTestFile = null;
-      stagedTestQuestions = [];
-      const statusEl = document.getElementById('test-file-status');
-      if (statusEl) statusEl.classList.add('hidden');
-      showToast("MCQ Test created and published to mobile app!", "success");
-      await loadData();
-    }
-
-    async function deleteTest(id) {
-      if (!confirm("Delete this test?")) return;
-      await fetch(`/api/admin/tests/${id}`, { method: 'DELETE' });
-      showToast("Test deleted", "info");
-      await loadData();
-    }
-
-    async function resetTestStatus(id) {
-      await fetch(`/api/admin/tests/${id}/reset`, { method: 'POST' });
-      showToast("Test solved status reset for retake", "info");
-      await loadData();
     }
 
     async function updateTraineeStatus(id, status) {
@@ -4792,59 +4361,6 @@
         }
       } catch (err) {
         showToast("Error sending reply", "error");
-      }
-    }
-
-    // ========================================================
-    // ASSIGNMENT GRADING & FEEDBACK
-    // ========================================================
-    function openGradeModal(assignmentId, submissionId) {
-      const asg = (appData.assignments || []).find(a => a.id === assignmentId);
-      if (!asg) return;
-
-      const sub = (asg.submissions || []).find(s => s.id === submissionId || s.traineeId === submissionId);
-      if (!sub) return;
-
-      document.getElementById('grade-assignment-id').value = asg.id;
-      document.getElementById('grade-submission-id').value = sub.id || sub.traineeId;
-      document.getElementById('grade-student-name').textContent = `${sub.traineeName} (${sub.submittedAt || ''})`;
-      document.getElementById('grade-asg-title').textContent = `${asg.name} &bull; Total Marks: ${asg.marks}`;
-      document.getElementById('grade-submission-text').textContent = `"${sub.text}"`;
-
-      const marksInput = document.getElementById('grade-marks-input');
-      marksInput.value = sub.gradedMarks !== undefined ? sub.gradedMarks : asg.marks;
-      marksInput.max = asg.marks;
-
-      const statusSelect = document.getElementById('grade-status-select');
-      statusSelect.value = sub.gradeStatus || 'Graded';
-
-      document.getElementById('grade-remarks-input').value = sub.remarks || 'Excellent execution and quality standard adherence.';
-
-      document.getElementById('modal-grade-submission').classList.remove('hidden');
-    }
-
-    async function handleSaveSubmissionGrade(e) {
-      e.preventDefault();
-      const assignmentId = document.getElementById('grade-assignment-id').value;
-      const submissionId = document.getElementById('grade-submission-id').value;
-      const marks = parseFloat(document.getElementById('grade-marks-input').value) || 0;
-      const status = document.getElementById('grade-status-select').value;
-      const remarks = document.getElementById('grade-remarks-input').value;
-
-      try {
-        const res = await fetch('/api/admin/assignments/grade', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ assignmentId, submissionId, marks, status, remarks })
-        });
-        const result = await res.json();
-        if (result.success) {
-          closeModal('modal-grade-submission');
-          showToast("Assignment submission graded and synchronized to trainee!", "success");
-          await loadData();
-        }
-      } catch (err) {
-        showToast("Error saving grade", "error");
       }
     }
 
@@ -5442,6 +4958,763 @@
       loadAdminSession();
       loadData();
       renderReports();
+    });
+
+    // ==========================================================
+    // ASSIGNMENT & TEST MODULES
+    // Follows docs/YSF_LMS_Assignment_Module_Flow.pdf and
+    // docs/YSF_LMS_Test_Module_Flow.pdf
+    // ==========================================================
+    const FILE_TYPE_META = {
+      any: { label: 'Any file', icon: 'fa-regular fa-file' },
+      pdf: { label: 'PDF', icon: 'fa-regular fa-file-pdf' },
+      image: { label: 'Image', icon: 'fa-regular fa-image' },
+      doc: { label: 'Word', icon: 'fa-regular fa-file-word' },
+      excel: { label: 'Excel', icon: 'fa-regular fa-file-excel' },
+      ppt: { label: 'PowerPoint', icon: 'fa-regular fa-file-powerpoint' },
+      video: { label: 'Video', icon: 'fa-regular fa-file-video' },
+    };
+    let catalog = null;
+    let asgView = 'list';
+    let subState = { rows: [], total: 0, filters: { schemes: [], sectors: [], courses: [] }, selected: new Set() };
+    let asgBrief = { file: null, existing: null, removed: false };
+    let asgTypes = new Set(['any']);
+    let testParsed = null; // { fileName, questions, errors, totalMarks }
+    let marksTargets = [];
+
+    const esc = (v) => escapeHtml(v ?? '');
+    const norm = (v) => String(v || '').trim().toLowerCase();
+    const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+
+    function fileHref(url) {
+      const u = String(url || '');
+      const m = u.match(/\/(?:api\/files|uploads)\/[^?#]+/);
+      return m ? m[0] : u;
+    }
+
+    function fillSelect(el, values, placeholder, current) {
+      if (!el) return;
+      const keep = current !== undefined ? current : el.value;
+      el.innerHTML = `<option value="">${esc(placeholder)}</option>` + values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+      if (keep && !values.includes(keep)) el.insertAdjacentHTML('beforeend', `<option value="${esc(keep)}">${esc(keep)}</option>`);
+      el.value = keep || '';
+    }
+
+    async function loadCatalog(force) {
+      if (catalog && !force) return catalog;
+      try {
+        const res = await fetch('/api/admin/catalog');
+        const json = await res.json();
+        if (json.success) catalog = json;
+      } catch (e) { console.warn('Catalog load failed', e); }
+      return catalog || { schemes: [], sectors: [], courses: [], zones: [], industries: [] };
+    }
+
+    // Course dropdown narrows to courses linked to the chosen scheme / sector (falls back to all)
+    function refreshCourseOptions(prefix, current) {
+      const ids = prefix === 'asg'
+        ? { scheme: 'asg-f-scheme', sector: 'asg-f-sector', course: 'asg-f-course' }
+        : { scheme: 'test-f-scheme-in', sector: 'test-f-sector-in', course: 'test-f-course-in' };
+      const scheme = document.getElementById(ids.scheme).value;
+      const sector = document.getElementById(ids.sector).value;
+      const all = (catalog && catalog.courses) || [];
+      let list = all.filter(c => (!scheme || c.schemes.some(s => norm(s) === norm(scheme))) && (!sector || c.sectors.some(s => norm(s) === norm(sector))));
+      if (list.length === 0) list = all;
+      fillSelect(document.getElementById(ids.course), list.map(c => c.name), 'Select course', current);
+    }
+
+    function openDrawer(id) {
+      document.getElementById(id).classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeDrawer(id) {
+      document.getElementById(id).classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') document.querySelectorAll('.drawer-wrap:not(.hidden)').forEach(d => closeDrawer(d.id));
+    });
+
+    function showFormError(id, message) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = message || '';
+      el.classList.toggle('show', !!message);
+      if (message) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function setBusy(btn, busy, label) {
+      if (!btn) return;
+      if (busy) { btn.dataset.label = btn.innerHTML; btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${label || 'Saving…'}`; }
+      else { btn.disabled = false; if (btn.dataset.label) btn.innerHTML = btn.dataset.label; }
+    }
+
+    function confirmDialog({ title, message, confirmText = 'Delete', danger = true }) {
+      return new Promise(resolve => {
+        const modal = document.getElementById('modal-confirm');
+        const ok = document.getElementById('confirm-ok');
+        const cancel = document.getElementById('confirm-cancel');
+        document.getElementById('confirm-title').textContent = title;
+        document.getElementById('confirm-message').textContent = message;
+        ok.textContent = confirmText;
+        ok.style.background = danger ? 'linear-gradient(135deg,#f43f5e,#e11d48)' : '';
+        ok.style.boxShadow = danger ? '0 8px 22px -10px rgba(225,29,72,.7)' : '';
+        document.getElementById('confirm-ico').style.setProperty('--hue', danger ? '#f43f5e' : 'var(--accent)');
+        const done = (v) => { modal.classList.add('hidden'); ok.onclick = cancel.onclick = null; window.removeEventListener('keydown', onKey); resolve(v); };
+        const onKey = (e) => { if (e.key === 'Escape') done(false); if (e.key === 'Enter') done(true); };
+        ok.onclick = () => done(true);
+        cancel.onclick = () => done(false);
+        window.addEventListener('keydown', onKey);
+        modal.classList.remove('hidden');
+        ok.focus();
+      });
+    }
+
+    async function uploadToServer(file) {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.message || 'Upload failed');
+      return { name: json.file.name, url: json.file.relativeUrl || json.file.url, size: json.file.size };
+    }
+
+    async function apiJson(url, method, body) {
+      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || json.success === false) throw new Error(json.message || `Request failed (${res.status})`);
+      return json;
+    }
+
+    function emptyRow(cols, icon, title, sub) {
+      return `<tr><td colspan="${cols}"><div class="empty-state"><span class="chip-ico"><i class="${icon}"></i></span><div class="t">${title}</div><div class="s">${sub}</div></div></td></tr>`;
+    }
+
+    // ---------------- Assignments: list ----------------
+    function setAsgView(view) {
+      asgView = view;
+      document.getElementById('asg-seg-list').classList.toggle('on', view === 'list');
+      document.getElementById('asg-seg-submitted').classList.toggle('on', view === 'submitted');
+      document.getElementById('asg-pane-list').classList.toggle('hidden', view !== 'list');
+      document.getElementById('asg-pane-submitted').classList.toggle('hidden', view !== 'submitted');
+      if (view === 'submitted') loadSubmissions();
+    }
+
+    function deadlineInfo(a) {
+      if (!a.deadline) return { label: a.submissionDate || '—', tone: '' };
+      const end = new Date(`${a.deadline}T23:59:59`);
+      const days = Math.ceil((end - new Date()) / 86400000);
+      const label = end.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      if (days < 0) return { label, tone: 'bad', note: 'Closed' };
+      if (days <= 3) return { label, tone: 'warn', note: days === 0 ? 'Today' : `${days}d left` };
+      return { label, tone: '', note: `${days}d left` };
+    }
+
+    function renderAssignments() {
+      const body = document.getElementById('asg-table-body');
+      if (!body) return;
+      const list = appData.assignments || [];
+      const subs = list.flatMap(a => a.submissions || []);
+      const graded = subs.filter(s => s.gradeStatus === 'Graded').length;
+
+      document.getElementById('asg-count-list').textContent = list.length;
+      document.getElementById('asg-stat-published').textContent = list.length;
+
+      const courseSel = document.getElementById('asg-filter-course');
+      fillSelect(courseSel, [...new Set(list.map(a => a.course).filter(Boolean))].sort(), 'All courses');
+      const q = norm(document.getElementById('asg-search').value);
+      const course = courseSel.value;
+      const rows = list.filter(a => (!course || a.course === course) && (!q || [a.name, a.course, a.scheme, a.sector, a.industryName].some(v => norm(v).includes(q))));
+      document.getElementById('asg-list-meta').innerHTML = `Showing <b>${rows.length}</b> of ${list.length}`;
+
+      if (list.length === 0) {
+        body.innerHTML = emptyRow(8, 'fa-regular fa-file-lines', 'No assignments yet', 'Use “New assignment” to publish the first one to the Kaushalya app.');
+        return;
+      }
+      if (rows.length === 0) {
+        body.innerHTML = emptyRow(8, 'fa-solid fa-magnifying-glass', 'Nothing matches', 'Try a different search or course.');
+        return;
+      }
+
+      body.innerHTML = rows.map(a => {
+        const dl = deadlineInfo(a);
+        const types = (a.allowedFileTypes && a.allowedFileTypes.length ? a.allowedFileTypes : ['any'])
+          .map(t => `<span class="tag" title="${esc((FILE_TYPE_META[t] || {}).label || t)}"><i class="${(FILE_TYPE_META[t] || FILE_TYPE_META.any).icon}"></i>${esc((FILE_TYPE_META[t] || {}).label || t)}</span>`).join(' ');
+        const n = (a.submissions || []).length;
+        const marked = (a.submissions || []).filter(s => s.gradeStatus === 'Graded').length;
+        return `
+          <tr>
+            <td style="min-width:220px">
+              <div class="t-title">${esc(a.name)}</div>
+              <div class="t-sub"><span class="font-mono">${esc(a.id)}</span>${a.attachment ? ` · <a class="text-sky-700 hover:underline" href="${esc(fileHref(a.attachment.url))}" target="_blank" rel="noopener"><i class="fa-solid fa-paperclip text-[10px]"></i> ${esc(a.attachment.name)}</a>` : ''}</div>
+            </td>
+            <td>
+              <span class="trunc text-[12.5px] text-slate-900" title="${esc(a.course)}">${esc(a.course || '—')}</span>
+              <span class="trunc t-sub">${esc([a.scheme, a.sector].filter(Boolean).join(' · ') || 'All schemes')}</span>
+            </td>
+            <td><div class="text-[12.5px]">${esc(a.zone || '—')}</div><div class="t-sub">${esc(a.industryName || '')}</div></td>
+            <td class="num mono">${esc(a.marks)}</td>
+            <td><div class="flex flex-wrap gap-1">${types}</div></td>
+            <td class="whitespace-nowrap"><div class="text-[12.5px]">${esc(dl.label)}</div>${dl.note ? `<span class="tag ${dl.tone} mt-1">${esc(dl.note)}</span>` : ''}</td>
+            <td class="whitespace-nowrap">
+              <button class="link-act !px-0" onclick="viewAssignmentSubmissions('${esc(a.id)}')">${plural(n, 'trainee')}</button>
+              ${n ? `<div class="t-sub">${marked} marked</div>` : ''}
+            </td>
+            <td class="text-right whitespace-nowrap">
+              <button class="row-act" title="Edit" onclick="openAssignmentDrawer('${esc(a.id)}')"><i class="fa-solid fa-pen"></i></button>
+              <button class="row-act danger" title="Delete" onclick="deleteAssignment('${esc(a.id)}')"><i class="fa-regular fa-trash-can"></i></button>
+            </td>
+          </tr>`;
+      }).join('');
+
+      loadSubmissions();
+    }
+
+    function viewAssignmentSubmissions(id) {
+      ['sub-f-scheme', 'sub-f-sector', 'sub-f-course', 'sub-f-status', 'sub-f-search'].forEach(f => { document.getElementById(f).value = ''; });
+      const sel = document.getElementById('sub-f-assignment');
+      if (![...sel.options].some(o => o.value === id)) sel.insertAdjacentHTML('beforeend', `<option value="${esc(id)}">${esc(id)}</option>`);
+      sel.value = id;
+      setAsgView('submitted');
+    }
+
+    function renderTypeChips() {
+      document.getElementById('asg-f-types').innerHTML = Object.entries(FILE_TYPE_META).map(([key, m]) =>
+        `<button type="button" class="chip-toggle ${asgTypes.has(key) ? 'on' : ''}" onclick="toggleAsgType('${key}')"><i class="${m.icon}"></i>${m.label}</button>`
+      ).join('');
+    }
+    function toggleAsgType(key) {
+      if (key === 'any') asgTypes = new Set(['any']);
+      else {
+        asgTypes.delete('any');
+        asgTypes.has(key) ? asgTypes.delete(key) : asgTypes.add(key);
+        if (asgTypes.size === 0) asgTypes.add('any');
+      }
+      renderTypeChips();
+    }
+
+    function renderBriefPill() {
+      const pill = document.getElementById('asg-f-filepill');
+      const dz = document.getElementById('asg-f-dropzone');
+      const f = asgBrief.file ? { name: asgBrief.file.name, size: `${(asgBrief.file.size / 1024).toFixed(1)} KB` } : (!asgBrief.removed && asgBrief.existing);
+      dz.classList.toggle('hidden', !!f);
+      pill.classList.toggle('hidden', !f);
+      pill.innerHTML = f ? `
+        <div class="file-pill">
+          <span class="chip-ico sm" style="--hue:#3b82f6"><i class="fa-regular fa-file-lines"></i></span>
+          <div class="min-w-0 flex-1"><div class="fp-name">${esc(f.name)}</div><div class="fp-meta">${esc(f.size || '')}${asgBrief.file ? ' · uploads on save' : ' · attached'}</div></div>
+          <button type="button" class="row-act danger" title="Remove" onclick="removeAssignmentBrief()"><i class="fa-solid fa-xmark"></i></button>
+        </div>` : '';
+    }
+    function pickAssignmentBrief(file) {
+      if (!file) return;
+      if (file.size > 25 * 1024 * 1024) { showFormError('asg-f-error', 'The brief file must be 25 MB or smaller.'); return; }
+      asgBrief.file = file;
+      asgBrief.removed = false;
+      renderBriefPill();
+    }
+    function removeAssignmentBrief() {
+      asgBrief = { file: null, existing: asgBrief.existing, removed: true };
+      document.getElementById('asg-f-file').value = '';
+      renderBriefPill();
+    }
+
+    async function openAssignmentDrawer(id) {
+      const asg = id ? (appData.assignments || []).find(a => a.id === id) : null;
+      const cat = await loadCatalog(true);
+      document.getElementById('asg-f-id').value = asg ? asg.id : '';
+      document.getElementById('asg-drawer-eyebrow').textContent = asg ? `Edit · ${asg.id}` : 'New assignment';
+      document.getElementById('asg-drawer-title').textContent = asg ? asg.name : 'Create an assignment';
+      fillSelect(document.getElementById('asg-f-scheme'), cat.schemes, 'Any scheme', asg ? asg.scheme : '');
+      fillSelect(document.getElementById('asg-f-sector'), cat.sectors, 'Any sector', asg ? asg.sector : '');
+      refreshCourseOptions('asg', asg ? asg.course : '');
+      fillSelect(document.getElementById('asg-f-zone'), cat.zones, 'All zones', asg ? asg.zone : '');
+      fillSelect(document.getElementById('asg-f-industry'), cat.industries, 'All industries', asg ? asg.industryName : '');
+      document.getElementById('asg-f-name').value = asg ? asg.name : '';
+      document.getElementById('asg-f-marks').value = asg ? asg.marks : '';
+      document.getElementById('asg-f-deadline').value = asg ? (asg.deadline || '') : '';
+      document.getElementById('asg-f-deadline').min = asg ? '' : new Date().toISOString().slice(0, 10);
+      document.getElementById('asg-f-details').value = asg ? (asg.details || '') : '';
+      document.getElementById('asg-f-file').value = '';
+      asgTypes = new Set(asg && asg.allowedFileTypes && asg.allowedFileTypes.length ? asg.allowedFileTypes : ['any']);
+      asgBrief = { file: null, existing: asg ? asg.attachment : null, removed: false };
+      renderTypeChips();
+      renderBriefPill();
+      showFormError('asg-f-error', '');
+      openDrawer('drawer-assignment');
+      setTimeout(() => document.getElementById(asg ? 'asg-f-name' : 'asg-f-scheme').focus(), 60);
+    }
+
+    async function submitAssignmentForm(e) {
+      e.preventDefault();
+      const id = document.getElementById('asg-f-id').value;
+      const payload = {
+        scheme: document.getElementById('asg-f-scheme').value,
+        sector: document.getElementById('asg-f-sector').value,
+        course: document.getElementById('asg-f-course').value,
+        name: document.getElementById('asg-f-name').value.trim(),
+        zone: document.getElementById('asg-f-zone').value,
+        industryName: document.getElementById('asg-f-industry').value,
+        marks: document.getElementById('asg-f-marks').value,
+        allowedFileTypes: [...asgTypes],
+        deadline: document.getElementById('asg-f-deadline').value,
+        details: document.getElementById('asg-f-details').value.trim(),
+      };
+      const problems = [];
+      if (!payload.course) problems.push('choose a course');
+      if (!payload.name) problems.push('enter the assignment name');
+      if (!(parseFloat(payload.marks) > 0)) problems.push('enter marks greater than 0');
+      if (problems.length) return showFormError('asg-f-error', `Please ${problems.join(', ')}.`);
+      showFormError('asg-f-error', '');
+
+      const btn = document.getElementById('asg-f-submit');
+      setBusy(btn, true);
+      try {
+        if (asgBrief.file) payload.attachment = await uploadToServer(asgBrief.file);
+        else if (asgBrief.removed) payload.removeAttachment = true;
+        await apiJson(id ? `/api/admin/assignments/${id}` : '/api/admin/assignments', id ? 'PUT' : 'POST', payload);
+        closeDrawer('drawer-assignment');
+        showToast(id ? 'Assignment updated' : 'Assignment published to the Kaushalya app', 'success');
+        await loadData();
+      } catch (err) {
+        showFormError('asg-f-error', err.message);
+      } finally {
+        setBusy(btn, false);
+      }
+    }
+
+    async function deleteAssignment(id) {
+      const asg = (appData.assignments || []).find(a => a.id === id);
+      const n = asg ? (asg.submissions || []).length : 0;
+      const ok = await confirmDialog({
+        title: 'Delete this assignment?',
+        message: `“${asg ? asg.name : id}” will be removed from the app${n ? ` along with ${plural(n, 'trainee submission')}` : ''}. This cannot be undone.`,
+      });
+      if (!ok) return;
+      try {
+        await apiJson(`/api/admin/assignments/${id}`, 'DELETE');
+        showToast('Assignment deleted', 'info');
+        await loadData();
+      } catch (err) { showToast(err.message, 'error'); }
+    }
+
+    // ---------------- Assignments: submitted ----------------
+    function submissionQuery() {
+      const params = new URLSearchParams();
+      const map = { scheme: 'sub-f-scheme', sector: 'sub-f-sector', course: 'sub-f-course', assignmentId: 'sub-f-assignment', status: 'sub-f-status', search: 'sub-f-search' };
+      Object.entries(map).forEach(([k, id]) => { const v = document.getElementById(id).value.trim(); if (v) params.set(k, v); });
+      return params.toString();
+    }
+
+    let subTimer = null;
+    function debouncedLoadSubmissions() { clearTimeout(subTimer); subTimer = setTimeout(loadSubmissions, 250); }
+
+    async function loadSubmissions() {
+      try {
+        const res = await fetch(`/api/admin/assignment-submissions?${submissionQuery()}`);
+        const json = await res.json();
+        if (!json.success) throw new Error(json.message);
+        subState.rows = json.rows;
+        subState.total = json.total;
+        subState.filters = json.filters;
+        const visible = new Set(json.rows.map(subKey));
+        subState.selected = new Set([...subState.selected].filter(k => visible.has(k)));
+        renderSubmissions();
+      } catch (err) {
+        document.getElementById('sub-table-body').innerHTML = emptyRow(8, 'fa-solid fa-triangle-exclamation', 'Could not load submissions', esc(err.message || 'Please refresh'));
+      }
+    }
+
+    const subKey = (r) => `${r.assignmentId}::${r.submissionId}`;
+
+    function statusTag(r) {
+      if (r.gradeStatus === 'Graded') return '<span class="tag ok"><span class="d"></span>Marked</span>';
+      if (r.gradeStatus === 'Needs Revision') return '<span class="tag warn"><span class="d"></span>Needs revision</span>';
+      return '<span class="tag"><span class="d"></span>Awaiting marks</span>';
+    }
+
+    function renderSubmissions() {
+      const rows = subState.rows;
+      fillSelect(document.getElementById('sub-f-scheme'), subState.filters.schemes, 'All schemes');
+      fillSelect(document.getElementById('sub-f-sector'), subState.filters.sectors, 'All sectors');
+      fillSelect(document.getElementById('sub-f-course'), subState.filters.courses, 'All courses');
+      const asgSel = document.getElementById('sub-f-assignment');
+      const curAsg = asgSel.value;
+      asgSel.innerHTML = '<option value="">All assignments</option><option value="SELF">Own uploads (not assigned)</option>' +
+        (appData.assignments || []).map(a => `<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('');
+      asgSel.value = curAsg;
+
+      const graded = rows.filter(r => r.gradeStatus === 'Graded').length;
+      document.getElementById('asg-count-submitted').textContent = subState.total;
+      document.getElementById('asg-stat-subs').textContent = subState.total;
+      document.getElementById('sub-dl-count').textContent = rows.length;
+      if (!submissionQuery()) {
+        document.getElementById('asg-stat-graded').textContent = graded;
+        document.getElementById('asg-stat-pending').textContent = rows.filter(r => !['Graded', 'Needs Revision'].includes(r.gradeStatus)).length;
+      }
+
+      const body = document.getElementById('sub-table-body');
+      if (rows.length === 0) {
+        body.innerHTML = emptyRow(8, 'fa-solid fa-inbox', subState.total ? 'No submissions match these filters' : 'No submissions yet',
+          subState.total ? 'Clear a filter to see more trainees.' : 'Answers uploaded from the Kaushalya app — assigned or the trainee’s own — will land here.');
+      } else {
+        body.innerHTML = rows.map(r => {
+          const key = subKey(r);
+          const on = subState.selected.has(key);
+          const files = (r.attachments || []).map(f => `<a class="file-link" href="${esc(fileHref(f.url))}" target="_blank" rel="noopener" title="${esc(f.name)}"><i class="fa-regular fa-file-lines"></i><span>${esc(f.name)}</span></a>`).join(' ');
+          return `
+            <tr class="${on ? 'sel' : ''}">
+              <td class="!pr-0"><input type="checkbox" ${on ? 'checked' : ''} onchange="toggleSub('${esc(key)}', this.checked)"></td>
+              <td style="min-width:140px"><div class="t-title">${esc(r.traineeName)}</div><div class="t-sub font-mono">${esc(r.ysfCode || r.traineeId)}</div></td>
+              <td><span class="trunc text-[12.5px] text-slate-900" title="${esc(r.course)}">${esc(r.course || '—')}</span><span class="trunc t-sub" title="${esc(r.scheme)}">${esc(r.scheme || '')}</span></td>
+              <td style="min-width:150px"><div class="text-[12.5px] text-slate-900">${esc(r.assignmentName)}</div>
+                ${r.source === 'self' ? '<span class="tag violet mt-1">Own upload</span>' : ''}</td>
+              <td class="whitespace-nowrap"><div class="mono text-slate-600">${esc(String(r.submittedAt || '').split(' ')[0])}</div><div class="t-sub mono">${esc(String(r.submittedAt || '').split(' ')[1] || '')}</div>${r.late ? '<span class="tag bad mt-1">Late</span>' : ''}</td>
+              <td><div class="flex flex-wrap gap-1">${files || '<span class="text-slate-400 text-[12px]">Text only</span>'}</div></td>
+              <td class="num mono whitespace-nowrap">${r.gradedMarks !== null && r.gradedMarks !== undefined ? `<span class="text-slate-900 font-medium">${esc(r.gradedMarks)}</span>` : '—'}<span class="text-slate-400"> / ${esc(r.maxMarks ?? '—')}</span></td>
+              <td class="whitespace-nowrap"><div class="flex items-center gap-1.5">${statusTag(r)}<button class="row-act" title="${r.gradeStatus === 'Pending' ? 'Give marks' : 'Edit marks'}" onclick="openMarksModal(['${esc(key)}'])"><i class="fa-solid fa-marker"></i></button></div></td>
+            </tr>`;
+        }).join('');
+      }
+      updateSubSelectionUi();
+    }
+
+    function toggleSub(key, on) {
+      on ? subState.selected.add(key) : subState.selected.delete(key);
+      renderSubmissions();
+    }
+    function toggleAllSubs(on) {
+      subState.selected = on ? new Set(subState.rows.map(subKey)) : new Set();
+      renderSubmissions();
+    }
+    function updateSubSelectionUi() {
+      const n = subState.selected.size;
+      document.getElementById('sub-bulkbar').classList.toggle('hidden', n === 0);
+      document.getElementById('sub-sel-count').textContent = n;
+      const all = document.getElementById('sub-check-all');
+      all.checked = n > 0 && n === subState.rows.length;
+      all.indeterminate = n > 0 && n < subState.rows.length;
+      document.getElementById('sub-bulk-label').textContent = n ? `Give marks to ${n} selected` : `Give marks to all (${subState.rows.length})`;
+    }
+
+    async function downloadSubmissions() {
+      if (!subState.rows.length) return showToast('No submissions in the current list to download', 'warning');
+      showToast(`Preparing ${plural(subState.rows.length, 'submission')} for download…`, 'info');
+      const res = await fetch(`/api/admin/assignment-submissions/download?${submissionQuery()}`);
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        return showToast(j.message || 'Download failed', 'error');
+      }
+      const blob = await res.blob();
+      const name = (res.headers.get('Content-Disposition') || '').match(/filename="([^"]+)"/);
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = name ? name[1] : 'YSF_Assignment_Submissions.zip';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    }
+
+    // keys: specific rows; otherwise the selection, otherwise every row in the filtered list
+    function openMarksModal(keys) {
+      const pickKeys = keys || (subState.selected.size ? [...subState.selected] : subState.rows.map(subKey));
+      marksTargets = subState.rows.filter(r => pickKeys.includes(subKey(r)));
+      if (!marksTargets.length) return showToast('There are no submissions to mark', 'warning');
+
+      const single = marksTargets.length === 1 ? marksTargets[0] : null;
+      const maxes = [...new Set(marksTargets.map(r => r.maxMarks).filter(m => m !== null && m !== undefined))];
+      const hasSelf = marksTargets.some(r => r.source === 'self' && (r.maxMarks === null || r.maxMarks === undefined));
+
+      document.getElementById('marks-eyebrow').textContent = single ? 'Give marks · individual' : 'Give marks · all trainees';
+      document.getElementById('marks-title').textContent = single ? single.traineeName : `${marksTargets.length} submissions`;
+      document.getElementById('marks-context').innerHTML = single ? `
+        <dl class="kv p-3 rounded-xl border border-slate-200 bg-slate-50">
+          <dt>Assignment</dt><dd>${esc(single.assignmentName)}${single.source === 'self' ? ' <span class="tag violet">Own upload</span>' : ''}</dd>
+          <dt>Course</dt><dd>${esc(single.course || '—')}</dd>
+          <dt>Submitted</dt><dd class="font-mono text-[12px]">${esc(single.submittedAt)}${single.late ? ' <span class="tag bad">Late</span>' : ''}</dd>
+          ${single.text ? `<dt>Note</dt><dd class="italic text-slate-600">“${esc(single.text)}”</dd>` : ''}
+          <dt>Files</dt><dd class="flex flex-wrap gap-1">${(single.attachments || []).map(f => `<a class="file-link" href="${esc(fileHref(f.url))}" target="_blank" rel="noopener"><i class="fa-regular fa-file-lines"></i><span>${esc(f.name)}</span></a>`).join('') || '—'}</dd>
+        </dl>` : `
+        <div class="p-3 rounded-xl border border-slate-200 bg-slate-50 text-[13px] text-slate-600">
+          The same marks will be saved for <b class="text-slate-900">${marksTargets.length}</b> trainees
+          ${subState.selected.size ? '(your selection)' : '(everyone in the current filtered list)'}.
+          ${maxes.length > 1 ? '<div class="mt-1 text-amber-700"><i class="fa-solid fa-triangle-exclamation mr-1"></i>These assignments have different maximum marks.</div>' : ''}
+        </div>`;
+
+      const valueEl = document.getElementById('marks-value');
+      valueEl.value = single && single.gradedMarks !== null && single.gradedMarks !== undefined ? single.gradedMarks : '';
+      valueEl.max = maxes.length ? Math.min(...maxes) : '';
+      document.getElementById('marks-max-label').textContent = maxes.length === 1 ? `/ ${maxes[0]}` : '';
+      document.getElementById('marks-status').value = single && single.gradeStatus === 'Needs Revision' ? 'Needs Revision' : 'Graded';
+      document.getElementById('marks-remarks').value = single ? (single.remarks || '') : '';
+      document.getElementById('marks-selfmax-row').classList.toggle('hidden', !hasSelf);
+      showFormError('marks-error', '');
+      document.getElementById('modal-marks').classList.remove('hidden');
+      setTimeout(() => valueEl.focus(), 60);
+    }
+
+    async function saveMarks(e) {
+      e.preventDefault();
+      const marks = parseFloat(document.getElementById('marks-value').value);
+      if (!Number.isFinite(marks) || marks < 0) return showFormError('marks-error', 'Enter the marks to award.');
+      const status = document.getElementById('marks-status').value;
+      const remarks = document.getElementById('marks-remarks').value.trim();
+      const selfMax = parseFloat(document.getElementById('marks-selfmax').value);
+      const entries = marksTargets.map(r => ({
+        assignmentId: r.assignmentId,
+        submissionId: r.submissionId,
+        marks,
+        gradeStatus: status,
+        remarks,
+        ...(r.source === 'self' && (r.maxMarks === null || r.maxMarks === undefined) && Number.isFinite(selfMax) ? { maxMarks: selfMax } : {}),
+      }));
+      const btn = document.getElementById('marks-submit');
+      setBusy(btn, true);
+      try {
+        const res = await fetch('/api/admin/assignment-submissions/marks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ entries }) });
+        const json = await res.json();
+        if (!json.success) throw new Error(json.message);
+        closeModal('modal-marks');
+        showToast(json.problems && json.problems.length ? `${json.message} · ${json.problems.length} skipped (${json.problems[0]})` : json.message, json.problems && json.problems.length ? 'warning' : 'success');
+        subState.selected.clear();
+        await loadData();
+        await loadSubmissions();
+      } catch (err) {
+        showFormError('marks-error', err.message);
+      } finally {
+        setBusy(btn, false);
+      }
+    }
+
+    // ---------------- Tests ----------------
+    function switchTestSubtab(subtab) {
+      document.getElementById('subtab-btn-tests').classList.toggle('on', subtab === 'tests');
+      document.getElementById('subtab-btn-qbank').classList.toggle('on', subtab === 'qbank');
+      document.getElementById('test-subpane-tests').classList.toggle('hidden', subtab !== 'tests');
+      document.getElementById('test-subpane-qbank').classList.toggle('hidden', subtab !== 'qbank');
+      if (subtab === 'qbank') renderQuestionBank();
+    }
+
+    function clearTestFilters() {
+      ['test-f-scheme', 'test-f-sector', 'test-f-course'].forEach(id => { document.getElementById(id).value = ''; });
+      renderTests();
+    }
+
+    function renderTests() {
+      const body = document.getElementById('tests-table-body');
+      if (!body) return;
+      const tests = appData.tests || [];
+      const attempts = tests.flatMap(t => t.attempts || []);
+      document.getElementById('test-stat-count').textContent = tests.length;
+      document.getElementById('test-stat-questions').textContent = tests.reduce((n, t) => n + (t.questions || []).length, 0);
+      document.getElementById('test-stat-attempts').textContent = attempts.length;
+      document.getElementById('test-stat-pass').innerHTML = attempts.length ? `${Math.round(attempts.filter(a => a.passed).length / attempts.length * 100)}<small>%</small>` : '—';
+
+      const uniq = (k) => [...new Set(tests.map(t => t[k]).filter(Boolean))].sort();
+      fillSelect(document.getElementById('test-f-scheme'), uniq('scheme'), 'All schemes');
+      fillSelect(document.getElementById('test-f-sector'), uniq('sector'), 'All sectors');
+      fillSelect(document.getElementById('test-f-course'), uniq('course'), 'All courses');
+      const f = { scheme: document.getElementById('test-f-scheme').value, sector: document.getElementById('test-f-sector').value, course: document.getElementById('test-f-course').value };
+      const filtered = !!(f.scheme || f.sector || f.course);
+      document.getElementById('test-f-clear').classList.toggle('hidden', !filtered);
+      const rows = tests.filter(t => (!f.scheme || t.scheme === f.scheme) && (!f.sector || t.sector === f.sector) && (!f.course || t.course === f.course));
+      document.getElementById('test-list-meta').innerHTML = filtered ? `Showing <b>${rows.length}</b> of ${tests.length}` : `All <b>${tests.length}</b> uploaded tests`;
+
+      if (tests.length === 0) {
+        body.innerHTML = emptyRow(10, 'fa-regular fa-square-check', 'No tests uploaded yet', 'Click “New test”, fill in the details and upload the Excel question sheet.');
+        return;
+      }
+      if (rows.length === 0) {
+        body.innerHTML = emptyRow(10, 'fa-solid fa-filter', 'No tests match these filters', 'Filters are optional — clear them to see every test.');
+        return;
+      }
+      body.innerHTML = rows.map(t => {
+        const att = t.attempts || [];
+        const passed = att.filter(a => a.passed).length;
+        return `
+          <tr>
+            <td style="min-width:220px"><div class="t-title">${esc(t.name)}</div><div class="t-sub"><span class="font-mono">${esc(t.id)}</span> · ${esc(t.date || '')}</div></td>
+            <td><div class="text-[12.5px]">${esc(t.scheme || '—')}</div><div class="t-sub">${esc(t.sector || '')}</div></td>
+            <td><span class="trunc text-[12.5px] text-slate-900" title="${esc(t.course)}">${esc(t.course || '—')}</span></td>
+            <td class="num mono">${(t.questions || []).length}</td>
+            <td class="num mono">${esc(t.totalMarks)}</td>
+            <td class="num mono">${esc(t.passingMarks)}</td>
+            <td class="num mono whitespace-nowrap">${esc(t.duration)} min</td>
+            <td class="whitespace-nowrap">${att.length
+              ? `<button class="link-act !px-0" onclick="openAttempts('${esc(t.id)}')">${plural(att.length, 'attempt')}</button><div class="t-sub">${passed} passed</div>`
+              : '<span class="text-slate-400 text-[12px]">None yet</span>'}</td>
+            <td class="text-center !px-2"><button class="row-act" title="Edit test" onclick="openTestDrawer('${esc(t.id)}')"><i class="fa-solid fa-pen"></i></button></td>
+            <td class="text-center !px-2"><button class="row-act danger" title="Delete test" onclick="deleteTest('${esc(t.id)}')"><i class="fa-regular fa-trash-can"></i></button></td>
+          </tr>`;
+      }).join('');
+    }
+
+    function renderTestParsed() {
+      const box = document.getElementById('test-f-parsed');
+      const dz = document.getElementById('test-f-dropzone');
+      const id = document.getElementById('test-f-id').value;
+      const existing = id ? (appData.tests || []).find(t => t.id === id) : null;
+      if (!testParsed) {
+        dz.classList.remove('hidden');
+        document.getElementById('test-f-dz-title').textContent = existing ? 'Upload a new sheet to replace the questions' : 'Choose or drop the question sheet';
+        box.classList.toggle('hidden', !existing);
+        box.innerHTML = existing ? `<div class="fhint"><i class="fa-solid fa-circle-info mr-1"></i>Currently ${plural((existing.questions || []).length, 'question')}${existing.sourceFile ? ` from ${esc(existing.sourceFile)}` : ''}. Leave empty to keep them.</div>` : '';
+        return;
+      }
+      dz.classList.add('hidden');
+      box.classList.remove('hidden');
+      const qs = testParsed.questions;
+      box.innerHTML = `
+        <div class="file-pill">
+          <span class="chip-ico sm" style="--hue:#10b981"><i class="fa-regular fa-file-excel"></i></span>
+          <div class="min-w-0 flex-1"><div class="fp-name">${esc(testParsed.fileName)}</div>
+            <div class="fp-meta">${plural(qs.length, 'question')} · ${testParsed.totalMarks} question marks${testParsed.errors.length ? ` · <span class="text-amber-700">${plural(testParsed.errors.length, 'row')} skipped</span>` : ''}</div></div>
+          <button type="button" class="row-act danger" title="Remove" onclick="clearTestExcel()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        ${testParsed.errors.length ? `<div class="mt-2 p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-[12px] text-amber-800">${testParsed.errors.slice(0, 5).map(esc).join('<br>')}${testParsed.errors.length > 5 ? `<br>…and ${testParsed.errors.length - 5} more` : ''}</div>` : ''}
+        <div class="qprev">${qs.map((q, i) => `<div class="q"><b>${String(i + 1).padStart(2, '0')}</b>${esc(q.question)}<div class="ans"><i class="fa-solid fa-check mr-1"></i>${esc(q.options[q.correctIndex])} · ${q.marks} mark${q.marks === 1 ? '' : 's'}</div></div>`).join('')}</div>
+        <div class="fhint">Scores are scaled to the test's marks, weighted by each question's marks.</div>`;
+    }
+
+    async function parseTestExcel(file) {
+      if (!file) return;
+      document.getElementById('test-f-dz-title').innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Reading questions…';
+      try {
+        const fd = new FormData();
+        fd.append('file', file);
+        const res = await fetch('/api/admin/tests/parse-excel', { method: 'POST', body: fd });
+        const json = await res.json();
+        if (!json.success) throw new Error((json.errors && json.errors[0]) || json.message || 'No questions found in the file');
+        testParsed = { fileName: json.fileName, questions: json.questions, errors: json.errors || [], totalMarks: json.totalMarks };
+        showFormError('test-f-error', '');
+        const marks = document.getElementById('test-f-marks');
+        if (!marks.value) marks.value = json.totalMarks;
+      } catch (err) {
+        testParsed = null;
+        showFormError('test-f-error', err.message);
+      } finally {
+        document.getElementById('test-f-file').value = '';
+        renderTestParsed();
+      }
+    }
+    function clearTestExcel() { testParsed = null; renderTestParsed(); }
+
+    async function openTestDrawer(id) {
+      const t = id ? (appData.tests || []).find(x => x.id === id) : null;
+      const cat = await loadCatalog(true);
+      document.getElementById('test-f-id').value = t ? t.id : '';
+      document.getElementById('test-drawer-eyebrow').textContent = t ? `Edit · ${t.id}` : 'New test';
+      document.getElementById('test-drawer-title').textContent = t ? t.name : 'Create a test';
+      document.getElementById('test-f-submit').innerHTML = t ? '<i class="fa-solid fa-check"></i> Save changes' : '<i class="fa-solid fa-check"></i> Create / Save';
+      fillSelect(document.getElementById('test-f-scheme-in'), cat.schemes, 'Any scheme', t ? t.scheme : '');
+      fillSelect(document.getElementById('test-f-sector-in'), cat.sectors, 'Any sector', t ? t.sector : '');
+      refreshCourseOptions('test', t ? t.course : '');
+      document.getElementById('test-f-name').value = t ? t.name : '';
+      document.getElementById('test-f-marks').value = t ? t.totalMarks : '';
+      document.getElementById('test-f-pass').value = t ? t.passingMarks : '';
+      document.getElementById('test-f-duration').value = t ? t.duration : '';
+      document.getElementById('test-f-instructions').value = t ? (t.instructions || '') : '';
+      testParsed = null;
+      renderTestParsed();
+      showFormError('test-f-error', '');
+      openDrawer('drawer-test');
+      setTimeout(() => document.getElementById(t ? 'test-f-name' : 'test-f-scheme-in').focus(), 60);
+    }
+
+    async function submitTestForm(e) {
+      e.preventDefault();
+      const id = document.getElementById('test-f-id').value;
+      const payload = {
+        scheme: document.getElementById('test-f-scheme-in').value,
+        sector: document.getElementById('test-f-sector-in').value,
+        course: document.getElementById('test-f-course-in').value,
+        name: document.getElementById('test-f-name').value.trim(),
+        totalMarks: document.getElementById('test-f-marks').value,
+        passingMarks: document.getElementById('test-f-pass').value,
+        duration: document.getElementById('test-f-duration').value,
+        instructions: document.getElementById('test-f-instructions').value.trim(),
+      };
+      if (testParsed) { payload.questions = testParsed.questions; payload.sourceFile = testParsed.fileName; }
+
+      const total = parseFloat(payload.totalMarks), pass = parseFloat(payload.passingMarks), dur = parseInt(payload.duration, 10);
+      const problems = [];
+      if (!payload.course) problems.push('choose a course');
+      if (!payload.name) problems.push('enter the test name');
+      if (!(total > 0)) problems.push('enter the marks');
+      if (!(pass >= 0)) problems.push('enter the passing marks');
+      else if (total > 0 && pass > total) problems.push('keep passing marks at or below the total');
+      if (!(dur > 0)) problems.push('enter the test duration');
+      if (!id && !testParsed) problems.push('upload the Excel question file');
+      if (problems.length) return showFormError('test-f-error', `Please ${problems.join(', ')}.`);
+      showFormError('test-f-error', '');
+
+      const btn = document.getElementById('test-f-submit');
+      setBusy(btn, true);
+      try {
+        await apiJson(id ? `/api/admin/tests/${id}` : '/api/admin/tests', id ? 'PUT' : 'POST', payload);
+        closeDrawer('drawer-test');
+        showToast(id ? 'Test updated' : 'Test saved and published to the Kaushalya app', 'success');
+        await loadData();
+      } catch (err) {
+        showFormError('test-f-error', err.message);
+      } finally {
+        setBusy(btn, false);
+      }
+    }
+
+    async function deleteTest(id) {
+      const t = (appData.tests || []).find(x => x.id === id);
+      const n = t ? (t.attempts || []).length : 0;
+      const ok = await confirmDialog({
+        title: 'Delete this test?',
+        message: `“${t ? t.name : id}” will be removed from the list and from the trainee app${n ? `, including ${plural(n, 'recorded attempt')}` : ''}. This cannot be undone.`,
+      });
+      if (!ok) return;
+      try {
+        await apiJson(`/api/admin/tests/${id}`, 'DELETE');
+        showToast('Test deleted', 'info');
+        await loadData();
+      } catch (err) { showToast(err.message, 'error'); }
+    }
+
+    function openAttempts(id) {
+      const t = (appData.tests || []).find(x => x.id === id);
+      if (!t) return;
+      const att = t.attempts || [];
+      document.getElementById('attempts-title').textContent = t.name;
+      document.getElementById('attempts-sub').textContent = `${plural(att.length, 'attempt')} · pass mark ${t.passingMarks} / ${t.totalMarks}`;
+      document.getElementById('attempts-body').innerHTML = att.length ? `
+        <div class="border border-slate-200 rounded-xl overflow-hidden"><table class="dt">
+          <thead><tr><th>Trainee</th><th class="num">Score</th><th>Result</th><th>Completed</th><th></th></tr></thead>
+          <tbody>${att.map(a => `
+            <tr>
+              <td><div class="t-title">${esc(a.traineeName)}</div><div class="t-sub font-mono">${esc(a.ysfCode || a.traineeId)}</div></td>
+              <td class="num mono">${esc(a.score)} <span class="text-slate-400">/ ${esc(a.maxScore)}</span>${a.correctCount !== null && a.correctCount !== undefined ? `<div class="t-sub">${a.correctCount}/${a.totalQuestions} correct</div>` : ''}</td>
+              <td>${a.passed ? '<span class="tag ok"><span class="d"></span>Passed</span>' : '<span class="tag bad"><span class="d"></span>Failed</span>'}</td>
+              <td class="mono text-slate-600 whitespace-nowrap">${esc(new Date(a.completedAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }))}</td>
+              <td class="text-right"><button class="link-act" title="Clear this attempt so the trainee can take the test again" onclick="resetAttempt('${esc(t.id)}','${esc(a.traineeId)}')"><i class="fa-solid fa-rotate-left mr-1"></i>Allow retake</button></td>
+            </tr>`).join('')}</tbody>
+        </table></div>` : '<div class="empty-state"><div class="t">No attempts yet</div></div>';
+      document.getElementById('modal-attempts').classList.remove('hidden');
+    }
+
+    async function resetAttempt(testId, traineeId) {
+      const ok = await confirmDialog({ title: 'Allow a retake?', message: 'This trainee’s score will be cleared and the test will show as unsolved in their app.', confirmText: 'Allow retake', danger: false });
+      if (!ok) return;
+      try {
+        const json = await apiJson(`/api/admin/tests/${testId}/reset`, 'POST', { traineeId });
+        showToast(json.message, 'success');
+        await loadData();
+        openAttempts(testId);
+      } catch (err) { showToast(err.message, 'error'); }
+    }
+
+    // Drag & drop on the upload zones
+    [['asg-f-dropzone', (f) => pickAssignmentBrief(f)], ['test-f-dropzone', (f) => parseTestExcel(f)]].forEach(([id, handler]) => {
+      const dz = document.getElementById(id);
+      if (!dz) return;
+      dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('drag'); });
+      dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+      dz.addEventListener('drop', (e) => { e.preventDefault(); dz.classList.remove('drag'); if (e.dataTransfer.files[0]) handler(e.dataTransfer.files[0]); });
     });
   </script>
 </body>

@@ -100,8 +100,9 @@ export interface AssignmentSubmission {
   submittedAt: string;
   text: string;
   attachments: { name: string; size?: string; uri?: string; url?: string }[];
-  gradeStatus?: 'Ungraded' | 'Graded' | 'Needs Revision';
-  gradedMarks?: number;
+  gradeStatus?: 'Pending' | 'Ungraded' | 'Graded' | 'Needs Revision';
+  gradedMarks?: number | null;
+  late?: boolean;
   remarks?: string;
   gradedAt?: string;
 }
@@ -120,15 +121,43 @@ export interface Assignment {
   teacher: string;
   details: string;
   likes: number;
-  status: 'Pending' | 'Completed';
+  status: AssignmentStatus;
   submissions: AssignmentSubmission[];
+  scheme?: string;
+  sector?: string;
+  zone?: string;
+  industryName?: string;
+  /** Answer file types the admin accepts: 'any' | 'pdf' | 'image' | 'doc' | 'excel' | 'ppt' | 'video' */
+  allowedFileTypes?: string[];
+  /** YYYY-MM-DD */
+  deadline?: string;
+  deadlineLabel?: string;
+  attachment?: { name: string; url: string; size?: string } | null;
+  mySubmission?: AssignmentSubmission | null;
+}
+
+export type AssignmentStatus = 'Pending' | 'Submitted' | 'Graded' | 'Needs Revision' | 'Overdue' | 'Completed';
+
+/** Trainee's own upload that was not assigned by the admin */
+export interface SelfAssignment {
+  id: string;
+  name: string;
+  traineeId: string;
+  traineeName: string;
+  submittedAt: string;
+  text?: string;
+  attachments: { name: string; size?: string; url?: string }[];
+  gradeStatus?: 'Pending' | 'Graded' | 'Needs Revision';
+  gradedMarks?: number | null;
+  maxMarks?: number | null;
+  remarks?: string;
 }
 
 export interface MCQQuestion {
   id: number | string;
   question: string;
   options: string[];
-  correctIndex: number;
+  correctIndex?: number;
   course?: string;
   module?: string;
   topic?: string;
@@ -151,8 +180,13 @@ export interface TestItem {
   status: 'Not solved' | 'Solved';
   score: number | null;
   maxScore: number;
-  attachment?: { name: string; url: string; size?: string };
+  attachment?: { name: string; url: string; size?: string } | null;
   questions?: MCQQuestion[];
+  questionCount?: number;
+  passed?: boolean | null;
+  completedAt?: string | null;
+  scheme?: string;
+  sector?: string;
 }
 
 export interface CourseTestSummary {

@@ -16,6 +16,8 @@ import { getTranslation } from '../i18n/translations';
 import { Header } from '../components/Header';
 import { apiService } from '../services/api';
 import { screenTimeTracker } from '../services/ScreenTimeTracker';
+import { MaterialIcons } from '@expo/vector-icons';
+import { colors, radius, shadow } from '../theme';
 
 interface ChangePasswordScreenProps {
   language: Language;
@@ -34,6 +36,7 @@ export const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [focusedField, setFocusedField] = useState<'old' | 'new' | 'confirm' | null>(null);
 
   useEffect(() => {
     screenTimeTracker.onScreenEnter('Change Password', traineeName);
@@ -88,12 +91,23 @@ export const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({
 
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <View style={styles.formContainer}>
+          <View style={styles.cardHeader}>
+            <View style={styles.cardHeaderIcon}>
+              <MaterialIcons name="vpn-key" size={20} color={colors.teal} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardMicro}>Security</Text>
+              <Text style={styles.cardTitle}>{t.changePassword}</Text>
+            </View>
+          </View>
           {/* Old Password */}
           <Text style={styles.inputLabel}>{t.oldPassword}</Text>
           <TextInput
-            style={styles.underlineInput}
+            style={[styles.underlineInput, focusedField === 'old' && styles.inputFocused]}
             placeholder={t.oldPassword}
-            placeholderTextColor="#B0BEC5"
+            placeholderTextColor={colors.faint}
+            onFocus={() => setFocusedField('old')}
+            onBlur={() => setFocusedField(null)}
             secureTextEntry
             value={oldPassword}
             onChangeText={(txt) => {
@@ -105,9 +119,11 @@ export const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({
           {/* New Password */}
           <Text style={styles.inputLabel}>{t.newPassword}</Text>
           <TextInput
-            style={styles.underlineInput}
+            style={[styles.underlineInput, focusedField === 'new' && styles.inputFocused]}
             placeholder={t.newPassword}
-            placeholderTextColor="#B0BEC5"
+            placeholderTextColor={colors.faint}
+            onFocus={() => setFocusedField('new')}
+            onBlur={() => setFocusedField(null)}
             secureTextEntry
             value={newPassword}
             onChangeText={(txt) => {
@@ -119,9 +135,11 @@ export const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({
           {/* Confirm Password */}
           <Text style={styles.inputLabel}>{t.confirmPassword}</Text>
           <TextInput
-            style={styles.underlineInput}
+            style={[styles.underlineInput, focusedField === 'confirm' && styles.inputFocused]}
             placeholder={t.confirmPassword}
-            placeholderTextColor="#B0BEC5"
+            placeholderTextColor={colors.faint}
+            onFocus={() => setFocusedField('confirm')}
+            onBlur={() => setFocusedField(null)}
             secureTextEntry
             value={confirmPassword}
             onChangeText={(txt) => {
@@ -132,11 +150,12 @@ export const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({
 
           {errorMsg ? (
             <View style={styles.errorBox}>
+              <MaterialIcons name="error-outline" size={16} color={colors.red} />
               <Text style={styles.errorText}>{errorMsg}</Text>
             </View>
           ) : null}
 
-          {/* CHANGE PASSWORD Button matching screenshot p20_img0_Image121.jpg */}
+          {/* Change Password Button */}
           <TouchableOpacity
             style={styles.submitButton}
             onPress={handleChangePassword}
@@ -144,9 +163,9 @@ export const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({
             activeOpacity={0.8}
           >
             {loading ? (
-              <ActivityIndicator color="#424242" />
+              <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.submitButtonText}>CHANGE PASSWORD</Text>
+              <Text style={styles.submitButtonText}>Change Password</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -158,52 +177,95 @@ export const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: colors.bg,
   },
   scrollContent: {
-    padding: 24,
+    padding: 16,
   },
   formContainer: {
-    marginTop: 10,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.line,
+    padding: 18,
+    ...shadow,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  cardHeaderIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: colors.tealSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  cardMicro: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    letterSpacing: 0.9,
+    textTransform: 'uppercase',
+    color: colors.teal,
+  },
+  cardTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.ink,
+    letterSpacing: -0.2,
+    marginTop: 2,
   },
   inputLabel: {
-    fontSize: 14,
-    color: '#757575',
-    fontWeight: '500',
-    marginBottom: 4,
+    fontSize: 10.5,
+    fontWeight: '700',
+    letterSpacing: 0.9,
+    textTransform: 'uppercase',
+    color: colors.muted,
+    marginBottom: 6,
     marginTop: 16,
   },
   underlineInput: {
-    borderBottomWidth: 1.5,
-    borderBottomColor: '#90A4AE',
-    fontSize: 16,
-    color: '#212121',
-    paddingVertical: 8,
-    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: colors.lineStrong,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    fontSize: 15,
+    color: colors.ink,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  inputFocused: {
+    borderColor: colors.teal,
+    borderWidth: 1.5,
   },
   errorBox: {
-    backgroundColor: '#FFEBEE',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.redSoft,
     padding: 12,
-    borderRadius: 6,
-    marginTop: 12,
+    borderRadius: radius.md,
+    marginTop: 16,
   },
   errorText: {
-    color: '#C62828',
-    fontSize: 12,
+    color: colors.red,
+    fontSize: 12.5,
     fontWeight: '600',
-    textAlign: 'center',
+    marginLeft: 8,
+    flex: 1,
   },
   submitButton: {
-    backgroundColor: '#CFD8DC', // light grey matching screenshot p20_img0_Image121.jpg
+    backgroundColor: colors.teal,
     paddingVertical: 14,
-    borderRadius: 4,
+    borderRadius: radius.md,
     alignItems: 'center',
-    marginTop: 36,
+    marginTop: 24,
   },
   submitButtonText: {
-    color: '#37474F',
-    fontSize: 14,
+    color: '#FFFFFF',
+    fontSize: 15,
     fontWeight: '700',
-    letterSpacing: 0.8,
   },
 });

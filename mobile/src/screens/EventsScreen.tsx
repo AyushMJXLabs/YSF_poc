@@ -14,6 +14,7 @@ import { getTranslation } from '../i18n/translations';
 import { Header } from '../components/Header';
 import { apiService } from '../services/api';
 import { screenTimeTracker } from '../services/ScreenTimeTracker';
+import { colors, radius, Card, Pill } from '../theme';
 
 interface EventsScreenProps {
   language: Language;
@@ -88,84 +89,96 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({
 
       {loading ? (
         <View style={styles.loaderArea}>
-          <ActivityIndicator size="large" color="#0288D1" />
+          <ActivityIndicator size="large" color={colors.teal} />
         </View>
       ) : (
         <ScrollView
           contentContainerStyle={styles.scrollContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#0288D1"]} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.teal]} tintColor={colors.teal} />}
         >
-          {/* Month Header with navigation */}
-          <View style={styles.monthHeader}>
-            <TouchableOpacity style={styles.monthNavBtn}>
-              <MaterialIcons name="chevron-left" size={26} color="#333333" />
-            </TouchableOpacity>
-            <Text style={styles.monthTitle}>March 2024</Text>
-            <TouchableOpacity style={styles.monthNavBtn}>
-              <MaterialIcons name="chevron-right" size={26} color="#333333" />
-            </TouchableOpacity>
-          </View>
+          <Card style={styles.calendarCard}>
+            {/* Month Header with navigation */}
+            <View style={styles.monthHeader}>
+              <TouchableOpacity style={styles.monthNavBtn}>
+                <MaterialIcons name="chevron-left" size={22} color={colors.ink} />
+              </TouchableOpacity>
+              <View style={{ alignItems: 'center' }}>
+                <Text style={styles.monthMicro}>Calendar</Text>
+                <Text style={styles.monthTitle}>March 2024</Text>
+              </View>
+              <TouchableOpacity style={styles.monthNavBtn}>
+                <MaterialIcons name="chevron-right" size={22} color={colors.ink} />
+              </TouchableOpacity>
+            </View>
 
-          {/* Weekday Row */}
-          <View style={styles.weekdaysRow}>
-            {daysOfWeek.map((dow, idx) => (
-              <Text key={idx} style={styles.weekdayLabel}>{dow}</Text>
-            ))}
-          </View>
+            {/* Weekday Row */}
+            <View style={styles.weekdaysRow}>
+              {daysOfWeek.map((dow, idx) => (
+                <Text key={idx} style={styles.weekdayLabel}>{dow}</Text>
+              ))}
+            </View>
 
-          {/* Calendar Month Grid */}
-          <View style={styles.calendarGrid}>
-            {calendarGrid.map((day, idx) => {
-              if (day === null) {
-                return <View key={idx} style={styles.emptyDayCell} />;
-              }
-              const isSelected = day === selectedDay;
-              const hasEvent = events.some(e => e.date === `2024-03-${day.toString().padStart(2, '0')}`);
-              return (
-                <TouchableOpacity
-                  key={idx}
-                  style={styles.dayCell}
-                  onPress={() => setSelectedDay(day)}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.dayCircle, isSelected && styles.dayCircleSelected]}>
-                    <Text style={[styles.dayText, isSelected && styles.dayTextSelected]}>
-                      {day}
-                    </Text>
-                  </View>
-                  {hasEvent && !isSelected && <View style={styles.eventDot} />}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+            {/* Calendar Month Grid */}
+            <View style={styles.calendarGrid}>
+              {calendarGrid.map((day, idx) => {
+                if (day === null) {
+                  return <View key={idx} style={styles.emptyDayCell} />;
+                }
+                const isSelected = day === selectedDay;
+                const hasEvent = events.some(e => e.date === `2024-03-${day.toString().padStart(2, '0')}`);
+                return (
+                  <TouchableOpacity
+                    key={idx}
+                    style={styles.dayCell}
+                    onPress={() => setSelectedDay(day)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.dayCircle, hasEvent && !isSelected && styles.dayCircleEvent, isSelected && styles.dayCircleSelected]}>
+                      <Text style={[styles.dayText, hasEvent && !isSelected && styles.dayTextEvent, isSelected && styles.dayTextSelected]}>
+                        {day}
+                      </Text>
+                    </View>
+                    {hasEvent && !isSelected && <View style={styles.eventDot} />}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </Card>
 
-          <View style={styles.divider} />
-
-          {/* Selected Date Event Cards matching screenshot */}
+          {/* Selected Date Event Cards */}
           <View style={styles.eventSection}>
             <Text style={styles.selectedDayHeader}>
               {getDayName(selectedDay)}{'\n'}{selectedDay.toString().padStart(2, '0')}-March
             </Text>
 
             {dayEvents.length === 0 ? (
-              <View style={styles.noEventsBox}>
-                <Ionicons name="calendar-outline" size={32} color="#B0BEC5" />
+              <Card style={styles.noEventsBox}>
+                <View style={styles.emptyIconTile}>
+                  <Ionicons name="calendar-outline" size={22} color={colors.faint} />
+                </View>
                 <Text style={styles.noEventsText}>{t.noEventsForDay}</Text>
-              </View>
+              </Card>
             ) : (
               dayEvents.map((evt) => (
-                <View key={evt.id} style={styles.eventCard}>
-                  <Text style={styles.eventTitle}>{evt.title}</Text>
-                  <View style={styles.eventMetaRow}>
-                    <Text style={styles.eventType}>{evt.type}</Text>
-                    <Text style={styles.eventTime}>{evt.time}</Text>
+                <Card key={evt.id} style={styles.eventCard}>
+                  <View style={styles.eventTopRow}>
+                    <View style={styles.eventIconTile}>
+                      <MaterialIcons name="event" size={18} color={colors.teal} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.eventTitle}>{evt.title}</Text>
+                      <View style={styles.eventMetaRow}>
+                        <Pill label={String(evt.type)} tone="teal" />
+                        <Text style={styles.eventTime}>{evt.time}</Text>
+                      </View>
+                    </View>
                   </View>
                   <View style={styles.eventLocRow}>
-                    <MaterialIcons name="location-on" size={14} color="#78909C" />
+                    <MaterialIcons name="location-on" size={14} color={colors.muted} />
                     <Text style={styles.eventLocText}>{evt.location}</Text>
                   </View>
                   <Text style={styles.eventDesc}>{evt.description}</Text>
-                </View>
+                </Card>
               ))
             )}
           </View>
@@ -178,7 +191,7 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: colors.bg,
   },
   loaderArea: {
     flex: 1,
@@ -186,43 +199,63 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scrollContent: {
+    padding: 16,
     paddingBottom: 40,
+  },
+  calendarCard: {
+    paddingHorizontal: 10,
+    paddingVertical: 12,
   },
   monthHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingHorizontal: 6,
+    paddingBottom: 12,
   },
   monthNavBtn: {
-    padding: 6,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: colors.surfaceMuted,
+    borderWidth: 1,
+    borderColor: colors.line,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  monthMicro: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    letterSpacing: 0.9,
+    textTransform: 'uppercase',
+    color: colors.teal,
   },
   monthTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#212121',
+    color: colors.ink,
+    letterSpacing: -0.2,
+    marginTop: 2,
   },
   weekdaysRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingHorizontal: 10,
     paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
   },
   weekdayLabel: {
     width: '14.28%',
     textAlign: 'center',
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#757575',
+    fontSize: 10.5,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: colors.faint,
   },
   calendarGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: 10,
-    paddingVertical: 8,
   },
   emptyDayCell: {
     width: '14.28%',
@@ -238,106 +271,119 @@ const styles = StyleSheet.create({
   dayCircle: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  dayCircleEvent: {
+    backgroundColor: colors.tealSoft,
+  },
   dayCircleSelected: {
-    borderWidth: 2.5,
-    borderColor: '#E65100', // orange ring matching screenshot p18_img0_Image107.jpg
+    backgroundColor: colors.teal,
   },
   dayText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#212121',
+    color: colors.ink2,
+  },
+  dayTextEvent: {
+    color: colors.teal,
+    fontWeight: '700',
   },
   dayTextSelected: {
     fontWeight: '800',
-    color: '#000000',
+    color: '#FFFFFF',
   },
   eventDot: {
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#0288D1',
+    backgroundColor: colors.teal,
     position: 'absolute',
-    bottom: 2,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#EEEEEE',
-    marginVertical: 10,
+    bottom: 1,
   },
   eventSection: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingTop: 20,
   },
   selectedDayHeader: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#616161',
-    marginBottom: 12,
-    lineHeight: 18,
+    fontSize: 10.5,
+    fontWeight: '800',
+    letterSpacing: 0.9,
+    textTransform: 'uppercase',
+    color: colors.muted,
+    marginBottom: 10,
+    lineHeight: 16,
   },
   eventCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-    padding: 16,
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#CFD8DC',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 2,
-    elevation: 2,
+  },
+  eventTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  eventIconTile: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: colors.tealSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
   eventTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#212121',
-    marginBottom: 6,
+    color: colors.ink,
+    letterSpacing: -0.2,
+    marginBottom: 8,
   },
   eventMetaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
-  },
-  eventType: {
-    fontSize: 12,
-    color: '#757575',
-    fontWeight: '500',
   },
   eventTime: {
-    fontSize: 12,
-    color: '#0288D1',
+    fontSize: 12.5,
+    color: colors.teal,
     fontWeight: '700',
   },
   eventLocRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
+    marginTop: 12,
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
   },
   eventLocText: {
-    fontSize: 12,
-    color: '#546E7A',
-    marginLeft: 4,
+    fontSize: 12.5,
+    color: colors.ink2,
+    marginLeft: 6,
+    flex: 1,
   },
   eventDesc: {
-    fontSize: 13,
-    color: '#424242',
-    lineHeight: 18,
-    marginTop: 4,
+    fontSize: 13.5,
+    color: colors.muted,
+    lineHeight: 19,
+    marginTop: 10,
   },
   noEventsBox: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 36,
+    paddingVertical: 28,
+  },
+  emptyIconTile: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   noEventsText: {
     fontSize: 13,
-    color: '#9E9E9E',
-    marginTop: 8,
+    color: colors.muted,
+    marginTop: 10,
   },
 });

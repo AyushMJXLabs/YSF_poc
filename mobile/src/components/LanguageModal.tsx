@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { Language } from '../types';
+import { colors, radius } from '../theme';
 
 interface LanguageModalProps {
   visible: boolean;
@@ -31,35 +32,36 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({
     >
       <View style={styles.overlay}>
         <View style={styles.dialogBox}>
+          <Text style={styles.dialogMicro}>Preferences</Text>
           <Text style={styles.dialogTitle}>Choose Language</Text>
 
           {/* Option: English */}
           <TouchableOpacity
-            style={styles.radioRow}
+            style={[styles.radioRow, selected === 'en' && styles.radioRowSelected]}
             onPress={() => setSelected('en')}
             activeOpacity={0.7}
           >
             <View style={[styles.radioOuter, selected === 'en' && styles.radioOuterSelected]}>
               {selected === 'en' && <View style={styles.radioInner} />}
             </View>
-            <Text style={styles.radioLabel}>English</Text>
+            <Text style={[styles.radioLabel, selected === 'en' && styles.radioLabelSelected]}>English</Text>
           </TouchableOpacity>
 
           {/* Option: Marathi */}
           <TouchableOpacity
-            style={styles.radioRow}
+            style={[styles.radioRow, selected === 'mr' && styles.radioRowSelected]}
             onPress={() => setSelected('mr')}
             activeOpacity={0.7}
           >
             <View style={[styles.radioOuter, selected === 'mr' && styles.radioOuterSelected]}>
               {selected === 'mr' && <View style={styles.radioInner} />}
             </View>
-            <Text style={styles.radioLabel}>मराठी</Text>
+            <Text style={[styles.radioLabel, selected === 'mr' && styles.radioLabelSelected]}>मराठी</Text>
           </TouchableOpacity>
 
           {/* OK Button */}
           <View style={styles.buttonContainer}>
-            <TouchableOpacity onPress={handleConfirm} style={styles.okButton}>
+            <TouchableOpacity onPress={handleConfirm} style={styles.okButton} activeOpacity={0.85}>
               <Text style={styles.okButtonText}>OK</Text>
             </TouchableOpacity>
           </View>
@@ -72,70 +74,96 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(17,26,51,0.45)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
   },
   dialogBox: {
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.line,
     width: '100%',
-    maxWidth: 320,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 8,
+    maxWidth: 340,
+    padding: 20,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.16,
+    shadowRadius: 24,
+    elevation: 10,
+  },
+  dialogMicro: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    letterSpacing: 0.9,
+    textTransform: 'uppercase',
+    color: colors.teal,
+    marginBottom: 4,
   },
   dialogTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
-    color: '#212121',
-    marginBottom: 20,
+    color: colors.ink,
+    letterSpacing: -0.2,
+    marginBottom: 16,
   },
   radioRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 13,
+    paddingHorizontal: 14,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceMuted,
+    borderWidth: 1,
+    borderColor: colors.surfaceMuted,
+    marginBottom: 8,
+  },
+  radioRowSelected: {
+    backgroundColor: colors.tealSoft,
+    borderColor: colors.teal,
   },
   radioOuter: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#757575',
+    borderColor: colors.lineStrong,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
+    marginRight: 12,
   },
   radioOuterSelected: {
-    borderColor: '#0288D1',
+    borderColor: colors.teal,
   },
   radioInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#0288D1',
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.teal,
   },
   radioLabel: {
-    fontSize: 16,
-    color: '#333333',
-    fontWeight: '500',
+    fontSize: 15,
+    color: colors.ink2,
+    fontWeight: '600',
+  },
+  radioLabelSelected: {
+    color: colors.ink,
+    fontWeight: '700',
   },
   buttonContainer: {
-    alignItems: 'flex-end',
-    marginTop: 20,
+    marginTop: 12,
   },
   okButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    backgroundColor: colors.teal,
+    borderRadius: radius.md,
+    paddingVertical: 13,
+    alignItems: 'center',
   },
   okButtonText: {
-    color: '#0288D1',
-    fontSize: 16,
+    color: '#FFFFFF',
+    fontSize: 15,
     fontWeight: '700',
-    letterSpacing: 0.5,
   },
 });

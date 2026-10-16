@@ -15,6 +15,7 @@ import { getTranslation } from '../i18n/translations';
 import { Header } from '../components/Header';
 import { apiService } from '../services/api';
 import { screenTimeTracker } from '../services/ScreenTimeTracker';
+import { colors, radius, shadow, Pill } from '../theme';
 
 interface NoticesScreenProps {
   language: Language;
@@ -64,37 +65,45 @@ export const NoticesScreen: React.FC<NoticesScreenProps> = ({
 
       {loading ? (
         <View style={styles.loaderArea}>
-          <ActivityIndicator size="large" color="#0288D1" />
+          <ActivityIndicator size="large" color={colors.teal} />
         </View>
       ) : (
         <ScrollView
           contentContainerStyle={styles.scrollContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#0288D1"]} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.teal]} tintColor={colors.teal} />}
         >
-          {notices.map((n) => (
-            <TouchableOpacity
-              key={n.id}
-              style={styles.noticeItem}
-              onPress={() => setSelectedNotice(n)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.noticeTopRow}>
-                <Text style={styles.noticeTitle}>{n.title}</Text>
-                <View style={styles.dateAndStar}>
-                  <Text style={styles.dateRedText}>{n.date}</Text>
-                  <FontAwesome
-                    name="star"
-                    size={16}
-                    color={n.starColor === 'red' ? '#E53935' : '#43A047'}
-                    style={styles.starIcon}
-                  />
+          {notices.map((n) => {
+            const isImportant = n.starColor === 'red';
+            return (
+              <TouchableOpacity
+                key={n.id}
+                style={styles.noticeItem}
+                onPress={() => setSelectedNotice(n)}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.noticeIconTile, { backgroundColor: isImportant ? colors.redSoft : colors.tealSoft }]}>
+                  <MaterialIcons name="campaign" size={20} color={isImportant ? colors.red : colors.teal} />
                 </View>
-              </View>
-              <Text style={styles.noticeExcerpt} numberOfLines={2}>
-                {n.content}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <View style={{ flex: 1 }}>
+                  <View style={styles.noticeTopRow}>
+                    <Text style={styles.noticeTitle} numberOfLines={2}>{n.title}</Text>
+                    <FontAwesome
+                      name="star"
+                      size={14}
+                      color={isImportant ? colors.red : colors.green}
+                      style={styles.starIcon}
+                    />
+                  </View>
+                  <Text style={styles.noticeExcerpt} numberOfLines={2}>
+                    {n.content}
+                  </Text>
+                  <View style={styles.dateAndStar}>
+                    <Pill label={n.date} tone={isImportant ? 'red' : 'neutral'} />
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
       )}
 
@@ -107,15 +116,16 @@ export const NoticesScreen: React.FC<NoticesScreenProps> = ({
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
+            <Text style={styles.modalMicro}>Notice</Text>
             <View style={styles.modalHeaderRow}>
               <Text style={styles.modalTitle}>{selectedNotice?.title}</Text>
-              <TouchableOpacity onPress={() => setSelectedNotice(null)}>
-                <MaterialIcons name="close" size={24} color="#757575" />
+              <TouchableOpacity onPress={() => setSelectedNotice(null)} style={styles.modalCloseIcon}>
+                <MaterialIcons name="close" size={20} color={colors.ink} />
               </TouchableOpacity>
             </View>
 
             <View style={styles.modalMetaRow}>
-              <Text style={styles.modalDate}>{selectedNotice?.fullDate || selectedNotice?.date}</Text>
+              <Pill label={String(selectedNotice?.fullDate || selectedNotice?.date || '')} tone="red" />
               <Text style={styles.modalAuthor}>Issued by: YSF Central Academic Admin</Text>
             </View>
 
@@ -126,6 +136,7 @@ export const NoticesScreen: React.FC<NoticesScreenProps> = ({
             <TouchableOpacity
               style={styles.modalCloseBtn}
               onPress={() => setSelectedNotice(null)}
+              activeOpacity={0.85}
             >
               <Text style={styles.modalCloseBtnText}>Close</Text>
             </TouchableOpacity>
@@ -139,7 +150,7 @@ export const NoticesScreen: React.FC<NoticesScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: colors.bg,
   },
   loaderArea: {
     flex: 1,
@@ -147,110 +158,142 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scrollContent: {
-    paddingVertical: 10,
+    padding: 16,
+    paddingBottom: 32,
   },
   noticeItem: {
-    backgroundColor: '#ffffff',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#CFD8DC',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.line,
+    padding: 14,
+    marginBottom: 10,
+    ...shadow,
+  },
+  noticeIconTile: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
   noticeTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
+    alignItems: 'flex-start',
+    marginBottom: 4,
   },
   noticeTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
-    color: '#212121',
+    color: colors.ink,
+    letterSpacing: -0.1,
     flex: 1,
   },
   dateAndStar: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  dateRedText: {
-    color: '#E53935', // red date matching screenshot p18_img1_Image108.jpg
-    fontSize: 13,
-    fontWeight: '600',
+    marginTop: 10,
   },
   starIcon: {
     marginLeft: 10,
+    marginTop: 2,
   },
   noticeExcerpt: {
     fontSize: 13,
-    color: '#616161',
+    color: colors.muted,
     lineHeight: 18,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(17,26,51,0.45)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   modalCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 10,
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.line,
     width: '100%',
-    maxWidth: 340,
+    maxWidth: 360,
     padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 8,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.16,
+    shadowRadius: 24,
+    elevation: 10,
+  },
+  modalMicro: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    letterSpacing: 0.9,
+    textTransform: 'uppercase',
+    color: colors.teal,
+    marginBottom: 4,
   },
   modalHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
+    alignItems: 'flex-start',
+    marginBottom: 12,
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '800',
-    color: '#212121',
+    fontWeight: '700',
+    color: colors.ink,
+    letterSpacing: -0.2,
     flex: 1,
+    marginRight: 10,
+  },
+  modalCloseIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: colors.surfaceMuted,
+    borderWidth: 1,
+    borderColor: colors.line,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   modalMetaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
-    paddingBottom: 8,
-  },
-  modalDate: {
-    fontSize: 12,
-    color: '#E53935',
-    fontWeight: '600',
+    borderBottomColor: colors.line,
+    paddingBottom: 12,
   },
   modalAuthor: {
     fontSize: 11,
-    color: '#757575',
+    color: colors.muted,
+    flexShrink: 1,
+    marginLeft: 8,
+    textAlign: 'right',
   },
   modalBodyScroll: {
-    maxHeight: 200,
-    marginBottom: 20,
+    maxHeight: 220,
+    marginBottom: 18,
   },
   modalContentText: {
     fontSize: 14,
-    color: '#424242',
+    color: colors.ink2,
     lineHeight: 22,
   },
   modalCloseBtn: {
-    backgroundColor: '#0288D1',
-    paddingVertical: 10,
-    borderRadius: 6,
+    backgroundColor: colors.teal,
+    paddingVertical: 13,
+    borderRadius: radius.md,
     alignItems: 'center',
   },
   modalCloseBtnText: {
-    color: '#ffffff',
-    fontSize: 14,
+    color: '#FFFFFF',
+    fontSize: 15,
     fontWeight: '700',
   },
 });
