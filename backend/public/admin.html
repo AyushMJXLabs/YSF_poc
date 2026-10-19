@@ -5847,6 +5847,9 @@
     // ---------------- Reports ----------------
     const col = (label, opts = {}) => ({ key: opts.key || label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, ''), label, ...opts });
     const AUTO = 'auto';
+    // Every report table that shows a Scheme or Course column gets the matching filter
+    const SCHEME_F = { key: 'scheme', label: 'All schemes', values: AUTO };
+    const COURSE_F = (key = 'course_name') => ({ key, label: 'All courses', values: AUTO });
     const REPORTS = {
       enrollment: {
         title: 'Enrollment Report',
@@ -5857,7 +5860,7 @@
           summary: {
             title: 'Summary Report',
             desc: 'Totals per scheme, zone and industry location.',
-            filters: [{ key: 'scheme', label: 'All schemes', values: AUTO }, { key: 'zone', label: 'All zones', values: AUTO }],
+            filters: [SCHEME_F, { key: 'zone', label: 'All zones', values: AUTO }],
             columns: [
               col('Scheme'), col('Zone'), col('Industry Name'), col('Industry Location'),
               col('No. of Enrollment', { num: true, key: 'enrollment_count' }),
@@ -5870,7 +5873,7 @@
           detail: {
             title: 'Detail Report Trainee-wise',
             desc: 'One row per trainee with course dates and last login.',
-            filters: [{ key: 'scheme', label: 'All schemes', values: AUTO }, { key: 'course_name', label: 'All courses', values: AUTO }],
+            filters: [SCHEME_F, COURSE_F()],
             columns: [
               col('Scheme'), col('Zone'), col('Industry Name'), col('Industry Location'),
               col('Trainee Name'), col('Aadhaar Card Number', { key: 'aadhaar' }), col('Sector'), col('Job Role'), col('Course Name'),
@@ -5887,7 +5890,7 @@
         desc: 'Active and Left trainees with their LMS access, end date and last login.',
         icon: 'fa-solid fa-user-shield',
         hue: '#14b8a6',
-        filters: [{ key: 'status', label: 'All statuses', values: ['Active', 'Left', 'Completed'] }, { key: 'lms_access', label: 'Any access', values: ['Yes', 'No'] }, { key: 'course_name', label: 'All courses', values: AUTO }],
+        filters: [SCHEME_F, COURSE_F(), { key: 'status', label: 'All statuses', values: ['Active', 'Left', 'Completed'] }, { key: 'lms_access', label: 'Any access', values: ['Yes', 'No'] }],
         columns: [
           col('YSF Code'), col('Trainee Name'), col('Scheme'), col('Course Name'), col('Industry Name'),
           col('Status', { tag: 'status' }), col('LMS Access', { tag: 'access' }),
@@ -5900,9 +5903,9 @@
         desc: 'Sessions and time spent in the app and in learning content, per trainee.',
         icon: 'fa-regular fa-clock',
         hue: '#06b6d4',
-        filters: [{ key: 'course_name', label: 'All courses', values: AUTO }],
+        filters: [SCHEME_F, COURSE_F()],
         columns: [
-          col('YSF Code'), col('Trainee Name'), col('Course Name'),
+          col('YSF Code'), col('Trainee Name'), col('Scheme'), col('Course Name'),
           col('Sessions', { num: true }),
           col('Total Screen Time', { hint: 'HH:MM:SS', num: true }),
           col('Learning Screen Time', { hint: 'HH:MM:SS', num: true }),
@@ -5914,7 +5917,7 @@
         desc: 'Uploaded content against each trainee’s screen time and topics viewed.',
         icon: 'fa-solid fa-chart-line',
         hue: '#8b5cf6',
-        filters: [{ key: 'course_name', label: 'All courses', values: AUTO }],
+        filters: [SCHEME_F, COURSE_F()],
         columns: [
           col('Zone'), col('Scheme'), col('Industry Name'), col('Industry Location'),
           col('Trainee Name'), col('Aadhaar Card Number', { key: 'aadhaar' }), col('Contact No'), col('Sector'), col('Course Name'), col('Academic Year'),
@@ -5928,7 +5931,7 @@
         desc: 'Uploaded tests, marks and completion per trainee.',
         icon: 'fa-regular fa-square-check',
         hue: '#10b981',
-        filters: [{ key: 'course_name', label: 'All courses', values: AUTO }],
+        filters: [SCHEME_F, COURSE_F()],
         columns: [
           col('Zone'), col('Scheme'), col('Industry Name'), col('Industry Location'),
           col('Trainee Name'), col('Aadhaar Card Number', { key: 'aadhaar' }), col('Contact No'), col('Sector'), col('Course Name'),
@@ -5947,6 +5950,7 @@
           summary: {
             title: 'Summary Report',
             desc: 'Content volume, trainee count and storage per course.',
+            filters: [SCHEME_F, COURSE_F('courses')],
             columns: [
               col('Scheme'), col('Sector'), col('Courses'),
               col('Uploaded Video', { num: true }),
@@ -5959,7 +5963,7 @@
           detail: {
             title: 'Detail Report Trainee-wise',
             desc: 'Content broken down to subject, unit and topic.',
-            filters: [{ key: 'course_name', label: 'All courses', values: AUTO }, { key: 'content_type', label: 'Any content type', values: ['Technical', 'Soft Skill'] }],
+            filters: [SCHEME_F, COURSE_F(), { key: 'content_type', label: 'Any content type', values: ['Technical', 'Soft Skill'] }],
             columns: [
               col('Scheme'), col('Sector'), col('Course Name'),
               col('Academic Year', { hint: 'First Year / Second Year' }),
@@ -6135,7 +6139,20 @@
     }
 
     function setReportFilter(key, value) {
-      reportState.filters = { ...(reportState.filters || {}), [key]: value };
+      const next = { ...(reportState.filters || {}), [key]: value };
+      // A new scheme can make the chosen course impossible — drop filters that no longer match any row
+      const rows = getReportRows();
+      Object.keys(next).forEach(k => {
+        if (k === key || !next[k]) return;
+        const stillThere = rows.some(r => String(r[k] ?? '') === next[k] && Object.entries(next).every(([k2, v2]) => k2 === k || !v2 || String(r[k2] ?? '') === v2));
+        if (!stillThere) next[k] = '';
+      });
+      reportState.filters = next;
+      refreshReportTable(null);
+    }
+
+    function clearReportFilters() {
+      reportState.filters = {};
       refreshReportTable(null);
     }
 
@@ -6182,13 +6199,17 @@
               ${cols.map(c => `<td class="${c.num ? 'num' : ''}">${reportCell(c, row[c.key])}</td>`).join('')}
             </tr>`).join('');
 
+      const active = st.filters || {};
       const filters = (def.filters || []).map(f => {
-        const values = f.values === AUTO ? uniqSorted(getReportRows().map(r => r[f.key])) : f.values;
+        const cur = active[f.key] || '';
+        // Options come from rows matching the other filters, so picking a scheme narrows the course list
+        const others = getReportRows().filter(r => Object.entries(active).every(([k, v]) => k === f.key || !v || String(r[k] ?? '') === v));
+        let values = f.values === AUTO ? uniqSorted(others.map(r => r[f.key])) : f.values;
+        if (cur && !values.includes(cur)) values = [cur, ...values];
         if (!values.length) return '';
-        const cur = (st.filters || {})[f.key] || '';
         return `<select class="no-print" style="height:34px;font-size:13px;padding:0 28px 0 10px;max-width:200px" onchange="setReportFilter('${f.key}', this.value)">
           <option value="">${escapeHtml(f.label)}</option>${values.map(v => `<option value="${escapeHtml(v)}" ${v === cur ? 'selected' : ''}>${escapeHtml(v)}</option>`).join('')}</select>`;
-      }).join('');
+      }).join('') + (Object.values(active).some(Boolean) ? `<button class="link-act no-print" onclick="clearReportFilters()"><i class="fa-solid fa-xmark mr-1"></i>Clear filters</button>` : '');
 
       return `
         <div class="panel overflow-hidden" style="--hue:${REPORTS[reportState.report].hue}">
