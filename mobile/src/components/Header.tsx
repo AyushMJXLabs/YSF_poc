@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Image, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Image } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, radius } from '../theme';
 
@@ -29,6 +29,9 @@ export const Header: React.FC<HeaderProps> = ({
   avatarUrl,
   onAvatarPress,
 }) => {
+  const [imgFailed, setImgFailed] = useState(false);
+  useEffect(() => setImgFailed(false), [avatarUrl]);
+
   const leftIcon = showMenu ? 'menu' : showBack ? 'arrow-back' : null;
   const onLeft = showMenu ? onMenu : onBack;
 
@@ -38,8 +41,8 @@ export const Header: React.FC<HeaderProps> = ({
       return (
         <TouchableOpacity onPress={onAvatarPress} activeOpacity={0.8} disabled={!onAvatarPress}>
           <View style={styles.avatar}>
-            {avatarUrl ? (
-              <Image source={{ uri: avatarUrl }} style={styles.avatarImg} />
+            {avatarUrl && !imgFailed ? (
+              <Image source={{ uri: avatarUrl }} style={styles.avatarImg} onError={() => setImgFailed(true)} />
             ) : (
               <Text style={styles.avatarText}>{(avatarName || '?').trim().charAt(0).toUpperCase()}</Text>
             )}
@@ -77,7 +80,7 @@ export const Header: React.FC<HeaderProps> = ({
 const styles = StyleSheet.create({
   headerContainer: {
     backgroundColor: colors.surface,
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 8 : 12,
+    paddingTop: 12,
     paddingBottom: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,

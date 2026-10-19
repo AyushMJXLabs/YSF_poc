@@ -17,6 +17,7 @@ import { DocumentViewerModal } from '../components/DocumentViewerModal';
 import { apiService } from '../services/api';
 import { screenTimeTracker } from '../services/ScreenTimeTracker';
 import { colors, radius, Card, Pill } from '../theme';
+import { useHardwareBack } from '../hooks/useHardwareBack';
 
 interface TestModuleScreenProps {
   language: Language;
@@ -147,6 +148,14 @@ export const TestModuleScreen: React.FC<TestModuleScreenProps> = ({ language, on
     }
   };
 
+  useHardwareBack(() => {
+    if (showRef) { setShowRef(false); return true; }
+    handleBack();
+    return true;
+  });
+
+  const fmtDay = (d?: string) => d ? new Date(`${d}T00:00:00`).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+
   // ---------- LIST ----------
   const renderList = () => {
     const done = tests.filter(x => x.status === 'Solved');
@@ -215,14 +224,30 @@ export const TestModuleScreen: React.FC<TestModuleScreenProps> = ({ language, on
                   </View>
                   <View style={styles.testMeta}>
                     <Meta icon="timer-outline" text={`${item.duration} ${t.minutesShort}`} />
-                    <Meta icon="format-list-numbered" text={`${qCount} ${t.questionsShort}`} />
+                    <Meta icon="format-list-numbered" text={`${qCount} ${language === 'en' && qCount === 1 ? 'question' : t.questionsShort}`} />
                     <Meta icon="star-four-points-outline" text={`${item.totalMarks} ${t.marksShort}`} />
                     <View style={{ marginLeft: 'auto' }}>
                       {solved
                         ? <Pill label={`${item.score} / ${item.maxScore}`} tone={item.passed === false ? 'red' : 'green'} dot />
-                        : <Pill label={t.statusQueue} tone="amber" />}
+                        : item.availability === 'upcoming'
+                          ? <Pill label={t.upcomingLabel} tone="blue" />
+                          : item.availability === 'expired'
+                            ? <Pill label={t.expiredLabel} tone="neutral" />
+                            : <Pill label={t.statusQueue} tone="amber" />}
                     </View>
                   </View>
+                  {!solved && (item.availableFrom || item.availableUntil) ? (
+                    <View style={styles.windowRow}>
+                      <MaterialCommunityIcons name="calendar-range" size={14} color={colors.muted} />
+                      <Text style={styles.windowText}>
+                        {item.availability === 'upcoming' && item.availableFrom
+                          ? `${t.opensOn} ${fmtDay(item.availableFrom)}`
+                          : item.availableUntil
+                            ? `${item.availability === 'expired' ? t.expiredLabel : t.availableUntil} ${fmtDay(item.availableUntil)}`
+                            : `${t.opensOn} ${fmtDay(item.availableFrom)}`}
+                      </Text>
+                    </View>
+                  ) : null}
                 </Card>
               </TouchableOpacity>
             );
@@ -242,6 +267,9 @@ export const TestModuleScreen: React.FC<TestModuleScreenProps> = ({ language, on
     if (!selected) return null;
     const solved = selected.status === 'Solved';
     const qCount = selected.questions?.length ?? selected.questionCount ?? 0;
+    const closedReason = selected.availability === 'upcoming'
+      ? `${t.testNotOpenYet} ${t.opensOn} ${fmtDay(selected.availableFrom)}.`
+      : selected.availability === 'expired' ? t.testHasExpired : null;
     return (
       <View style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll}>
@@ -292,7 +320,14 @@ export const TestModuleScreen: React.FC<TestModuleScreenProps> = ({ language, on
             </Card>
           ) : null}
         </ScrollView>
-        {!solved ? (
+        {!solved && closedReason ? (
+          <View style={styles.footerBar}>
+            <View style={styles.closedBar}>
+              <MaterialCommunityIcons name="calendar-lock" size={18} color={colors.muted} />
+              <Text style={styles.closedText}>{closedReason}</Text>
+            </View>
+          </View>
+        ) : !solved ? (
           <View style={styles.footerBar}>
             <TouchableOpacity style={styles.primaryBtn} onPress={startQuiz} activeOpacity={0.85}>
               <MaterialCommunityIcons name="play-circle-outline" size={20} color="#fff" />
@@ -519,6 +554,10 @@ const styles = StyleSheet.create({
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   metaText: { fontSize: 12, color: colors.ink2, fontWeight: '600' },
 
+  windowRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 },
+  windowText: { fontSize: 12, color: colors.muted, fontWeight: '600' },
+  closedBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 50, paddingHorizontal: 12, borderRadius: radius.md, backgroundColor: colors.surfaceMuted },
+  closedText: { flex: 1, fontSize: 13.5, color: colors.ink2, fontWeight: '600' },
   notice: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: radius.md, backgroundColor: colors.tealSoft, marginTop: 6 },
   noticeText: { flex: 1, fontSize: 12.5, color: colors.tealDark, fontWeight: '600' },
 

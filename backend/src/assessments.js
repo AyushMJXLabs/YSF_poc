@@ -21,7 +21,8 @@ const FILE_TYPE_GROUPS = {
 const norm = (v) => String(v || '').trim().toLowerCase().replace(/\s+/g, ' ');
 const uniqueSorted = (values) => [...new Set(values.map(v => String(v || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
 const newId = (prefix) => `${prefix}-${Date.now().toString(36).toUpperCase()}${crypto.randomBytes(2).toString('hex').toUpperCase()}`;
-const nowStamp = () => new Date().toISOString().replace('T', ' ').substring(0, 16);
+// Shown to admins and trainees, so use India time even when the server runs in UTC (Render)
+const nowStamp = () => new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Kolkata' }).substring(0, 16);
 const toNumber = (v, fallback = 0) => {
   const n = parseFloat(v);
   return Number.isFinite(n) ? n : fallback;
@@ -52,6 +53,17 @@ function displayDate(iso) {
 function extensionOf(name) {
   const m = String(name || '').toLowerCase().match(/\.([a-z0-9]+)$/);
   return m ? m[1] : '';
+}
+
+const TEST_TYPES = ['Internal Test', 'Practice Test', 'Mid-Term Test', 'Final Assessment'];
+
+// 'upcoming' before the test date, 'expired' after the expiry date, otherwise 'open'
+function availabilityOf(test) {
+  const now = new Date();
+  if (test.availableFrom && new Date(`${test.availableFrom}T00:00:00`) > now) return 'upcoming';
+  const end = deadlineEnd(test.availableUntil);
+  if (end && end < now) return 'expired';
+  return 'open';
 }
 
 function allowedExtensions(types) {
@@ -280,6 +292,7 @@ function registerAssessmentRoutes(app, { getDb, saveDb, upload, getBaseUrl, UPLO
       zones: uniqueSorted([...(masters.zones || []).map(z => z.name), ...trainees.map(t => t.zoneName)]),
       industries: uniqueSorted([...(masters.companies || []).map(c => c.name), ...trainees.map(t => t.industryPartner)]),
       fileTypes: Object.keys(FILE_TYPE_GROUPS),
+      testTypes: TEST_TYPES,
     });
   });
 
@@ -685,6 +698,12 @@ function registerAssessmentRoutes(app, { getDb, saveDb, upload, getBaseUrl, UPLO
     else if (passingMarks > totalMarks) errors.push('Passing marks cannot exceed total marks');
     if (!Number.isFinite(duration) || duration <= 0) errors.push('Test duration must be at least 1 minute');
     if (requireQuestions && (!questions || questions.length === 0)) errors.push('Upload an Excel file with at least one question');
+    const availableFrom = String(body.availableFrom || '').trim();
+    const availableUntil = String(body.availableUntil || '').trim();
+    if (availableFrom && !deadlineEnd(availableFrom)) errors.push('Test date must be a valid date');
+    if (availableUntil && !deadlineEnd(availableUntil)) errors.push('Expiry date must be a valid date');
+    if (availableFrom && availableUntil && availableUntil < availableFrom) errors.push('Expiry date cannot be before the test date');
+    const testFor = TEST_TYPES.includes(body.testFor) ? body.testFor : 'Internal Test';
 
     const cleanQuestions = questions ? questions
       .filter(q => q && String(q.question || '').trim() && Array.isArray(q.options) && q.options.length >= 2)
@@ -708,6 +727,9 @@ function registerAssessmentRoutes(app, { getDb, saveDb, upload, getBaseUrl, UPLO
         passingMarks,
         duration,
         instructions: String(body.instructions || '').trim() || 'You can only select one answer per question.',
+        testFor,
+        availableFrom,
+        availableUntil,
         ...(cleanQuestions ? { questions: cleanQuestions } : {}),
         ...(body.sourceFile ? { sourceFile: String(body.sourceFile) } : {}),
       },
@@ -724,7 +746,6 @@ function registerAssessmentRoutes(app, { getDb, saveDb, upload, getBaseUrl, UPLO
       id: `TEST-${number}`,
       number,
       ...fields,
-      testFor: 'Internal Test',
       date: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }),
       createdAt: new Date().toISOString(),
       attachment: null,
@@ -788,6 +809,9 @@ function registerAssessmentRoutes(app, { getDb, saveDb, upload, getBaseUrl, UPLO
       totalMarks: t.totalMarks,
       passingMarks: t.passingMarks,
       instructions: t.instructions,
+      availableFrom: t.availableFrom || '',
+      availableUntil: t.availableUntil || '',
+      availability: availabilityOf(t),
       attachment: t.attachment || null,
       questionCount: (t.questions || []).length,
       status: attempt ? 'Solved' : 'Not solved',
@@ -831,6 +855,9 @@ function registerAssessmentRoutes(app, { getDb, saveDb, upload, getBaseUrl, UPLO
     const trainee = findTrainee(db, traineeId);
     if (!trainee) return res.status(400).json({ success: false, message: 'Unknown trainee' });
     test.attempts = test.attempts || [];
+    const availability = availabilityOf(test);
+    if (availability === 'upcoming') return res.status(403).json({ success: false, message: `This test opens on ${displayDate(test.availableFrom)}` });
+    if (availability === 'expired') return res.status(403).json({ success: false, message: 'This test has expired' });
     if (test.attempts.some(a => a.traineeId === trainee.id)) {
       return res.status(409).json({ success: false, message: 'You have already attempted this test' });
     }

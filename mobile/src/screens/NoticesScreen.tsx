@@ -15,6 +15,7 @@ import { getTranslation } from '../i18n/translations';
 import { Header } from '../components/Header';
 import { apiService } from '../services/api';
 import { screenTimeTracker } from '../services/ScreenTimeTracker';
+import { useHardwareBack } from '../hooks/useHardwareBack';
 import { colors, radius, shadow, Pill } from '../theme';
 
 interface NoticesScreenProps {
@@ -33,6 +34,13 @@ export const NoticesScreen: React.FC<NoticesScreenProps> = ({
   const [selectedNotice, setSelectedNotice] = useState<NoticeItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Android hardware back: close an open notice first, then leave the screen
+  useHardwareBack(() => {
+    if (selectedNotice) setSelectedNotice(null);
+    else onBack();
+    return true;
+  });
 
   const loadNotices = useCallback(async () => {
     const data = await apiService.getNotices();

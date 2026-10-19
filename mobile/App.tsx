@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Alert, SafeAreaView, StatusBar } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { StyleSheet, View, Alert, StatusBar, BackHandler } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { ScreenName, Language } from './src/types';
 import { Toast } from './src/components/Toast';
 import { LanguageModal } from './src/components/LanguageModal';
 import { DrawerSidebar } from './src/components/DrawerSidebar';
-import { InstituteCodeScreen } from './src/screens/InstituteCodeScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
@@ -16,27 +16,28 @@ import { TestModuleScreen } from './src/screens/TestModuleScreen';
 import { EventsScreen } from './src/screens/EventsScreen';
 import { NoticesScreen } from './src/screens/NoticesScreen';
 import { TechnicalQueryScreen } from './src/screens/TechnicalQueryScreen';
-import { ChangePasswordScreen } from './src/screens/ChangePasswordScreen';
 import { screenTimeTracker } from './src/services/ScreenTimeTracker';
 import { apiService } from './src/services/api';
+import { getTranslation } from './src/i18n/translations';
 import { colors } from './src/theme';
 
+type Trainee = {
+  id: string;
+  fullName: string;
+  ysfCode: string;
+  courseName: string;
+  status: string;
+  avatar?: string;
+};
+
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<ScreenName>('INSTITUTE_CODE');
-  const [isInstituteValidated, setIsInstituteValidated] = useState(false);
+  // Trainees sign in directly — there is no institute-code step any more
+  const [currentScreen, setCurrentScreen] = useState<ScreenName>('LOGIN');
   const [language, setLanguage] = useState<Language>('en');
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  const [trainee, setTrainee] = useState<{
-    id: string;
-    fullName: string;
-    ysfCode: string;
-    courseName: string;
-    status: string;
-    avatar?: string;
-  }>({
+  const [trainee, setTrainee] = useState<Trainee>({
     id: 'T001',
     fullName: 'KUMARI K',
     ysfCode: 'W2307C00001',
@@ -44,36 +45,47 @@ export default function App() {
     status: 'Active',
   });
 
-  // Hook up screen time tracker toast callback
   useEffect(() => {
     screenTimeTracker.setToastCallback((msg: string) => {
       setToastMessage(msg);
     });
 
-    // Check language selection & cached institute validation
-    const initializeAppState = async () => {
+    (async () => {
       try {
         const storedLang = await AsyncStorage.getItem('@ysf_language');
         if (!storedLang) {
-          // First launch: show language selection pop-up per Page 4 & Page 6 manual instructions
           setShowLanguageModal(true);
         } else {
           setLanguage(storedLang as Language);
         }
-
-        const validated = await AsyncStorage.getItem('@ysf_institute_validated');
-        if (validated === 'true') {
-          setIsInstituteValidated(true);
-          // Optional: remain on LOGIN if already validated
-          // setCurrentScreen('LOGIN');
-        }
       } catch (err) {
         console.warn('Error reading app storage state:', err);
       }
-    };
-
-    initializeAppState();
+    })();
   }, []);
+
+  // Android hardware back: screens with their own sub-views handle it first
+  // (see useHardwareBack); this is the fallback — any module returns to Home,
+  // and on Home a second press within 2s closes the app.
+  const screenRef = useRef(currentScreen);
+  screenRef.current = currentScreen;
+  const lastBackAt = useRef(0);
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      const screen = screenRef.current;
+      if (screen === 'LOGIN') return false;
+      if (screen !== 'DASHBOARD') {
+        setCurrentScreen('DASHBOARD');
+        return true;
+      }
+      const now = Date.now();
+      if (now - lastBackAt.current < 2000) return false;
+      lastBackAt.current = now;
+      setToastMessage(getTranslation(language).pressBackAgainToExit);
+      return true;
+    });
+    return () => sub.remove();
+  }, [language]);
 
   const handleLanguageSelect = async (lang: Language) => {
     setLanguage(lang);
@@ -84,166 +96,107 @@ export default function App() {
     }
   };
 
-  const handleInstituteValidated = async () => {
-    setIsInstituteValidated(true);
-    await AsyncStorage.setItem('@ysf_institute_validated', 'true');
-    setCurrentScreen('LOGIN');
-    screenTimeTracker.showToast("Institute Code Validated");
-  };
-
-  const handleChangeInstitute = async () => {
-    setIsInstituteValidated(false);
-    await AsyncStorage.removeItem('@ysf_institute_validated');
-    setCurrentScreen('INSTITUTE_CODE');
-  };
-
   const handleLoginSuccess = (traineeData: any) => {
-    setTrainee(traineeData);
-    apiService.setTrainee(traineeData);
+    const next = { ...traineeData, avatar: traineeData.avatar ? apiService.rewriteFileUrl(traineeData.avatar) : undefined };
+    setTrainee(next);
+    apiService.setTrainee(next);
     setCurrentScreen('DASHBOARD');
-    screenTimeTracker.showToast("Welcome to Kaushalya LMS");
+    screenTimeTracker.showToast('Welcome to Kaushalya LMS');
   };
 
   const handleLogout = async () => {
-    screenTimeTracker.showToast("Logged out successfully");
+    screenTimeTracker.showToast('Logged out successfully');
     setCurrentScreen('LOGIN');
   };
 
   const handleShowTerms = () => {
     Alert.alert(
-      "Terms and Conditions",
-      "YSF Kaushalya LMS Terms:\n\n1. Attendance in offline classes and On-the-Job Training (OJT) must exceed 85%.\n2. Trainees must record daily learnings in their OJT Diary / Logbook.\n3. Content and learning materials are proprietary and downloading to local storage is restricted.\n4. Screen time telemetry is recorded and synced to the administrative panel.\n5. Assessment modules are strictly administered in English.",
-      [{ text: "I Understand" }]
+      'Terms and Conditions',
+      'YSF Kaushalya LMS Terms:\n\n1. Attendance in offline classes and On-the-Job Training (OJT) must exceed 85%.\n2. Trainees must record daily learnings in their OJT Diary / Logbook.\n3. Content and learning materials are proprietary and downloading to local storage is restricted.\n4. Screen time telemetry is recorded and synced to the administrative panel.\n5. Assessment modules are strictly administered in English.',
+      [{ text: 'I Understand' }]
     );
   };
 
+  const goHome = () => setCurrentScreen('DASHBOARD');
+
   return (
-    <SafeAreaView style={styles.rootContainer}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.surface} />
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.rootContainer} edges={['top', 'bottom']}>
+        <StatusBar barStyle="dark-content" backgroundColor={colors.surface} />
 
-      {/* Main Screen Router */}
-      <View style={styles.screenWrapper}>
-        {currentScreen === 'INSTITUTE_CODE' && (
-          <InstituteCodeScreen
-            language={language}
-            onCodeValidated={handleInstituteValidated}
-            onTermsPressed={handleShowTerms}
-          />
-        )}
+        <View style={styles.screenWrapper}>
+          {currentScreen === 'LOGIN' && (
+            <LoginScreen language={language} onLoginSuccess={handleLoginSuccess} onTermsPressed={handleShowTerms} />
+          )}
 
-        {currentScreen === 'LOGIN' && (
-          <LoginScreen
-            language={language}
-            onLoginSuccess={handleLoginSuccess}
-            onChangeInstitute={handleChangeInstitute}
-            onTermsPressed={handleShowTerms}
-          />
-        )}
+          {currentScreen === 'DASHBOARD' && (
+            <DashboardScreen
+              language={language}
+              onNavigate={(screen) => setCurrentScreen(screen)}
+              onOpenDrawer={() => setDrawerOpen(true)}
+              onLogout={handleLogout}
+              traineeName={trainee.fullName}
+              ysfCode={trainee.ysfCode}
+              avatarUrl={trainee.avatar}
+            />
+          )}
 
-        {currentScreen === 'DASHBOARD' && (
-          <DashboardScreen
-            language={language}
-            onNavigate={(screen) => setCurrentScreen(screen)}
-            onOpenDrawer={() => setDrawerOpen(true)}
-            onLogout={handleLogout}
-            traineeName={trainee.fullName}
-            ysfCode={trainee.ysfCode}
-            avatarUrl={trainee.avatar}
-          />
-        )}
+          {currentScreen === 'PROFILE' && (
+            <ProfileScreen
+              language={language}
+              onBack={goHome}
+              traineeName={trainee.fullName}
+              onAvatarChange={(url: string) => setTrainee(prev => ({ ...prev, avatar: url }))}
+            />
+          )}
 
-        {currentScreen === 'PROFILE' && (
-          <ProfileScreen
-            language={language}
-            onBack={() => setCurrentScreen('DASHBOARD')}
-            traineeName={trainee.fullName}
-          />
-        )}
+          {currentScreen === 'LEARNING_RESOURCES' && (
+            <LearningResourcesScreen language={language} onBack={goHome} traineeName={trainee.fullName} />
+          )}
 
-        {currentScreen === 'LEARNING_RESOURCES' && (
-          <LearningResourcesScreen
-            language={language}
-            onBack={() => setCurrentScreen('DASHBOARD')}
-            traineeName={trainee.fullName}
-          />
-        )}
+          {currentScreen === 'ASSIGNMENTS' && (
+            <AssignmentsScreen language={language} onBack={goHome} traineeName={trainee.fullName} />
+          )}
 
-        {currentScreen === 'ASSIGNMENTS' && (
-          <AssignmentsScreen
-            language={language}
-            onBack={() => setCurrentScreen('DASHBOARD')}
-            traineeName={trainee.fullName}
-          />
-        )}
+          {currentScreen === 'TEST_MODULE' && (
+            <TestModuleScreen language={language} onBack={goHome} traineeName={trainee.fullName} />
+          )}
 
-        {currentScreen === 'TEST_MODULE' && (
-          <TestModuleScreen
-            language={language}
-            onBack={() => setCurrentScreen('DASHBOARD')}
-            traineeName={trainee.fullName}
-          />
-        )}
+          {currentScreen === 'EVENTS' && (
+            <EventsScreen language={language} onBack={goHome} traineeName={trainee.fullName} />
+          )}
 
-        {currentScreen === 'EVENTS' && (
-          <EventsScreen
-            language={language}
-            onBack={() => setCurrentScreen('DASHBOARD')}
-            traineeName={trainee.fullName}
-          />
-        )}
+          {currentScreen === 'NOTICES' && (
+            <NoticesScreen language={language} onBack={goHome} traineeName={trainee.fullName} />
+          )}
 
-        {currentScreen === 'NOTICES' && (
-          <NoticesScreen
-            language={language}
-            onBack={() => setCurrentScreen('DASHBOARD')}
-            traineeName={trainee.fullName}
-          />
-        )}
+          {currentScreen === 'TECHNICAL_QUERY' && (
+            <TechnicalQueryScreen language={language} onBack={goHome} traineeName={trainee.fullName} />
+          )}
+        </View>
 
-        {currentScreen === 'TECHNICAL_QUERY' && (
-          <TechnicalQueryScreen
-            language={language}
-            onBack={() => setCurrentScreen('DASHBOARD')}
-            traineeName={trainee.fullName}
-          />
-        )}
+        <DrawerSidebar
+          visible={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          currentScreen={currentScreen}
+          onNavigate={(screen) => setCurrentScreen(screen)}
+          language={language}
+          onOpenLanguageModal={() => setShowLanguageModal(true)}
+          onLogout={handleLogout}
+          traineeName={trainee.fullName}
+          ysfCode={trainee.ysfCode}
+        />
 
-        {currentScreen === 'CHANGE_PASSWORD' && (
-          <ChangePasswordScreen
-            language={language}
-            onBack={() => setCurrentScreen('DASHBOARD')}
-            traineeName={trainee.fullName}
-          />
-        )}
-      </View>
+        <LanguageModal
+          visible={showLanguageModal}
+          currentLanguage={language}
+          onSelectLanguage={handleLanguageSelect}
+          onClose={() => setShowLanguageModal(false)}
+        />
 
-      {/* Global Navigation Drawer */}
-      <DrawerSidebar
-        visible={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        currentScreen={currentScreen}
-        onNavigate={(screen) => setCurrentScreen(screen)}
-        language={language}
-        onOpenLanguageModal={() => setShowLanguageModal(true)}
-        onLogout={handleLogout}
-        traineeName={trainee.fullName}
-        ysfCode={trainee.ysfCode}
-      />
-
-      {/* Language Selection Modal (Pop-up on First Launch / Restart) */}
-      <LanguageModal
-        visible={showLanguageModal}
-        currentLanguage={language}
-        onSelectLanguage={handleLanguageSelect}
-        onClose={() => setShowLanguageModal(false)}
-      />
-
-      {/* Telemetry Status / Action Toast */}
-      <Toast
-        message={toastMessage}
-        onHide={() => setToastMessage(null)}
-      />
-    </SafeAreaView>
+        <Toast message={toastMessage} onHide={() => setToastMessage(null)} />
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 

@@ -1,428 +1,281 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  ActivityIndicator
+  ActivityIndicator,
+  Alert,
+  Image,
+  RefreshControl,
 } from 'react-native';
-import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
-import { Language, FullProfile } from '../types';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
+import { Language, TraineeProfile, ProfileSection } from '../types';
 import { getTranslation } from '../i18n/translations';
 import { Header } from '../components/Header';
 import { apiService } from '../services/api';
 import { screenTimeTracker } from '../services/ScreenTimeTracker';
-import { colors, radius, shadow } from '../theme';
+import { useHardwareBack } from '../hooks/useHardwareBack';
+import { colors, radius, Card, Pill } from '../theme';
 
 interface ProfileScreenProps {
   language: Language;
   onBack: () => void;
   traineeName: string;
+  /** Called with the new picture URL after a successful upload so the app header can refresh. */
+  onAvatarChange?: (url: string) => void;
 }
 
-export const ProfileScreen: React.FC<ProfileScreenProps> = ({
-  language,
-  onBack,
-  traineeName,
-}) => {
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif', 'bmp'];
+const extOf = (name: string) => (name.toLowerCase().match(/\.([a-z0-9]+)$/) || [])[1] || '';
+
+const SECTION_ICON: Record<ProfileSection['key'], { icon: string; fg: string; bg: string }> = {
+  trainee: { icon: 'account-outline', fg: colors.blue, bg: colors.blueSoft },
+  course: { icon: 'school-outline', fg: colors.teal, bg: colors.tealSoft },
+};
+
+export const ProfileScreen: React.FC<ProfileScreenProps> = ({ language, onBack, traineeName, onAvatarChange }) => {
   const t = getTranslation(language);
-  const [activeTab, setActiveTab] = useState<'info' | 'course' | 'other'>('info');
-  const [profile, setProfile] = useState<FullProfile | null>(null);
+  const labels = t as unknown as Record<string, string | undefined>;
+  const [profile, setProfile] = useState<TraineeProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      const data = await apiService.getProfile();
+      setProfile(data);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
   useEffect(() => {
     screenTimeTracker.onScreenEnter('Profile', traineeName);
-
-    const fetchProfile = async () => {
-      const data = await apiService.getProfile();
-      setProfile(data);
-      setLoading(false);
-    };
-
-    fetchProfile();
-
+    load();
     return () => {
       screenTimeTracker.onScreenLeave('Profile', traineeName);
     };
   }, []);
 
+  // Android hardware back → previous screen instead of closing the app
+  useHardwareBack(() => {
+    onBack();
+    return true;
+  });
+
+  const pickPhoto = async () => {
+    if (uploading) return;
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: 'image/*', copyToCacheDirectory: true });
+      if (result.canceled || !result.assets || result.assets.length === 0) return;
+      const f = result.assets[0];
+      const isImage = (f.mimeType || '').startsWith('image/') || IMAGE_EXT.includes(extOf(f.name));
+      if (!isImage) {
+        Alert.alert(t.changePhoto, 'Please choose an image file (JPG or PNG).');
+        return;
+      }
+      if (f.size && f.size > MAX_PHOTO_BYTES) {
+        Alert.alert(t.changePhoto, 'This image is larger than 5 MB. Please choose a smaller picture.');
+        return;
+      }
+      setUploading(true);
+      const res = await apiService.setProfilePicture({
+        uri: f.uri,
+        name: f.name,
+        mimeType: f.mimeType,
+        file: (f as any).file,
+        size: f.size,
+      });
+      if (!res.success || !res.avatar) {
+        Alert.alert(t.changePhoto, res.message || 'Could not update the picture.');
+        return;
+      }
+      const url = res.avatar;
+      setProfile(p => (p ? { ...p, avatar: url } : p));
+      onAvatarChange?.(url);
+      screenTimeTracker.showToast(t.photoUpdated);
+    } catch (err) {
+      Alert.alert(t.changePhoto, 'Could not open the file picker.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const name = profile?.fullName || traineeName;
+  const status = profile?.status || 'Active';
+  const statusTone = status === 'Active' ? 'navy' : status === 'Completed' ? 'blue' : 'red';
+  const sections = (profile?.sections || []).filter(s => s.key === 'trainee' || s.key === 'course');
+
+  const sectionTitle = (s: ProfileSection) => (s.key === 'trainee' ? t.traineeInformation : s.key === 'course' ? t.courseDetails : s.title);
+
   return (
     <View style={styles.container}>
-      <Header title={t.studentProfile} onBack={onBack} />
+      <Header title={t.profile} subtitle={traineeName} onBack={onBack} />
 
       {loading ? (
-        <View style={styles.loaderArea}>
+        <View style={styles.loader}>
           <ActivityIndicator size="large" color={colors.teal} />
         </View>
       ) : (
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* Avatar and Identity Card */}
-          <View style={styles.identityCard}>
-            <View style={styles.identityRow}>
-              <View style={styles.avatarBox}>
-                <View style={styles.avatarInner}>
-                  <FontAwesome5 name="user-alt" size={26} color={colors.cyan} />
-                </View>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.identityMicro}>{t.studentProfile}</Text>
-                <Text style={styles.traineeNameText} numberOfLines={2}>{profile?.traineeInfo.fullName || traineeName}</Text>
-                <Text style={styles.traineeCodeText}>{profile?.traineeInfo.ysfCode || 'W2307C00001'}</Text>
-              </View>
-            </View>
-            <View style={styles.enrollmentStatusPill}>
-              <View style={styles.statusDot} />
-              <Text style={styles.enrollmentStatusText}>Active &bull; In OJT Training</Text>
-            </View>
-          </View>
-
-          {/* Three Tab Buttons matching screenshots */}
-          <View style={styles.tabsRow}>
-            <TouchableOpacity
-              style={[styles.tabButton, activeTab === 'info' && styles.tabButtonActive]}
-              onPress={() => setActiveTab('info')}
-            >
-              <Text style={[styles.tabButtonText, activeTab === 'info' && styles.tabButtonTextActive]}>
-                {t.tabTraineeInfo}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.tabButton, activeTab === 'course' && styles.tabButtonActive]}
-              onPress={() => setActiveTab('course')}
-            >
-              <Text style={[styles.tabButtonText, activeTab === 'course' && styles.tabButtonTextActive]}>
-                {t.tabCourseInfo}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.tabButton, activeTab === 'other' && styles.tabButtonActive]}
-              onPress={() => setActiveTab('other')}
-            >
-              <Text style={[styles.tabButtonText, activeTab === 'other' && styles.tabButtonTextActive]}>
-                {t.tabOtherInfo}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Tab Content Box */}
-          <View style={styles.detailsCard}>
-            {activeTab === 'info' && (
-              <View>
-                <Text style={styles.sectionHeader}>{t.tabTraineeInfo}</Text>
-
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>{t.ysfCode}</Text>
-                  <Text style={styles.dataValue}>{profile?.traineeInfo.ysfCode}</Text>
-                </View>
-
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>{t.studentFullName}</Text>
-                  <Text style={styles.dataValue}>{profile?.traineeInfo.fullName}</Text>
-                </View>
-
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>{t.schemeName}</Text>
-                  <Text style={styles.dataValue}>{profile?.traineeInfo.schemeName}</Text>
-                </View>
-
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>{t.sectorName}</Text>
-                  <Text style={styles.dataValue}>{profile?.traineeInfo.sectorName}</Text>
-                </View>
-
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>{t.industryPartner}</Text>
-                  <Text style={styles.dataValue}>{profile?.traineeInfo.industryPartner}</Text>
-                </View>
-
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>{t.zoneName}</Text>
-                  <Text style={styles.dataValue}>{profile?.traineeInfo.zoneName}</Text>
-                </View>
-
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>{t.locationName}</Text>
-                  <Text style={styles.dataValue}>{profile?.traineeInfo.locationName}</Text>
-                </View>
-              </View>
-            )}
-
-            {activeTab === 'course' && (
-              <View>
-                <Text style={styles.sectionHeader}>{t.tabCourseInfo}</Text>
-
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>{t.courseName}</Text>
-                  <Text style={styles.dataValue}>{profile?.courseInfo.courseName}</Text>
-                </View>
-
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>{t.jobRoleAssigned}</Text>
-                  <Text style={styles.dataValue}>{profile?.courseInfo.jobRoleAssigned}</Text>
-                </View>
-
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>{t.sectorSkillCouncil}</Text>
-                  <Text style={styles.dataValue}>{profile?.courseInfo.sectorSkillCouncil}</Text>
-                </View>
-
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>{t.nsqLevel}</Text>
-                  <Text style={styles.dataValue}>{profile?.courseInfo.nsqLevel}</Text>
-                </View>
-
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>{t.registrationDate}</Text>
-                  <Text style={styles.dataValue}>{profile?.courseInfo.registrationDate}</Text>
-                </View>
-
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>{t.endDate}</Text>
-                  <Text style={styles.dataValue}>{profile?.courseInfo.endDate}</Text>
-                </View>
-
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>{t.presentOJT}</Text>
-                  <Text style={[styles.dataValue, { color: colors.green, fontWeight: '700' }]}>
-                    {profile?.courseInfo.presentOJT}
-                  </Text>
-                </View>
-              </View>
-            )}
-
-            {activeTab === 'other' && (
-              <View>
-                <Text style={styles.sectionHeader}>{t.tabOtherInfo}</Text>
-
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>{t.nativeAddress}</Text>
-                  <Text style={styles.dataValue}>{profile?.otherInfo.nativeAddress}</Text>
-                </View>
-
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>{t.contact1}</Text>
-                  <Text style={styles.dataValue}>{profile?.otherInfo.contact1}</Text>
-                </View>
-
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>{t.contact2}</Text>
-                  <Text style={styles.dataValue}>{profile?.otherInfo.contact2}</Text>
-                </View>
-
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>{t.email}</Text>
-                  <Text style={styles.dataValue}>{profile?.otherInfo.email}</Text>
-                </View>
-
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>{t.aadharNumber}</Text>
-                  <View style={styles.aadhaarBadge}>
-                    <MaterialIcons name="verified-user" size={14} color={colors.green} />
-                    <Text style={styles.aadhaarText}>
-                      {profile?.otherInfo.aadharNumber || 'XXXX-XXXX-8921'}
-                    </Text>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => {
+                setRefreshing(true);
+                load();
+              }}
+              colors={[colors.teal]}
+              tintColor={colors.teal}
+            />
+          }
+        >
+          {/* Identity hero */}
+          <Card dark style={styles.hero}>
+            <TouchableOpacity onPress={pickPhoto} activeOpacity={0.85} disabled={uploading} style={styles.avatarWrap}>
+              <View style={styles.avatar}>
+                {profile?.avatar ? (
+                  <Image source={{ uri: profile.avatar }} style={styles.avatarImg} />
+                ) : (
+                  <Text style={styles.avatarInitial}>{(name || '?').trim().charAt(0).toUpperCase()}</Text>
+                )}
+                {uploading ? (
+                  <View style={styles.avatarOverlay}>
+                    <ActivityIndicator color="#fff" />
                   </View>
-                </View>
+                ) : null}
               </View>
-            )}
-          </View>
+              <View style={styles.cameraBadge}>
+                <MaterialCommunityIcons name="camera" size={14} color={colors.navy} />
+              </View>
+            </TouchableOpacity>
 
-          {/* Read-Only Notice Box */}
-          <View style={styles.readOnlyBox}>
-            <MaterialIcons name="info-outline" size={18} color={colors.teal} />
-            <Text style={styles.readOnlyText}>{t.profileReadOnlyNotice}</Text>
-          </View>
+            <Text style={styles.heroName} numberOfLines={2}>{name}</Text>
+            <Text style={styles.heroCode}>{profile?.ysfCode || ''}</Text>
+            <Pill label={status} tone={statusTone as any} dot style={styles.heroPill} />
+
+            <TouchableOpacity style={styles.changeBtn} onPress={pickPhoto} disabled={uploading} activeOpacity={0.8}>
+              <MaterialCommunityIcons name="image-edit-outline" size={16} color={colors.cyan} />
+              <Text style={styles.changeBtnText}>{t.changePhoto}</Text>
+            </TouchableOpacity>
+          </Card>
+
+          {/* Trainee Information + Course Details */}
+          {sections.map(section => {
+            const ic = SECTION_ICON[section.key] || SECTION_ICON.trainee;
+            return (
+              <Card key={section.key} style={styles.block}>
+                <View style={styles.sectionHead}>
+                  <View style={[styles.tile, { backgroundColor: ic.bg }]}>
+                    <MaterialCommunityIcons name={ic.icon as any} size={19} color={ic.fg} />
+                  </View>
+                  <Text style={styles.sectionTitle}>{sectionTitle(section)}</Text>
+                </View>
+                {section.fields.map((field, i) => (
+                  <View key={field.key} style={[styles.fieldRow, i === section.fields.length - 1 && styles.fieldRowLast]}>
+                    <Text style={styles.fieldLabel}>{labels[field.key] ?? field.label}</Text>
+                    <Text style={styles.fieldValue}>{field.value || '—'}</Text>
+                  </View>
+                ))}
+              </Card>
+            );
+          })}
+
+          {/* Read-only notice */}
+          {profile?.notice ? (
+            <View style={styles.notice}>
+              <MaterialCommunityIcons name="information-outline" size={17} color={colors.amber} />
+              <Text style={styles.noticeText}>{profile.notice}</Text>
+            </View>
+          ) : null}
         </ScrollView>
       )}
     </View>
   );
 };
 
+const AVATAR = 92;
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  loaderArea: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
-  },
-  identityCard: {
-    backgroundColor: colors.navy,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.navy2,
-    padding: 18,
-    ...shadow,
-  },
-  identityRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatarBox: {
-    width: 64,
-    height: 64,
+  container: { flex: 1, backgroundColor: colors.bg },
+  loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  scroll: { padding: 16, paddingBottom: 32 },
+  block: { marginTop: 14 },
+
+  hero: { alignItems: 'center', paddingVertical: 22 },
+  avatarWrap: { width: AVATAR, height: AVATAR },
+  avatar: {
+    width: AVATAR,
+    height: AVATAR,
+    borderRadius: AVATAR / 2,
     backgroundColor: colors.navy2,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderWidth: 3,
+    borderColor: 'rgba(155,231,242,0.35)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
+    overflow: 'hidden',
   },
-  avatarInner: {
+  avatarImg: { width: '100%', height: '100%' },
+  avatarInitial: { color: colors.cyan, fontSize: 36, fontWeight: '800' },
+  avatarOverlay: {
+    position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(17,26,51,0.6)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  identityMicro: {
-    color: colors.navyMuted,
-    fontSize: 10.5,
-    fontWeight: '700',
-    letterSpacing: 0.9,
-    textTransform: 'uppercase',
-    marginBottom: 3,
+  cameraBadge: {
+    position: 'absolute',
+    right: 0,
+    bottom: 2,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.cyan,
+    borderWidth: 2,
+    borderColor: colors.navy,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  traineeNameText: {
-    color: colors.navyInk,
-    fontSize: 19,
-    fontWeight: '700',
-    letterSpacing: -0.2,
-  },
-  traineeCodeText: {
-    color: colors.cyan,
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-    marginTop: 3,
-  },
-  tabsRow: {
+  heroName: { color: '#fff', fontSize: 20, fontWeight: '800', marginTop: 14, letterSpacing: -0.3, textAlign: 'center' },
+  heroCode: { color: colors.navyMuted, fontSize: 13, fontWeight: '600', marginTop: 4, letterSpacing: 0.5 },
+  heroPill: { alignSelf: 'center', marginTop: 10 },
+  changeBtn: {
     flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     marginTop: 16,
-    backgroundColor: '#E7EAF0',
-    borderRadius: radius.md,
-    padding: 4,
-  },
-  tabButton: {
-    flex: 1,
-    paddingVertical: 9,
-    paddingHorizontal: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 9,
-  },
-  tabButtonActive: {
-    backgroundColor: colors.surface,
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 1,
-  },
-  tabButtonText: {
-    color: colors.muted,
-    fontSize: 11.5,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  tabButtonTextActive: {
-    color: colors.teal,
-  },
-  detailsCard: {
-    backgroundColor: colors.surface,
-    marginTop: 14,
-    borderRadius: radius.lg,
-    padding: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
     borderWidth: 1,
-    borderColor: colors.line,
-    ...shadow,
+    borderColor: 'rgba(155,231,242,0.35)',
+    backgroundColor: 'rgba(155,231,242,0.08)',
   },
-  sectionHeader: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: colors.ink,
-    letterSpacing: -0.2,
-    marginBottom: 12,
-  },
-  dataRow: {
-    paddingVertical: 11,
-    borderTopWidth: 1,
-    borderTopColor: colors.line,
-  },
-  dataLabel: {
-    fontSize: 10.5,
-    color: colors.muted,
-    fontWeight: '700',
-    letterSpacing: 0.9,
-    textTransform: 'uppercase',
-    marginBottom: 4,
-  },
-  dataValue: {
-    fontSize: 14.5,
-    color: colors.ink,
-    fontWeight: '600',
-  },
-  readOnlyBox: {
+  changeBtnText: { color: colors.cyan, fontSize: 13, fontWeight: '700' },
+
+  sectionHead: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
+  tile: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  sectionTitle: { fontSize: 16, fontWeight: '700', color: colors.ink, letterSpacing: -0.2 },
+  fieldRow: { flexDirection: 'row', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.line, gap: 12 },
+  fieldRowLast: { borderBottomWidth: 0, paddingBottom: 2 },
+  fieldLabel: { width: 128, fontSize: 12.5, color: colors.muted, fontWeight: '600' },
+  fieldValue: { flex: 1, fontSize: 13.5, color: colors.ink, fontWeight: '600', textAlign: 'right' },
+
+  notice: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.tealSoft,
+    alignItems: 'flex-start',
+    gap: 8,
     marginTop: 14,
     padding: 12,
     borderRadius: radius.md,
+    backgroundColor: colors.amberSoft,
   },
-  readOnlyText: {
-    color: colors.tealDark,
-    fontSize: 12,
-    marginLeft: 8,
-    flex: 1,
-    lineHeight: 17,
-  },
-  enrollmentStatusPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(34,197,94,0.14)',
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: radius.pill,
-    marginTop: 14,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#4ADE80',
-    marginRight: 6,
-  },
-  enrollmentStatusText: {
-    fontSize: 10.5,
-    fontWeight: '800',
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
-    color: '#4ADE80',
-  },
-  aadhaarBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surfaceMuted,
-    alignSelf: 'flex-start',
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: radius.sm,
-    marginTop: 2,
-  },
-  aadhaarText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.ink,
-    fontFamily: 'monospace',
-    marginLeft: 6,
-  },
+  noticeText: { flex: 1, fontSize: 12.5, color: colors.amber, lineHeight: 18, fontWeight: '600' },
 });

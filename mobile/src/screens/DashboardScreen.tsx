@@ -9,7 +9,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { MaterialIcons, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
-import { ScreenName, Language, AttendanceRecord, Assignment, TestItem } from '../types';
+import { ScreenName, Language, AttendanceRecord, Assignment, TestItem, LearningProgress } from '../types';
 import { getTranslation } from '../i18n/translations';
 import { Header } from '../components/Header';
 import { screenTimeTracker } from '../services/ScreenTimeTracker';
@@ -42,19 +42,22 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [tests, setTests] = useState<TestItem[]>([]);
   const [noticeCount, setNoticeCount] = useState(0);
+  const [progress, setProgress] = useState<LearningProgress | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
-    const [rec, asg, tst, notices] = await Promise.all([
+    const [rec, asg, tst, notices, prog] = await Promise.all([
       apiService.getAttendance(),
       apiService.getAssignments(),
       apiService.getTests(),
       apiService.getNotices(),
+      apiService.getLearningProgress(),
     ]);
     setAttendance(rec);
     setAssignments(asg);
     setTests(tst.tests || []);
     setNoticeCount(notices.length);
+    setProgress(prog);
   }, []);
 
   useEffect(() => {
@@ -80,10 +83,6 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   };
 
   const pct = attendance?.percentage ?? 0;
-  const hoursDone = attendance?.completedHours ?? 0;
-  const hoursTarget = attendance?.targetHours || 1;
-  const hoursPct = Math.min(100, Math.round((hoursDone / hoursTarget) * 100));
-  const hoursLeft = Math.max(0, hoursTarget - hoursDone);
 
   // "Up next": open assignments first, then unsolved tests
   const openAssignments = assignments.filter(a => a.status === 'Pending' || a.status === 'Overdue' || a.status === 'Needs Revision');
@@ -117,7 +116,6 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
     { screen: 'NOTICES', label: t.notice, icon: 'bell-outline', lib: 'mci', tint: colors.red, bg: colors.redSoft },
     { screen: 'PROFILE', label: t.profile, icon: 'account-circle-outline', lib: 'mci', tint: colors.navy, bg: colors.surfaceMuted },
     { screen: 'TECHNICAL_QUERY', label: t.technicalQuery, icon: 'headset', lib: 'mci', tint: colors.teal, bg: colors.tealSoft },
-    { screen: 'CHANGE_PASSWORD', label: t.changePassword, icon: 'key-outline', lib: 'mci', tint: colors.amber, bg: colors.amberSoft },
     { screen: 'LOGOUT', label: t.logout, icon: 'power', lib: 'mci', tint: colors.red, bg: colors.redSoft },
   ];
 
@@ -155,49 +153,54 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
           </View>
         </Card>
 
-        {/* Attendance summary */}
+        {/* Progress summary — share of learning content this trainee has opened */}
         <Card style={styles.block}>
           <SectionHeader
-            title={t.attendanceSummary}
-            right={
-              <TouchableOpacity style={styles.syncChip} onPress={onRefresh} activeOpacity={0.7}>
-                <MaterialCommunityIcons name="cloud-sync-outline" size={14} color={colors.teal} />
-                <Text style={styles.syncChipText}>{refreshing ? t.syncing : t.syncNow}</Text>
-              </TouchableOpacity>
-            }
+            title={t.progressSummary}
+            right={<Pill label={progress ? `${progress.percent}%` : '—'} tone="teal" />}
           />
           <View style={styles.dayRow}>
-            <View style={styles.dayTile}>
-              <Text style={styles.dayTileLabel}>{t.presentDays}</Text>
-              <Text style={styles.dayTileValue}>{attendance?.presentDays ?? '—'}</Text>
-              <View style={[styles.dayBadge, { backgroundColor: colors.green }]}>
-                <MaterialIcons name="check" size={14} color="#fff" />
-              </View>
-            </View>
-            <View style={[styles.dayTile, styles.dayTileAbsent]}>
-              <Text style={[styles.dayTileLabel, { color: colors.red }]}>{t.absentDays}</Text>
-              <Text style={styles.dayTileValue}>{attendance?.absentDays ?? '—'}</Text>
-              <View style={[styles.dayBadge, { backgroundColor: colors.red }]}>
-                <MaterialIcons name="close" size={14} color="#fff" />
-              </View>
-            </View>
+            {([
+              ['VIDEO', t.videosLabel, 'play-circle-outline', colors.red, colors.redSoft],
+              ['PDF', t.documentsLabel, 'file-pdf-box', colors.blue, colors.blueSoft],
+              ['PPT', t.presentationsLabel, 'presentation', colors.amber, colors.amberSoft],
+            ] as const).map(([key, label, icon, tint, bg]) => {
+              const c = progress ? progress.byType[key] : null;
+              const complete = !!c && c.total > 0 && c.viewed === c.total;
+              return (
+                <View key={key} style={styles.dayTile}>
+                  <View style={[styles.typeIcon, { backgroundColor: bg }]}>
+                    <MaterialCommunityIcons name={icon as any} size={18} color={tint} />
+                  </View>
+                  <Text style={styles.dayTileValue}>
+                    {c ? c.viewed : '—'}<Text style={styles.dayTileOf}>{c ? ` / ${c.total}` : ''}</Text>
+                  </Text>
+                  <Text style={styles.dayTileLabel}>{label}</Text>
+                  {complete ? <View style={styles.doneDot}><MaterialIcons name="check" size={11} color="#fff" /></View> : null}
+                </View>
+              );
+            })}
           </View>
 
-          <View style={styles.loggedBox}>
+          <TouchableOpacity style={styles.loggedBox} activeOpacity={0.8} onPress={() => onNavigate('LEARNING_RESOURCES')}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.micro}>{t.totalLogged}</Text>
+              <Text style={styles.micro}>{t.learningContentViewed}</Text>
               <Text style={styles.loggedValue}>
-                {hoursDone}h<Text style={styles.loggedTarget}> / {attendance?.targetHours ?? '—'}h</Text>
+                {progress ? progress.viewedTopics : '—'}<Text style={styles.loggedTarget}> / {progress ? progress.totalTopics : '—'} {t.topicsWord}</Text>
               </Text>
-              <View style={styles.loggedMetaRow}>
-                <Pill label={`${hoursLeft}h ${t.remaining}`} tone="teal" textStyle={styles.pillLower} />
-                <Text style={styles.loggedMeta}> · {hoursPct}% {t.ofTarget}</Text>
+              <View style={styles.progressTrack}>
+                <View style={[styles.progressFill, { width: `${Math.min(100, progress?.percent ?? 0)}%` }]} />
               </View>
+              <Text style={styles.loggedMeta}>
+                {progress && progress.lastViewedAt
+                  ? `${t.lastViewed} · ${new Date(progress.lastViewedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}`
+                  : t.startLearning}
+              </Text>
             </View>
             <View style={styles.loggedIcon}>
-              <MaterialCommunityIcons name="progress-check" size={22} color={colors.ink} />
+              <MaterialCommunityIcons name="book-open-page-variant-outline" size={22} color={colors.ink} />
             </View>
-          </View>
+          </TouchableOpacity>
         </Card>
 
         {/* Modules */}
@@ -280,18 +283,19 @@ const styles = StyleSheet.create({
   heroTrack: { height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.12)', marginTop: 14, overflow: 'hidden' },
   heroFill: { height: '100%', borderRadius: 3, backgroundColor: colors.cyan },
 
-  syncChip: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 6, borderRadius: radius.sm, backgroundColor: colors.tealSoft },
-  syncChipText: { fontSize: 11, fontWeight: '800', color: colors.teal, letterSpacing: 0.4, textTransform: 'uppercase' },
 
   dayRow: { flexDirection: 'row', gap: 10 },
   dayTile: {
     flex: 1, alignItems: 'center', paddingVertical: 12, borderRadius: radius.md,
     backgroundColor: colors.surfaceMuted, borderWidth: 1, borderColor: colors.line,
   },
-  dayTileAbsent: { backgroundColor: colors.redSoft, borderColor: '#F8D4D4' },
   dayTileLabel: { fontSize: 10.5, fontWeight: '800', color: colors.ink2, letterSpacing: 0.6, textTransform: 'uppercase' },
-  dayTileValue: { fontSize: 22, fontWeight: '800', color: colors.ink, marginVertical: 6 },
-  dayBadge: { width: 26, height: 26, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  dayTileValue: { fontSize: 20, fontWeight: '800', color: colors.ink, marginTop: 8 },
+  dayTileOf: { fontSize: 12, fontWeight: '600', color: colors.muted },
+  typeIcon: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  doneDot: { position: 'absolute', top: 8, right: 8, width: 18, height: 18, borderRadius: 9, backgroundColor: colors.green, alignItems: 'center', justifyContent: 'center' },
+  progressTrack: { height: 6, borderRadius: 3, backgroundColor: colors.line, marginTop: 10, overflow: 'hidden' },
+  progressFill: { height: '100%', borderRadius: 3, backgroundColor: colors.teal },
 
   loggedBox: {
     flexDirection: 'row', alignItems: 'center', marginTop: 12, padding: 14,
@@ -299,9 +303,7 @@ const styles = StyleSheet.create({
   },
   loggedValue: { fontSize: 20, fontWeight: '800', color: colors.ink, marginTop: 4 },
   loggedTarget: { fontSize: 13, fontWeight: '600', color: colors.muted },
-  loggedMetaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
-  loggedMeta: { fontSize: 11.5, color: colors.muted },
-  pillLower: { textTransform: 'none', letterSpacing: 0 },
+  loggedMeta: { fontSize: 11.5, color: colors.muted, marginTop: 8 },
   loggedIcon: {
     width: 44, height: 44, borderRadius: radius.md, backgroundColor: colors.surface,
     alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.line,

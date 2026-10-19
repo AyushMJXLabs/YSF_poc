@@ -60,7 +60,7 @@ class ScreenTimeTracker {
 
       // Record to backend analytics
       this.recordTelemetry({
-        traineeId: 'T001',
+        traineeId: apiService.traineeId,
         traineeName,
         module: moduleName,
         durationSeconds

@@ -14,6 +14,7 @@ import { getTranslation } from '../i18n/translations';
 import { Header } from '../components/Header';
 import { apiService } from '../services/api';
 import { screenTimeTracker } from '../services/ScreenTimeTracker';
+import { useHardwareBack } from '../hooks/useHardwareBack';
 import { colors, radius, Card, Pill } from '../theme';
 
 interface EventsScreenProps {
@@ -32,6 +33,12 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({
   const [events, setEvents] = useState<AcademicEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Android hardware back → previous screen instead of closing the app
+  useHardwareBack(() => {
+    onBack();
+    return true;
+  });
 
   const loadEvents = useCallback(async () => {
     const data = await apiService.getEvents();

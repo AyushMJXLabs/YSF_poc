@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { MongoClient } = require('mongodb');
 
-const DB_FILE = path.join(__dirname, '..', 'data', 'db.json');
+const DB_FILE = process.env.DB_FILE ? path.resolve(process.env.DB_FILE) : path.join(__dirname, '..', 'data', 'db.json');
 
 const initialData = {
   trainees: [

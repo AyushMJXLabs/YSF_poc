@@ -39,7 +39,6 @@ export const DrawerSidebar: React.FC<DrawerSidebarProps> = ({
     { name: 'NOTICES', label: t.notice, icon: 'notifications', iconType: 'material' },
     { name: 'PROFILE', label: t.profile, icon: 'person', iconType: 'material' },
     { name: 'TECHNICAL_QUERY', label: t.technicalQuery, icon: 'headset-mic', iconType: 'material' },
-    { name: 'CHANGE_PASSWORD', label: t.changePassword, icon: 'vpn-key', iconType: 'material' },
   ];
 
   const handleItemPress = (screen: ScreenName) => {

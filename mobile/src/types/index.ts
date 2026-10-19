@@ -1,39 +1,35 @@
 export type Language = 'en' | 'mr';
 
-export interface TraineeInfo {
-  ysfCode: string;
+export interface ProfileField {
+  /** translation key the app may use for the label */
+  key: string;
+  label: string;
+  value: string;
+}
+
+export interface ProfileSection {
+  key: 'trainee' | 'course';
+  title: string;
+  fields: ProfileField[];
+}
+
+/** Profile = Trainee Information + Course Details (same fields as the admin reports) */
+export interface TraineeProfile {
   fullName: string;
-  schemeName: string;
-  sectorName: string;
-  industryPartner: string;
-  zoneName: string;
-  locationName: string;
-}
-
-export interface CourseInfo {
-  courseName: string;
-  jobRoleAssigned: string;
-  sectorSkillCouncil: string;
-  nsqLevel: string;
-  registrationDate: string;
-  endDate: string;
-  presentOJT: string;
-}
-
-export interface OtherInfo {
-  nativeAddress: string;
-  contact1: string;
-  contact2: string;
-  email: string;
-  aadharNumber: string;
-}
-
-export interface FullProfile {
-  traineeInfo: TraineeInfo;
-  courseInfo: CourseInfo;
-  otherInfo: OtherInfo;
-  isReadOnly: boolean;
+  ysfCode: string;
+  avatar: string | null;
+  status: 'Active' | 'Left' | 'Completed';
+  sections: ProfileSection[];
   notice: string;
+}
+
+/** Share of learning content the trainee has opened */
+export interface LearningProgress {
+  totalTopics: number;
+  viewedTopics: number;
+  percent: number;
+  byType: { PDF: { total: number; viewed: number }; PPT: { total: number; viewed: number }; VIDEO: { total: number; viewed: number } };
+  lastViewedAt: string | null;
 }
 
 export interface LearningTopic {
@@ -47,7 +43,11 @@ export interface LearningTopic {
   contentSummary: string;
   slides?: { slideNo: number; title: string; text: string }[];
   videoDuration?: string;
+  /** true once this trainee has opened the topic */
   readStatus: boolean;
+  viewedAt?: string | null;
+  createdAt?: string;
+  contentType?: 'Technical' | 'Soft Skill';
 }
 
 export interface LearningChapter {
@@ -57,13 +57,16 @@ export interface LearningChapter {
   subject: string;
   chapter: string;
   topicsCount: number;
+  viewedCount?: number;
   topics: LearningTopic[];
 }
 
 export interface LearningSummaryRow {
   course: string;
+  total: number;
   unread: number;
-  yesterday: number;
+  viewed: number;
+  /** topics added this month / this year */
   monthly: number;
   yearly: number;
 }
@@ -187,6 +190,10 @@ export interface TestItem {
   completedAt?: string | null;
   scheme?: string;
   sector?: string;
+  /** YYYY-MM-DD; test can be taken from this date until availableUntil */
+  availableFrom?: string;
+  availableUntil?: string;
+  availability?: 'open' | 'upcoming' | 'expired';
 }
 
 export interface CourseTestSummary {
@@ -217,7 +224,6 @@ export interface NoticeItem {
 }
 
 export type ScreenName =
-  | 'INSTITUTE_CODE'
   | 'LOGIN'
   | 'DASHBOARD'
   | 'PROFILE'
@@ -226,5 +232,4 @@ export type ScreenName =
   | 'TEST_MODULE'
   | 'EVENTS'
   | 'NOTICES'
-  | 'TECHNICAL_QUERY'
-  | 'CHANGE_PASSWORD';
+  | 'TECHNICAL_QUERY';

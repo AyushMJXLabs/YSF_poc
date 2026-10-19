@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { LearningTopic } from '../types';
 import { colors, radius, shadow } from '../theme';
+import { apiService } from '../services/api';
 
 interface DocumentViewerModalProps {
   visible: boolean;
@@ -15,6 +17,8 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
   topic,
   onClose,
 }) => {
+  // Watermark with the signed-in trainee, so shared screenshots can be traced
+  const viewer = { fullName: apiService.traineeInfo.fullName || '', ysfCode: apiService.traineeInfo.ysfCode || '' };
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
 
@@ -82,7 +86,7 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
               <View style={styles.videoInfoCard}>
                 <Text style={styles.videoInfoTitle}>{topic.title}</Text>
                 <Text style={styles.videoInfoDesc}>{topic.description}</Text>
-                <Text style={styles.videoWatermark}>Trainee: KUMARI K | ID: W2307C00001</Text>
+                <Text style={styles.videoWatermark}>Trainee: {viewer.fullName} | ID: {viewer.ysfCode}</Text>
               </View>
             </View>
           ) : (
@@ -111,7 +115,7 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
                   {/* Watermark overlay */}
                   <View style={styles.watermarkBox}>
                     <Text style={styles.watermarkText}>CONFIDENTIAL - YSF KAUSHALYA LMS</Text>
-                    <Text style={styles.watermarkSub}>W2307C00001 - DO NOT DISTRIBUTE</Text>
+                    <Text style={styles.watermarkSub}>{viewer.ysfCode} - DO NOT DISTRIBUTE</Text>
                   </View>
                 </View>
               </ScrollView>

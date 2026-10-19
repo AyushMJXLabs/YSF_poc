@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import {
-  FullProfile,
+  TraineeProfile,
+  LearningProgress,
   LearningSummaryRow,
   LearningChapter,
   Assignment,
@@ -48,43 +49,46 @@ const getCandidateUrls = (): string[] => {
 const EXPECTED_INSTITUTE_CODE = process.env.EXPO_PUBLIC_INSTITUTE_CODE || '21092';
 
 // Local Mock Fallback Data (ensures offline reliability)
-const mockProfile: FullProfile = {
-  traineeInfo: {
-    ysfCode: "W2307C00001",
-    fullName: "KUMARI K",
-    schemeName: "NEEM / National Apprenticeship Scheme",
-    sectorName: "Automotive Manufacturing",
-    industryPartner: "Tata Motors Ltd. / Bharat Forge",
-    zoneName: "West Zone - Maharashtra",
-    locationName: "Pune - Chakan Industrial Area"
-  },
-  courseInfo: {
-    courseName: "Diploma in Automotive Manufacturing Technology",
-    jobRoleAssigned: "Prod",
-    sectorSkillCouncil: "1301",
-    nsqLevel: "4",
-    registrationDate: "2023/03/01",
-    endDate: "2025/02/28",
-    presentOJT: "Active"
-  },
-  otherInfo: {
-    nativeAddress: "Plot 42, Shirdi Nagar, Nashik, Maharashtra - 422001",
-    contact1: "+91 98810 88850",
-    contact2: "+91 89565 37504",
-    email: "kumari.k@student.ysfskills.com",
-    aadharNumber: "XXXX-XXXX-8921"
-  },
-  isReadOnly: true,
-  notice: "Profile information is auto-generated; you only need to confirm. External changes handled by YSF admins."
+const mockProfile: TraineeProfile = {
+  fullName: "KUMARI K",
+  ysfCode: "W2307C00001",
+  avatar: null,
+  status: "Active",
+  sections: [
+    {
+      key: "trainee", title: "Trainee Information", fields: [
+        { key: "traineeName", label: "Trainee Name", value: "KUMARI K" },
+        { key: "ysfCodeLabel", label: "YSF Code", value: "W2307C00001" },
+        { key: "aadhaarCard", label: "Aadhaar Card Number", value: "XXXX XXXX 8921" },
+        { key: "contactNo", label: "Contact No", value: "+91 98810 88850" },
+        { key: "schemeLabel", label: "Scheme", value: "NEEM / National Apprenticeship Scheme" },
+        { key: "zoneLabel", label: "Zone", value: "West Zone - Maharashtra" },
+        { key: "industryName", label: "Industry Name", value: "Tata Motors Ltd. / Bharat Forge" },
+        { key: "industryLocation", label: "Industry Location", value: "Pune - Chakan Industrial Area" }
+      ]
+    },
+    {
+      key: "course", title: "Course Details", fields: [
+        { key: "sectorLabel", label: "Sector", value: "Automotive Manufacturing" },
+        { key: "jobRole", label: "Job Role", value: "Production Technician - Prod" },
+        { key: "courseNameLabel", label: "Course Name", value: "Diploma in Automotive Manufacturing Technology" },
+        { key: "courseStartDate", label: "Course Start Date", value: "01-03-2023" },
+        { key: "courseEndDate", label: "Course End Date", value: "28-02-2025" },
+        { key: "academicYear", label: "Academic Year", value: "2022-23" }
+      ]
+    }
+  ],
+  notice: "Profile details come from YSF records. For corrections, please contact the YSF admin."
 };
 
 const mockResourcesSummary: LearningSummaryRow[] = [
   {
     course: "Diploma in Automotive Manufacturing Technology",
+    total: 3,
     unread: 2,
-    yesterday: 0,
-    monthly: 12,
-    yearly: 48
+    viewed: 1,
+    monthly: 0,
+    yearly: 3
   }
 ];
 
@@ -436,6 +440,10 @@ class ApiService {
     return this.trainee.id;
   }
 
+  get traineeInfo(): { id: string; ysfCode?: string; fullName?: string } {
+    return this.trainee;
+  }
+
   constructor() {
     this.initBaseUrl();
   }
@@ -691,44 +699,70 @@ class ApiService {
     }
   }
 
-  // Get Trainee Profile
-  async getProfile(): Promise<FullProfile> {
+  private q(): string {
+    return `traineeId=${encodeURIComponent(this.traineeId)}`;
+  }
+
+  // ---------- Profile ----------
+  async getProfile(): Promise<TraineeProfile> {
+    const cacheKey = `@ysf_cached_profile_${this.traineeId}`;
     try {
-      const json = await this.request('/trainee/profile');
+      const json = await this.request(`/trainee/profile?${this.q()}`);
       if (json && json.success && json.data) {
-        AsyncStorage.setItem('@ysf_cached_profile', JSON.stringify(json.data)).catch(() => {});
-        return json.data;
+        const data = { ...json.data, avatar: json.data.avatar ? this.rewriteFileUrl(json.data.avatar) : null };
+        AsyncStorage.setItem(cacheKey, JSON.stringify(data)).catch(() => {});
+        return data;
       }
     } catch (e) {
       try {
-        const c = await AsyncStorage.getItem('@ysf_cached_profile');
+        const c = await AsyncStorage.getItem(cacheKey);
         if (c) return JSON.parse(c);
       } catch (err) {}
     }
     return mockProfile;
   }
 
-  // Learning Resources Summary
-  async getResourcesSummary(): Promise<LearningSummaryRow[]> {
+  /** Uploads an image and sets it as the trainee's profile picture. Returns the new avatar URL. */
+  async setProfilePicture(file: { uri?: string; name: string; mimeType?: string; file?: any; size?: number | string }): Promise<{ success: boolean; message: string; avatar?: string }> {
+    const uploaded = await this.uploadFile(file);
+    if (!uploaded) return { success: false, message: 'Could not upload the picture. Please check your connection and try again.' };
     try {
-      const json = await this.request('/resources/summary');
+      const { json } = await this.send('/trainee/avatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ traineeId: this.traineeId, url: uploaded.url })
+      });
+      if (!json.success) return { success: false, message: json.message || 'Could not update the picture' };
+      AsyncStorage.removeItem(`@ysf_cached_profile_${this.traineeId}`).catch(() => {});
+      return { success: true, message: json.message, avatar: this.rewriteFileUrl(json.avatar) };
+    } catch (e) {
+      return { success: false, message: 'You appear to be offline. Please try again.' };
+    }
+  }
+
+  // ---------- Learning Resources ----------
+  async getResourcesSummary(): Promise<LearningSummaryRow[]> {
+    const cacheKey = `@ysf_cached_res_summary_${this.traineeId}`;
+    try {
+      const json = await this.request(`/resources/summary?${this.q()}`);
       if (json && json.success && json.data) {
-        AsyncStorage.setItem('@ysf_cached_res_summary', JSON.stringify(json.data)).catch(() => {});
+        AsyncStorage.setItem(cacheKey, JSON.stringify(json.data)).catch(() => {});
         return json.data;
       }
     } catch (e) {
       try {
-        const c = await AsyncStorage.getItem('@ysf_cached_res_summary');
+        const c = await AsyncStorage.getItem(cacheKey);
         if (c) return JSON.parse(c);
       } catch (err) {}
     }
     return mockResourcesSummary;
   }
 
-  // Learning Resources Hierarchy
+  /** Chapters for the trainee's course (each carries course, subject, chapter); readStatus is per trainee */
   async getResourcesHierarchy(): Promise<LearningChapter[]> {
+    const cacheKey = `@ysf_cached_res_hierarchy_${this.traineeId}`;
     try {
-      const json = await this.request('/resources/hierarchy');
+      const json = await this.request(`/resources/hierarchy?${this.q()}`);
       if (json && json.success && json.data) {
         const data = (json.data as LearningChapter[]).map(chap => ({
           ...chap,
@@ -737,16 +771,48 @@ class ApiService {
             fileUrl: this.rewriteFileUrl(t.fileUrl || (t.fileName ? `/api/files/${t.fileName}` : undefined))
           }))
         }));
-        AsyncStorage.setItem('@ysf_cached_res_hierarchy', JSON.stringify(data)).catch(() => {});
+        AsyncStorage.setItem(cacheKey, JSON.stringify(data)).catch(() => {});
         return data;
       }
     } catch (e) {
       try {
-        const c = await AsyncStorage.getItem('@ysf_cached_res_hierarchy');
+        const c = await AsyncStorage.getItem(cacheKey);
         if (c) return JSON.parse(c);
       } catch (err) {}
     }
     return mockResourcesHierarchy;
+  }
+
+  /** Call when the trainee opens a topic; returns their updated learning progress */
+  async markResourceViewed(topicId: string): Promise<LearningProgress | null> {
+    try {
+      const { json } = await this.send(`/resources/${encodeURIComponent(topicId)}/viewed`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ traineeId: this.traineeId })
+      });
+      return json && json.success ? json.progress : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /** Progress Summary on the home screen: % of learning content the trainee has opened */
+  async getLearningProgress(): Promise<LearningProgress | null> {
+    const cacheKey = `@ysf_cached_progress_${this.traineeId}`;
+    try {
+      const json = await this.request(`/trainee/progress?${this.q()}`);
+      if (json && json.success && json.data) {
+        AsyncStorage.setItem(cacheKey, JSON.stringify(json.data)).catch(() => {});
+        return json.data;
+      }
+    } catch (e) {
+      try {
+        const c = await AsyncStorage.getItem(cacheKey);
+        if (c) return JSON.parse(c);
+      } catch (err) {}
+    }
+    return null;
   }
 
   // ---------- Assignments ----------
@@ -798,10 +864,29 @@ class ApiService {
   }
 
   // Upload File Attachment to Backend
+  // Expo replaces the global fetch with an implementation that can't send React Native's
+  // { uri, name, type } file parts. React Native's own XMLHttpRequest still can, so file
+  // uploads on Android/iOS go through it.
+  private postFormNative(url: string, formData: FormData): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', url);
+      xhr.timeout = 120000;
+      xhr.onload = () => {
+        try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(new Error(`Upload failed (${xhr.status})`)); }
+      };
+      xhr.onerror = () => reject(new Error('Network error while uploading'));
+      xhr.ontimeout = () => reject(new Error('Upload timed out'));
+      xhr.send(formData as any);
+    });
+  }
+
   async uploadFile(file: { uri?: string; name: string; mimeType?: string; file?: any; size?: number | string }): Promise<{ name: string; url: string; size: string } | null> {
     try {
       const formData = new FormData();
-      if (file.file) {
+      // The picker's `file` is a browser File on web; on Android/iOS it is a native
+      // object FormData can't send, so native uploads always go by uri.
+      if (Platform.OS === 'web' && file.file) {
         formData.append('file', file.file);
       } else if (file.uri) {
         formData.append('file', {
@@ -811,11 +896,9 @@ class ApiService {
         } as any);
       }
       const working = await this.getBaseUrl();
-      const res = await fetch(`${working}/upload`, {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
+      const data = Platform.OS === 'web'
+        ? await (await fetch(`${working}/upload`, { method: 'POST', body: formData })).json()
+        : await this.postFormNative(`${working}/upload`, formData);
       if (data.success && data.file) {
         return {
           ...data.file,
@@ -1022,7 +1105,7 @@ class ApiService {
   // Technical Queries Helpdesk
   async getQueries(): Promise<TechnicalQueryTicket[]> {
     try {
-      const json = await this.request('/queries');
+      const json = await this.request(`/queries?${this.q()}`);
       if (json && json.success && Array.isArray(json.data)) {
         AsyncStorage.setItem('@ysf_cached_queries', JSON.stringify(json.data)).catch(() => {});
         return json.data;

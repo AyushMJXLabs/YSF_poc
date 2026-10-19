@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   RefreshControl,
+  Linking,
 } from 'react-native';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
@@ -19,6 +20,7 @@ import { DocumentViewerModal } from '../components/DocumentViewerModal';
 import { apiService } from '../services/api';
 import { screenTimeTracker } from '../services/ScreenTimeTracker';
 import { colors, radius, Card, Pill } from '../theme';
+import { useHardwareBack } from '../hooks/useHardwareBack';
 
 interface AssignmentsScreenProps {
   language: Language;
@@ -85,6 +87,15 @@ export const AssignmentsScreen: React.FC<AssignmentsScreenProps> = ({ language, 
     if (view === 'upload') setView('detail');
     else if (view === 'detail' || view === 'new') setView('home');
     else onBack();
+  };
+  useHardwareBack(() => {
+    if (viewer) { setViewer(null); return true; }
+    handleBack();
+    return true;
+  });
+
+  const downloadFile = (url: string) => {
+    Linking.openURL(url).catch(() => Alert.alert(t.downloadFile, 'Could not open the file.'));
   };
 
   const pickFile = async (types?: string[]) => {
@@ -375,6 +386,10 @@ export const AssignmentsScreen: React.FC<AssignmentsScreenProps> = ({ language, 
               <View style={{ marginTop: 12 }}>
                 <Text style={[styles.micro, { marginBottom: 8 }]}>{t.assignmentBrief}</Text>
                 {fileRow(a.attachment, 0)}
+                <TouchableOpacity style={styles.downloadBtn} onPress={() => downloadFile(a.attachment!.url)} activeOpacity={0.8}>
+                  <MaterialCommunityIcons name="download-outline" size={18} color={colors.teal} />
+                  <Text style={styles.downloadText}>{t.downloadFile} · {a.attachment.name}</Text>
+                </TouchableOpacity>
               </View>
             ) : null}
           </Card>
@@ -531,6 +546,8 @@ const styles = StyleSheet.create({
   fileIcon: { width: 34, height: 34, borderRadius: 10, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
   fileName: { fontSize: 13.5, fontWeight: '600', color: colors.ink },
   fileMeta: { fontSize: 11.5, color: colors.muted, marginTop: 1 },
+  downloadBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 42, borderRadius: radius.md, borderWidth: 1, borderColor: colors.teal, marginTop: 2 },
+  downloadText: { fontSize: 13.5, fontWeight: '700', color: colors.teal },
   acceptLine: { fontSize: 12.5, color: colors.ink2, marginTop: 4 },
   dropzone: {
     alignItems: 'center', justifyContent: 'center', paddingVertical: 20, borderRadius: radius.md,

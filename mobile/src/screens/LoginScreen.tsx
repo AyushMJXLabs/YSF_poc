@@ -23,19 +23,17 @@ import { colors, radius, shadow } from '../theme';
 interface LoginScreenProps {
   language: Language;
   onLoginSuccess: (trainee: any) => void;
-  onChangeInstitute: () => void;
   onTermsPressed: () => void;
 }
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({
   language,
   onLoginSuccess,
-  onChangeInstitute,
   onTermsPressed,
 }) => {
   const t = getTranslation(language);
-  const [username, setUsername] = useState('W2307C00001');
-  const [password, setPassword] = useState('password123');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [serverModalVisible, setServerModalVisible] = useState(false);
@@ -180,14 +178,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             <Text style={[styles.actionButtonText, styles.secondaryButtonText]}>{t.guest}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.actionButton, styles.ghostButton]}
-            onPress={onChangeInstitute}
-            activeOpacity={0.7}
-          >
-            <MaterialIcons name="swap-horiz" size={18} color={colors.teal} style={{ marginRight: 6 }} />
-            <Text style={[styles.actionButtonText, styles.ghostButtonText]}>{t.changeInstitute}</Text>
-          </TouchableOpacity>
         </View>
 
         {/* Copyright & Terms */}
@@ -219,7 +209,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     alignItems: 'center',
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 16 : 56,
+    paddingTop: 28,
     paddingHorizontal: 16,
     paddingBottom: 24,
   },
@@ -361,15 +351,6 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: colors.ink,
-  },
-  ghostButton: {
-    backgroundColor: 'transparent',
-    marginBottom: 0,
-    paddingVertical: 10,
-  },
-  ghostButtonText: {
-    color: colors.teal,
-    fontSize: 14,
   },
   termsBox: {
     alignItems: 'center',

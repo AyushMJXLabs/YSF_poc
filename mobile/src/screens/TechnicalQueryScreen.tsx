@@ -16,6 +16,7 @@ import { Language, TechnicalQueryTicket } from '../types';
 import { getTranslation } from '../i18n/translations';
 import { Header } from '../components/Header';
 import { screenTimeTracker } from '../services/ScreenTimeTracker';
+import { useHardwareBack } from '../hooks/useHardwareBack';
 import { apiService } from '../services/api';
 import { colors, radius, shadow } from '../theme';
 
@@ -41,6 +42,12 @@ export const TechnicalQueryScreen: React.FC<TechnicalQueryScreenProps> = ({
   // Tickets history state
   const [tickets, setTickets] = useState<TechnicalQueryTicket[]>([]);
   const [loadingTickets, setLoadingTickets] = useState(true);
+
+  // Android hardware back → previous screen instead of closing the app
+  useHardwareBack(() => {
+    onBack();
+    return true;
+  });
 
   // Load support phone and email from environment variables with fallback
   const supportPhone = process.env.EXPO_PUBLIC_YSF_SUPPORT_PHONE || '098810-88850';
@@ -83,9 +90,9 @@ export const TechnicalQueryScreen: React.FC<TechnicalQueryScreenProps> = ({
 
     setSubmitting(true);
     const res = await apiService.submitQuery({
-      traineeId: 'T001',
+      traineeId: apiService.traineeId,
       traineeName,
-      ysfCode: 'W2307C00001',
+      ysfCode: apiService.traineeInfo.ysfCode,
       subject: subject.trim(),
       category,
       message: message.trim()

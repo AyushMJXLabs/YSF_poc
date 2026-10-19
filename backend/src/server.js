@@ -22,6 +22,7 @@ const {
   getFileFromMongo
 } = require('./data');
 const { registerAssessmentRoutes, migrateAssessmentData } = require('./assessments');
+const { registerLmsRoutes, migrateLmsData } = require('./lms');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -350,9 +351,13 @@ app.post('/api/auth/login', (req, res) => {
     return res.status(401).json({ success: false, message: "Invalid username or password" });
   }
 
-  if (trainee.status === "Left") {
-    return res.status(403).json({ success: false, message: "Account is marked as Left. Contact YSF Admin." });
+  if (!lms.hasAccess(trainee)) {
+    return res.status(403).json({ success: false, message: "Your LMS access has ended (status: Left). Please contact the YSF admin." });
   }
+
+  trainee.lastLoginAt = new Date().toISOString();
+  trainee.loginCount = (trainee.loginCount || 0) + 1;
+  saveDb(db);
 
   return res.json({
     success: true,
@@ -406,190 +411,10 @@ app.post('/api/auth/change-password', (req, res) => {
 // ==========================================
 // 2. PROFILE MODULE (READ-ONLY)
 // ==========================================
-app.get('/api/trainee/profile', (req, res) => {
-  const db = getDb();
-  const traineeId = req.query.traineeId || "T001";
-  const trainee = db.trainees.find(t => t.id === traineeId || t.ysfCode === traineeId) || db.trainees[0];
-
-  return res.json({
-    success: true,
-    data: {
-      traineeInfo: {
-        ysfCode: trainee.ysfCode,
-        fullName: trainee.fullName,
-        schemeName: trainee.schemeName,
-        sectorName: trainee.sectorName,
-        industryPartner: trainee.industryPartner,
-        zoneName: trainee.zoneName,
-        locationName: trainee.locationName
-      },
-      courseInfo: {
-        courseName: trainee.courseName,
-        jobRoleAssigned: trainee.jobRoleAssigned,
-        sectorSkillCouncil: trainee.sectorSkillCouncil,
-        nsqLevel: trainee.nsqLevel,
-        registrationDate: trainee.registrationDate,
-        endDate: trainee.endDate,
-        presentOJT: trainee.presentOJT
-      },
-      otherInfo: {
-        nativeAddress: trainee.nativeAddress,
-        contact1: trainee.contact1,
-        contact2: trainee.contact2,
-        email: trainee.email,
-        aadharNumber: trainee.aadharNumber
-      },
-      isReadOnly: true,
-      notice: "Profile information is auto-generated; you only need to confirm. External changes handled by YSF admins."
-    }
-  });
-});
-
 // ==========================================
-// 3. LEARNING RESOURCES MODULE
+// 2-3. PROFILE, LEARNING RESOURCES, USER MASTER, REPORTS (see src/lms.js)
 // ==========================================
-app.get('/api/resources/summary', (req, res) => {
-  const db = getDb();
-  return res.json({
-    success: true,
-    data: db.learningResources.summary
-  });
-});
-
-app.get('/api/resources/hierarchy', (req, res) => {
-  const db = getDb();
-  return res.json({
-    success: true,
-    data: db.learningResources.hierarchy
-  });
-});
-
-// Secure viewer endpoint (strictly prevents downloading)
-app.get('/api/resources/view/:topicId', (req, res) => {
-  const { topicId } = req.params;
-  const db = getDb();
-  let foundTopic = null;
-
-  for (const h of db.learningResources.hierarchy) {
-    const t = h.topics.find(top => top.id === topicId);
-    if (t) {
-      foundTopic = t;
-      break;
-    }
-  }
-
-  if (!foundTopic) {
-    return res.status(404).json({ success: false, message: "Resource not found" });
-  }
-
-  // Prevent browser from triggering download
-  res.setHeader('Content-Disposition', 'inline');
-  res.setHeader('X-Download-Options', 'noopen');
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-
-  return res.json({
-    success: true,
-    data: foundTopic,
-    downloadAllowed: false
-  });
-});
-
-// ADMIN: Add Resource Topic
-app.post('/api/admin/resources/topic', (req, res) => {
-  const {
-    scheme = "NEEM / Skill India",
-    sector = "Automotive",
-    course = "Diploma in Automotive Manufacturing Technology",
-    subject = "Workplace Safety & Standards",
-    chapter = "General Training",
-    title,
-    description,
-    fileType = "PDF",
-    fileName,
-    fileUrl,
-    fileSize,
-    contentSummary
-  } = req.body;
-
-  if (!title) {
-    return res.status(400).json({ success: false, message: "Topic title is required" });
-  }
-
-  const db = getDb();
-  let chapterItem = db.learningResources.hierarchy.find(
-    h => h.chapter.toLowerCase() === chapter.toLowerCase() && h.course === course
-  );
-
-  const newTopicId = `TOP-${Date.now().toString().slice(-4)}`;
-  const newTopic = {
-    id: newTopicId,
-    title,
-    description: description || title,
-    fileType: fileType.toUpperCase(),
-    fileName: fileName || `${title.toLowerCase().replace(/\s+/g, '_')}.${fileType.toLowerCase() === 'video' ? 'mp4' : fileType.toLowerCase() === 'ppt' ? 'pptx' : 'pdf'}`,
-    fileUrl: fileUrl || (fileName ? `/uploads/${fileName}` : undefined),
-    fileSize: fileSize || "1.5 MB",
-    contentSummary: contentSummary || "Content uploaded and verified by YSF LMS Admin.",
-    slides: [
-      { slideNo: 1, title: title, text: contentSummary || description || "Content provided by YSF Admin." },
-      { slideNo: 2, title: "Operational Guidelines", text: "Ensure strict adherence to plant safety and operational protocols." }
-    ],
-    videoDuration: fileType.toUpperCase() === 'VIDEO' ? "12:30" : undefined,
-    readStatus: false
-  };
-
-  if (chapterItem) {
-    chapterItem.topics.push(newTopic);
-    chapterItem.topicsCount = chapterItem.topics.length;
-  } else {
-    chapterItem = {
-      scheme,
-      sector,
-      course,
-      subject,
-      chapter,
-      topicsCount: 1,
-      topics: [newTopic]
-    };
-    db.learningResources.hierarchy.push(chapterItem);
-  }
-
-  // Update summary table unread and monthly counts
-  const sumRow = db.learningResources.summary.find(s => s.course === course);
-  if (sumRow) {
-    sumRow.unread += 1;
-    sumRow.monthly += 1;
-    sumRow.yearly += 1;
-  }
-
-  saveDb(db);
-  return res.json({ success: true, message: "Resource topic created successfully", data: newTopic });
-});
-
-// ADMIN: Delete Resource Topic
-app.delete('/api/admin/resources/topic/:id', (req, res) => {
-  const { id } = req.params;
-  const db = getDb();
-  let deleted = false;
-
-  db.learningResources.hierarchy.forEach(chap => {
-    const idx = chap.topics.findIndex(t => t.id === id);
-    if (idx !== -1) {
-      chap.topics.splice(idx, 1);
-      chap.topicsCount = chap.topics.length;
-      deleted = true;
-    }
-  });
-
-  // Remove empty chapters
-  db.learningResources.hierarchy = db.learningResources.hierarchy.filter(chap => chap.topics.length > 0);
-
-  if (deleted) {
-    saveDb(db);
-    return res.json({ success: true, message: "Resource topic deleted successfully" });
-  }
-  return res.status(404).json({ success: false, message: "Resource topic not found" });
-});
+const lms = registerLmsRoutes(app, { getDb, saveDb, upload, UPLOADS_DIR });
 
 // ==========================================
 // 4-5. ASSIGNMENT & TEST MODULES (see src/assessments.js)
@@ -700,12 +525,14 @@ app.post('/api/analytics/screentime', (req, res) => {
     traineeName: traineeName || "KUMARI K",
     module: module || "General App",
     durationSeconds: parseInt(durationSeconds) || 0,
-    timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19)
+    // India time, matching the dashboard's per-day screen time chart
+    timestamp: new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Kolkata' }).substring(0, 19)
   };
 
   db.screenTimeLogs.unshift(log);
-  if (db.screenTimeLogs.length > 100) {
-    db.screenTimeLogs.pop();
+  // Kept for the screen time & learning progress reports
+  if (db.screenTimeLogs.length > 20000) {
+    db.screenTimeLogs.length = 20000;
   }
   saveDb(db);
 
@@ -735,93 +562,6 @@ app.post('/api/admin/mongo/sync', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message, mongoStatus: getMongoStatus() });
   }
-});
-
-app.post('/api/admin/trainees/:id/status', (req, res) => {
-  const { id } = req.params;
-  const { status } = req.body;
-  const db = getDb();
-  const trainee = db.trainees.find(t => t.id === id);
-
-  if (!trainee) {
-    return res.status(404).json({ success: false, message: "Trainee not found" });
-  }
-
-  trainee.status = status;
-  saveDb(db);
-
-  return res.json({ success: true, message: "Status updated successfully", trainee });
-});
-
-app.post('/api/admin/trainees', (req, res) => {
-  const db = getDb();
-  const { ysfCode, fullName, email, courseName, industryPartner, zoneName, locationName, presentOJT, jobRoleAssigned } = req.body;
-  const newTrainee = {
-    id: `T${String(db.trainees.length + 1).padStart(3, '0')}`,
-    ysfCode: ysfCode || `W2307C${String(db.trainees.length + 1).padStart(5, '0')}`,
-    username: ysfCode || `W2307C${String(db.trainees.length + 1).padStart(5, '0')}`,
-    password: "password123",
-    fullName: fullName || "New Trainee",
-    schemeName: "NEEM / National Apprenticeship Scheme",
-    sectorName: "Automotive Manufacturing",
-    industryPartner: industryPartner || "Tata Motors Ltd.",
-    zoneName: zoneName || "West Zone - Maharashtra",
-    locationName: locationName || "Pune - Chakan Industrial Area",
-    courseName: courseName || "Diploma in Automotive Manufacturing Technology",
-    jobRoleAssigned: jobRoleAssigned || "Production Technician - Prod",
-    sectorSkillCouncil: "1301 - ASDC",
-    nsqLevel: "4",
-    registrationDate: new Date().toISOString().slice(0, 10).replace(/-/g, '/'),
-    endDate: "2026/02/28",
-    presentOJT: presentOJT || "Active",
-    nativeAddress: "Maharashtra, India",
-    contact1: "+91 98810 88850",
-    contact2: "",
-    email: email || "student@ysfskills.com",
-    aadharNumber: "XXXX-XXXX-1234",
-    status: "Active",
-    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300&q=80"
-  };
-  db.trainees.push(newTrainee);
-  saveDb(db);
-  return res.json({ success: true, message: "Trainee registered successfully", trainee: newTrainee });
-});
-
-app.post('/api/admin/trainees/bulk-status', (req, res) => {
-  const { traineeIds, status, endDate, remarks } = req.body;
-  const db = getDb();
-  if (!Array.isArray(traineeIds) || traineeIds.length === 0) {
-    return res.status(400).json({ success: false, message: "No trainees selected for status update" });
-  }
-
-  const updatedTrainees = [];
-  db.trainees.forEach(t => {
-    if (traineeIds.includes(t.id) || traineeIds.includes(t.ysfCode)) {
-      t.status = status || t.status;
-      if (status === 'Left') {
-        t.presentOJT = 'Inactive';
-      } else if (status === 'Active') {
-        t.presentOJT = 'Active';
-      } else if (status === 'Completed') {
-        t.presentOJT = 'Graduated';
-      }
-      if (endDate) t.endDate = endDate;
-      updatedTrainees.push(t);
-    }
-  });
-
-  if (!db.batchStatusHistory) db.batchStatusHistory = [];
-  db.batchStatusHistory.unshift({
-    id: `BSH-${Date.now().toString().slice(-4)}`,
-    timestamp: new Date().toISOString().replace('T', ' ').slice(0, 16),
-    updatedBy: "Admin",
-    traineesCount: updatedTrainees.length,
-    status: status,
-    remarks: remarks || `Batch status updated to ${status}`
-  });
-
-  saveDb(db);
-  return res.json({ success: true, message: `Successfully updated ${updatedTrainees.length} trainee(s) to ${status}`, updatedTrainees });
 });
 
 // Master Forms CRUD
@@ -1176,244 +916,6 @@ app.delete('/api/admin/question-bank/:id', (req, res) => {
 // 10. MASS TRAINEE INGESTION & AADHAAR UPSERT
 // ==========================================
 
-const generateTraineeExcelTemplate = (req, res) => {
-  try {
-    const wb = XLSX.utils.book_new();
-    const headers = [
-      'Aadhar Number',
-      'Trainee ID',
-      'Full Name',
-      'Mobile',
-      'Email',
-      'Course',
-      'Batch',
-      'Company / OJT Site',
-      'Trade',
-      'Status',
-      'Password (Optional)'
-    ];
-    const sampleRows = [
-      [
-        '429810238921',
-        'W2307C00001',
-        'KUMARI K',
-        '+91 98810 88850',
-        'kumari.k@student.ysfskills.com',
-        'Diploma in Automotive Manufacturing Technology',
-        'Batch 2023-25',
-        'Tata Motors Ltd. / Bharat Forge',
-        'Production Technician - Prod',
-        'Active',
-        'password123'
-      ],
-      [
-        '891234564512',
-        'W2307C00002',
-        'RAHUL SHINDE',
-        '+91 98221 44332',
-        'rahul.s@student.ysfskills.com',
-        'Diploma in Automotive Manufacturing Technology',
-        'Batch 2023-25',
-        'Mahindra & Mahindra',
-        'Assembly Line Operator',
-        'In OJT',
-        'password123'
-      ]
-    ];
-    const ws = XLSX.utils.aoa_to_sheet([headers, ...sampleRows]);
-    ws['!cols'] = [
-      { wch: 18 }, { wch: 16 }, { wch: 22 }, { wch: 16 },
-      { wch: 28 }, { wch: 38 }, { wch: 16 }, { wch: 28 },
-      { wch: 25 }, { wch: 12 }, { wch: 18 }
-    ];
-    XLSX.utils.book_append_sheet(wb, ws, 'TraineesUploadTemplate');
-    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', 'attachment; filename="YSF_Trainee_Bulk_Upload_Template.xlsx"');
-    return res.send(buffer);
-  } catch (err) {
-    console.error('Trainee template generation error:', err);
-    return res.status(500).json({ success: false, message: 'Failed to generate template' });
-  }
-};
-
-app.get('/api/admin/users/template', generateTraineeExcelTemplate);
-app.get('/api/admin/trainees/template', generateTraineeExcelTemplate);
-
-const handleTraineeBulkUpload = (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ success: false, message: 'No spreadsheet file provided' });
-  }
-  try {
-    const workbook = XLSX.readFile(req.file.path);
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const rows = XLSX.utils.sheet_to_json(sheet);
-
-    if (!rows || rows.length === 0) {
-      return res.status(400).json({ success: false, message: 'Spreadsheet contains no rows' });
-    }
-
-    const db = getDb();
-    if (!db.trainees) db.trainees = [];
-    if (!db.attendance) db.attendance = {};
-
-    let insertedCount = 0;
-    let updatedCount = 0;
-    let skippedCount = 0;
-    const summaryDetails = [];
-
-    rows.forEach((row, i) => {
-      const rawAadhar = String(row['Aadhar Number'] || row['Aadhaar Number'] || row['Aadhaar'] || row['aadhar'] || '').replace(/[^0-9]/g, '');
-      const traineeId = String(row['Trainee ID'] || row['TraineeId'] || row['YSF Code'] || row['username'] || '').trim();
-      const fullName = String(row['Full Name'] || row['Name'] || row['fullName'] || '').trim();
-      const mobile = String(row['Mobile'] || row['Phone'] || row['Contact'] || '').trim();
-      const email = String(row['Email'] || '').trim();
-      const course = String(row['Course'] || 'Diploma in Automotive Manufacturing Technology').trim();
-      const batch = String(row['Batch'] || 'Batch 2023-25').trim();
-      const company = String(row['Company / OJT Site'] || row['Company'] || 'Tata Motors Ltd.').trim();
-      const trade = String(row['Trade'] || row['Job Role'] || 'Production Technician').trim();
-      const status = String(row['Status'] || 'Active').trim();
-      const password = String(row['Password (Optional)'] || 'ysf123').trim();
-
-      if (!fullName && !rawAadhar && !traineeId) {
-        skippedCount++;
-        return;
-      }
-
-      // Deduplication: Match by Aadhaar first, then by traineeId / username
-      let existingTrainee = null;
-      if (rawAadhar && rawAadhar.length === 12) {
-        existingTrainee = db.trainees.find(t => (t.aadharNumber || '').replace(/[^0-9]/g, '') === rawAadhar);
-      }
-      if (!existingTrainee && traineeId) {
-        existingTrainee = db.trainees.find(t => t.id === traineeId || t.ysfCode === traineeId || t.username === traineeId);
-      }
-
-      if (existingTrainee) {
-        // Update existing record (Upsert)
-        existingTrainee.fullName = fullName || existingTrainee.fullName;
-        existingTrainee.status = status || existingTrainee.status;
-        existingTrainee.enrollmentStatus = status || existingTrainee.enrollmentStatus;
-        existingTrainee.courseName = course || existingTrainee.courseName;
-        existingTrainee.batch = batch || existingTrainee.batch;
-        existingTrainee.industryPartner = company || existingTrainee.industryPartner;
-        existingTrainee.trade = trade || existingTrainee.trade;
-        existingTrainee.jobRoleAssigned = trade || existingTrainee.jobRoleAssigned;
-        if (mobile) {
-          existingTrainee.contact1 = mobile;
-          existingTrainee.mobile = mobile;
-        }
-        if (email) existingTrainee.email = email;
-        if (rawAadhar && rawAadhar.length === 12) existingTrainee.aadharNumber = rawAadhar;
-        existingTrainee.updatedAt = new Date().toISOString();
-
-        // Ensure attendance record exists
-        if (!db.attendance[existingTrainee.id]) {
-          db.attendance[existingTrainee.id] = {
-            traineeId: existingTrainee.id,
-            ysfCode: existingTrainee.ysfCode,
-            traineeName: existingTrainee.fullName,
-            presentDays: 20,
-            absentDays: 2,
-            completedHours: 160,
-            targetHours: 240,
-            percentage: 66.7,
-            updatedAt: new Date().toISOString()
-          };
-        }
-
-        updatedCount++;
-        summaryDetails.push({
-          type: 'UPDATED',
-          ysfCode: existingTrainee.ysfCode,
-          name: existingTrainee.fullName,
-          status: existingTrainee.status,
-          aadhar: rawAadhar ? `XXXX-XXXX-${rawAadhar.slice(-4)}` : 'Matched by ID'
-        });
-      } else {
-        // Create new trainee
-        const newId = `T${String(db.trainees.length + 1).padStart(3, '0')}`;
-        const newYsfCode = traineeId || `W2307C${String(db.trainees.length + 1).padStart(5, '0')}`;
-
-        const newTrainee = {
-          id: newId,
-          ysfCode: newYsfCode,
-          username: newYsfCode,
-          password: password || 'ysf123',
-          fullName: fullName || 'New Trainee',
-          schemeName: 'NEEM / National Apprenticeship Scheme',
-          sectorName: 'Automotive Manufacturing',
-          industryPartner: company,
-          zoneName: 'West Zone - Maharashtra',
-          locationName: 'Pune - Chakan Industrial Area',
-          courseName: course,
-          batch,
-          trade,
-          jobRoleAssigned: trade,
-          sectorSkillCouncil: '1301 - ASDC',
-          nsqLevel: '4',
-          registrationDate: new Date().toISOString().slice(0, 10).replace(/-/g, '/'),
-          endDate: '2026/02/28',
-          presentOJT: (status === 'Active' || status === 'In OJT') ? 'Active' : 'Inactive',
-          nativeAddress: 'Maharashtra, India',
-          contact1: mobile || '+91 98810 88850',
-          contact2: '',
-          mobile: mobile || '+91 98810 88850',
-          email: email || `${newYsfCode.toLowerCase()}@student.ysfskills.com`,
-          aadharNumber: rawAadhar || '429810238921',
-          status: status || 'Active',
-          enrollmentStatus: status || 'Active',
-          avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300&q=80',
-          updatedAt: new Date().toISOString()
-        };
-
-        db.trainees.push(newTrainee);
-
-        db.attendance[newId] = {
-          traineeId: newId,
-          ysfCode: newYsfCode,
-          traineeName: newTrainee.fullName,
-          presentDays: 0,
-          absentDays: 0,
-          completedHours: 0,
-          targetHours: 240,
-          percentage: 0,
-          updatedAt: new Date().toISOString()
-        };
-
-        insertedCount++;
-        summaryDetails.push({
-          type: 'INSERTED',
-          ysfCode: newYsfCode,
-          name: newTrainee.fullName,
-          status: newTrainee.status,
-          aadhar: rawAadhar ? `XXXX-XXXX-${rawAadhar.slice(-4)}` : 'Generated'
-        });
-      }
-    });
-
-    db.users = db.trainees;
-    saveDb(db);
-
-    return res.json({
-      success: true,
-      message: `Trainee ingestion complete: ${insertedCount} new enrolled, ${updatedCount} updated, ${skippedCount} skipped.`,
-      insertedCount,
-      updatedCount,
-      skippedCount,
-      totalTrainees: db.trainees.length,
-      summaryDetails
-    });
-  } catch (err) {
-    console.error('Trainee bulk upload error:', err);
-    return res.status(500).json({ success: false, message: 'Failed to process trainee spreadsheet: ' + err.message });
-  }
-};
-
-app.post('/api/admin/users/bulk-upload', upload.single('file'), handleTraineeBulkUpload);
-app.post('/api/admin/trainees/bulk-upload', upload.single('file'), handleTraineeBulkUpload);
-
 // ==========================================
 // 11. OJT ATTENDANCE & HOURS MANAGEMENT
 // ==========================================
@@ -1632,7 +1134,7 @@ app.get('/api/sync', (req, res) => {
   }
 
   const db = getDb();
-  if (migrateAssessmentData(db)) {
+  if (migrateLmsData(db) | migrateAssessmentData(db)) {
     saveDb(db);
     console.log('[Startup] Assignment & test records migrated to the per-trainee format.');
   }
